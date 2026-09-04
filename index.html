@@ -204,6 +204,77 @@ button.primary{background:linear-gradient(#2149a0,#10265f);border-color:#fff;col
 }
 .flair-chip{background:#10265f;color:#fff;border:2px solid #fff;padding:4px 8px}
 @media(max-width:850px){.match-layout90{grid-template-columns:1fr}.history90{font-family:Arial,Helvetica,sans-serif;max-height:180px}.current-action90 .actiontext{font-size:22px}}
+
+html,body{max-width:100%;overflow-x:hidden}
+body{-webkit-text-size-adjust:100%;touch-action:manipulation}
+button,input,select{min-height:44px}
+button{padding:10px 14px}
+img,canvas{max-width:100%;height:auto}
+.table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{min-width:640px}
+#pitch{width:100%;max-width:100%;aspect-ratio:1.72}
+#pitchWrap90{width:100%;overflow:visible}
+.panel{width:100%;box-sizing:border-box}
+.screen{padding-left:10px;padding-right:10px;box-sizing:border-box}
+.title-screen{padding:20px;box-sizing:border-box}
+.press-start{padding:18px 28px;border:3px solid #fff;background:rgba(0,0,0,.18)}
+.team-selector{width:min(100%,900px);box-sizing:border-box}
+.team-main{min-width:0}
+.team-emblem{max-width:48vw;max-height:48vw}
+.arrow90{min-width:52px;min-height:58px;padding:0 10px}
+#tacticsModal>div,#playerModal>div{max-height:92vh;overflow:auto;-webkit-overflow-scrolling:touch}
+input,select{font-size:16px}
+@media(max-width:900px){
+ .match-layout90{grid-template-columns:1fr}
+ .history90{max-height:180px}
+}
+@media(max-width:700px){
+ header{padding:8px 10px}
+ header h1{font-size:22px;letter-spacing:1px}
+ .setup90{margin:20px auto}
+ .welcome-box{padding:18px 14px}
+ .welcome-box h2{font-size:28px}
+ .welcome-box p{font-size:15px;line-height:1.4}
+ .setup90 input{font-size:20px;width:100%;box-sizing:border-box}
+ .team-stage{display:grid;grid-template-columns:48px 1fr 48px;gap:8px;min-height:auto;padding:12px 0}
+ .team-side{grid-column:1/-1;display:grid !important;grid-template-columns:1fr 1fr;gap:8px;text-align:center;font-size:13px}
+ #teamLeftInfo{grid-row:2}
+ #teamRightInfo{grid-row:3}
+ .team-main{grid-column:1/-1;grid-row:1}
+ .team-main>div{gap:8px !important}
+ .team-emblem{width:150px;height:150px;font-size:44px}
+ .team-name-big{font-size:28px}
+ .team-season-big{font-size:18px}
+ .overall90{font-size:46px}
+ .arrow90{font-size:38px;min-width:48px}
+ .current-action90{min-height:100px;padding:14px}
+ .current-action90 .actiontext{font-size:20px}
+ .history90{font-size:14px}
+ .match-flair90{gap:5px}
+ .flair-chip{font-size:10px;padding:4px 6px}
+ .player-profile-grid{grid-template-columns:1fr 1fr}
+ .setpiece-stat .big{font-size:34px}
+ .choicegrid,.grid,.cardlist{grid-template-columns:1fr !important}
+ .card{padding:10px}
+}
+@media(max-width:480px){
+ .title-logo{font-size:50px;letter-spacing:-2px}
+ .title-sub{font-size:12px;letter-spacing:3px}
+ .press-start{font-size:22px;letter-spacing:2px;margin-top:45px}
+ .team-emblem{width:128px;height:128px;font-size:38px;border-width:5px}
+ .team-name-big{font-size:24px}
+ .arrow90{font-size:32px}
+ .team-side{grid-template-columns:1fr}
+ .player-profile-grid{grid-template-columns:1fr}
+ .current-action90 .actiontext{font-size:18px}
+ .current-action90 .minute{font-size:14px}
+ #tacticsModal>div,#playerModal>div{width:96vw !important;padding:10px}
+}
+
+@media(max-width:700px){
+ table{display:block;overflow-x:auto;white-space:nowrap;width:100%;-webkit-overflow-scrolling:touch}
+ th,td{padding:7px 8px}
+}
 </style>
 </head>
 <body>
@@ -469,7 +540,7 @@ teams.forEach(t=>{let o=document.createElement("option");o.value=t.id;o.textCont
 function teamPreview(){let t=T($("#managerTeam").value);$("#teamPreview").innerHTML=`<b>${t.name} ${t.season}</b><br>Vice: ${t.coach}<br>Forza base ${t.strength}/100`}
 $("#managerTeam").onchange=teamPreview;teamPreview();
 $("#managerNext").onclick=()=>{audio();$("#managerStep").style.display="none";$("#teamStep").style.display="block";renderTeamPicker();
-$("#pressStart").onclick=()=>{audio();crowd(.018,1.4);$("#titleScreen").style.display="none";};crowd(.018,1.2)};
+crowd(.018,1.2)};
 $("#teamBack").onclick=()=>{$("#teamStep").style.display="none";$("#managerStep").style.display="block"};
 $("#prevTeam").onclick=()=>{selectedTeamIndex=(selectedTeamIndex-1+teams.length)%teams.length;renderTeamPicker()};
 $("#nextTeam").onclick=()=>{selectedTeamIndex=(selectedTeamIndex+1)%teams.length;renderTeamPicker()};
@@ -783,5 +854,36 @@ $("#closeTactics").onclick=()=>{let st=career.teamStates[career.user];st.formati
  const wasPrematch=!!window._prematchEdit;window._prematchEdit=false;
  if($("#halftime").classList.contains("active"))paused=true;else if(wasPrematch)paused=false;else paused=false}
 </script>
-<div class="scanline"></div></body>
+<div class="scanline"></div>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+  const qs=(s)=>document.querySelector(s);
+  const start=qs("#pressStart");
+  const title=qs("#titleScreen");
+  if(start && title){
+    const go=()=>{
+      try{ if(typeof audio==="function") audio(); }catch(e){}
+      try{ if(typeof crowd==="function") crowd(.018,1.4); }catch(e){}
+      title.style.display="none";
+    };
+    start.addEventListener("click",go,{passive:true});
+    start.addEventListener("touchend",(e)=>{e.preventDefault();go();},{passive:false});
+    start.setAttribute("role","button");
+    start.setAttribute("tabindex","0");
+    start.addEventListener("keydown",(e)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}});
+  }
+
+  // make team arrows resilient on touch
+  const prev=qs("#prevTeam"), next=qs("#nextTeam");
+  if(prev) prev.style.touchAction="manipulation";
+  if(next) next.style.touchAction="manipulation";
+
+  // prevent iOS zoom quirks on inputs by ensuring 16px minimum
+  document.querySelectorAll("input,select,button").forEach(el=>{
+    el.style.touchAction="manipulation";
+  });
+});
+</script>
+
+</body>
 </html>

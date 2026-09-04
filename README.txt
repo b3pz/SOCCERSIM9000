@@ -88,3 +88,15 @@ V2.5 - MATCH EXPERIENCE / TITLE SCREEN
 - Dopo l'evento importante il campo sparisce e si torna alla cronaca testuale.
 - Font della cronaca aumentato.
 - Elementi grafici aggiuntivi tipo RADIO PARTITA / DIRETTA STADIO / 90 MINUTI.
+
+V2.6 MOBILE FIX
+- Corretto PRESS START con binding DOMContentLoaded e supporto click/touch/keyboard.
+- Aggiunto viewport mobile.
+- Touch target minimi 44px.
+- Layout squadra ridisegnato per schermi piccoli.
+- Tabelle scrollabili orizzontalmente.
+- Modali scrollabili e adattive.
+- Campo responsive.
+- Cronaca e storico impilati su mobile.
+- Input a 16px per evitare zoom automatico su iPhone.
+- Migliorata compatibilità touch su frecce e pulsanti.
