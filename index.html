@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Serie A '90 SIM</title>
+<style>
+:root{
+ --bg:#cbc5b5;--paper:#f1ecdc;--ink:#171717;--muted:#6f6b61;--line:#343434;
+ --green:#2e6142;--red:#8d2c24;--gold:#b08d46;--dark:#101010
+}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:"Courier New",monospace}
+button,input,select{font:inherit}
+button{cursor:pointer;border:2px solid #222;background:#eae4d4;padding:9px 12px}
+button.primary{background:var(--dark);color:#fff}
+button.active{background:var(--green);color:#fff}
+button.danger{background:var(--red);color:#fff}
+button:disabled{opacity:.4;cursor:not-allowed}
+input,select{padding:9px;border:2px solid #222;background:#f8f3e6}
+header{background:#111;color:#eee;border-bottom:5px solid #777;padding:13px 18px;display:flex;justify-content:space-between;align-items:end}
+header h1{margin:0;letter-spacing:2px} header small{opacity:.8}
+main{max-width:1180px;margin:auto;padding:16px}
+.screen{display:none}.screen.active{display:block}
+.panel{background:var(--paper);border:2px solid var(--line);padding:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+.hero{max-width:720px;margin:40px auto}
+.statline{display:flex;gap:10px;flex-wrap:wrap}.stat{border:1px solid #777;padding:6px 9px;background:#e7e1d2}
+h2,h3{margin:.2em 0 .65em}.muted{color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px;border-bottom:1px solid #aaa;text-align:left}
+#pitch{
+ position:relative;
+ background:
+   repeating-linear-gradient(
+     90deg,
+     #2d7449 0%,
+     #2d7449 10%,
+     #347d51 10%,
+     #347d51 20%
+   );
+ border:5px solid #f5f5ef;
+ aspect-ratio:1.72;
+ overflow:visible;
+ box-shadow:inset 0 0 0 2px rgba(0,0,0,.18);
+}
+.pitch-mark{position:absolute;pointer-events:none;z-index:1}
+.touchline{left:0;right:0;top:0;bottom:0;border:2px solid rgba(255,255,255,.95)}
+.halfway{left:50%;top:0;bottom:0;border-left:2px solid rgba(255,255,255,.95);transform:translateX(-1px)}
+.center-circle{left:42%;top:31%;width:16%;height:38%;border:2px solid rgba(255,255,255,.95);border-radius:50%}
+.center-spot{left:50%;top:50%;width:6px;height:6px;background:#fff;border-radius:50%;transform:translate(-50%,-50%)}
+.penalty-box-left{left:0;top:18%;width:17%;height:64%;border:2px solid rgba(255,255,255,.95);border-left:0}
+.penalty-box-right{right:0;top:18%;width:17%;height:64%;border:2px solid rgba(255,255,255,.95);border-right:0}
+.goal-box-left{left:0;top:34%;width:7%;height:32%;border:2px solid rgba(255,255,255,.95);border-left:0}
+.goal-box-right{right:0;top:34%;width:7%;height:32%;border:2px solid rgba(255,255,255,.95);border-right:0}
+.penalty-spot-left{left:11%;top:50%;width:6px;height:6px;background:#fff;border-radius:50%;transform:translate(-50%,-50%)}
+.penalty-spot-right{right:11%;top:50%;width:6px;height:6px;background:#fff;border-radius:50%;transform:translate(50%,-50%)}
+.penalty-arc-left{
+ left:13%;top:38%;width:8%;height:24%;
+ border:2px solid rgba(255,255,255,.95);border-left:0;border-radius:0 100% 100% 0;
+}
+.penalty-arc-right{
+ right:13%;top:38%;width:8%;height:24%;
+ border:2px solid rgba(255,255,255,.95);border-right:0;border-radius:100% 0 0 100%;
+}
+.corner{width:18px;height:18px;border:2px solid rgba(255,255,255,.95);border-radius:50%}
+.corner.tl{left:-9px;top:-9px}.corner.bl{left:-9px;bottom:-9px}.corner.tr{right:-9px;top:-9px}.corner.br{right:-9px;bottom:-9px}
+.goal{
+ position:absolute;top:40%;width:4.5%;height:20%;
+ z-index:3;
+ background:
+   repeating-linear-gradient(0deg,rgba(255,255,255,.55) 0 1px,transparent 1px 6px),
+   repeating-linear-gradient(90deg,rgba(255,255,255,.55) 0 1px,transparent 1px 6px);
+}
+.goal.left{
+ left:-4.5%;
+ border:3px solid #f5f5ef;border-right:0;
+}
+.goal.right{
+ right:-4.5%;
+ border:3px solid #f5f5ef;border-left:0;
+}
+.goal-post{
+ position:absolute;background:#fff;z-index:4;
+}
+.goal.left:before,.goal.left:after,.goal.right:before,.goal.right:after{
+ content:"";position:absolute;width:4px;height:4px;background:#fff;border-radius:50%;
+}
+.goal.left:before{right:-2px;top:-2px}.goal.left:after{right:-2px;bottom:-2px}
+.goal.right:before{left:-2px;top:-2px}.goal.right:after{left:-2px;bottom:-2px}
+.dot{position:absolute;width:15px;height:15px;border-radius:50%;transform:translate(-50%,-50%);transition:left .7s linear,top .7s linear;border:2px solid #fff;z-index:5}
+.home{background:#111}.away{background:#eee;border-color:#111}.ball{position:absolute;width:9px;height:9px;background:#fff;border-radius:50%;transform:translate(-50%,-50%);transition:left .6s linear,top .6s linear}
+#overlay{position:absolute;inset:0;background:rgba(0,0,0,.58);display:none;align-items:center;justify-content:center;z-index:10}
+#overlayBox{background:#eee8d6;border:4px solid #111;padding:18px 26px;text-align:center;min-width:48%}.goal{font-size:56px;font-weight:bold}
+.log{height:310px;overflow:auto;background:#111;color:#d8f5ca;padding:10px;white-space:pre-wrap;font-size:13px}
+.matchhead{font-size:22px;margin-bottom:8px}
+.choicegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.choice{border:2px solid #333;padding:10px;background:#e7e1d2}
+.cardlist{display:grid;grid-template-columns:1fr 1fr;gap:8px}.card{border:1px solid #777;padding:8px;background:#e8e2d3}
+
+.player-table tr.selectable{cursor:pointer}
+.player-table tr.selectable:hover{background:#ddd5c3}
+.player-table tr.selected{background:#b9cbb9}
+.rolebadge{display:inline-block;min-width:38px;text-align:center;border:1px solid #555;padding:2px 4px;background:#ddd6c5}
+.smallstat{font-size:12px;color:#555}
+.subhint{padding:8px;border:1px solid #777;background:#e6dfcf;margin-bottom:10px}
+
+@media(max-width:820px){.grid,.cardlist,.choicegrid{grid-template-columns:1fr}}
+
+@font-face{font-family:system-ui}
+:root{--blue90:#10265f;--cyan90:#39d4e7;--yellow90:#f1d33b;--red90:#c63a31;--cream90:#e7dfc9}
+body{
+ font-family:Arial Narrow,Arial,Helvetica,sans-serif;
+ background:
+ linear-gradient(rgba(6,18,52,.88),rgba(6,18,52,.88)),
+ repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.04) 3px 4px),
+ #071437;
+ color:#f4f0df;
+}
+header{background:#07102a;border-bottom:4px solid var(--cyan90);box-shadow:0 3px 0 var(--yellow90)}
+header h1{font-style:italic;font-weight:900;text-shadow:3px 3px #9b2424;letter-spacing:3px}
+.panel{background:linear-gradient(180deg,#e8e1cd,#cfc6ad);color:#151515;border:3px solid #fff;box-shadow:5px 5px 0 #050b20}
+button,input,select{font-family:Arial Narrow,Arial,sans-serif;font-weight:700}
+button{background:#d8d0b8;box-shadow:2px 2px 0 #111;text-transform:uppercase}
+button.primary{background:linear-gradient(#2149a0,#10265f);border-color:#fff;color:#fff}
+.setup90{max-width:780px;margin:55px auto;text-align:center}
+.setup90 input{font-size:26px;text-align:center;width:min(420px,90%);padding:14px}
+.team-selector{max-width:900px;margin:30px auto}
+.team-stage{display:grid;grid-template-columns:1fr 2fr 1fr;align-items:center;gap:18px;min-height:390px}
+.team-main{text-align:center}
+.team-emblem{
+ width:220px;height:220px;border-radius:50%;margin:0 auto 18px;
+ display:flex;align-items:center;justify-content:center;
+ border:8px double #fff;box-shadow:0 0 0 5px #111,8px 8px 0 rgba(0,0,0,.45);
+ font-size:62px;font-weight:900;text-shadow:2px 2px #000;color:white
+}
+.team-name-big{font-size:36px;font-weight:900;text-transform:uppercase}
+.team-season-big{font-size:24px}
+.arrow90{font-size:52px;background:#10265f;color:#fff;border:3px solid #fff;min-width:70px}
+.team-side{font-size:15px;line-height:1.5}
+.overall90{font-size:58px;font-weight:900;color:#10265f}
+.scanline{position:fixed;inset:0;pointer-events:none;z-index:9999;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.045) 3px 4px)}
+.crowd-indicator{font-size:12px;color:#555;margin-top:5px}
+@media(max-width:760px){.team-stage{grid-template-columns:55px 1fr 55px}.team-side{display:none}.team-emblem{width:170px;height:170px}}
+
+.player-click{cursor:pointer}
+.player-click:hover{outline:2px solid #10265f;background:#ddd5c3}
+.player-profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.setpiece-stat{border:3px solid #111;background:#e7dfc9;padding:12px;text-align:center}
+.setpiece-stat .big{font-size:42px;font-weight:900;color:#10265f}
+.setpiece-stat .label{font-size:13px;font-weight:900;text-transform:uppercase}
+.player-profile-head{text-align:center;border-bottom:3px double #111;padding-bottom:10px;margin-bottom:12px}
+@media(max-width:600px){.player-profile-grid{grid-template-columns:1fr}}
+
+.title-screen{
+ position:fixed;inset:0;z-index:10000;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ background:
+ radial-gradient(circle at center,#17398f 0,#0b1c51 50%,#050b20 100%);
+ color:#fff;text-align:center;
+}
+.title-screen:before{
+ content:"";position:absolute;inset:0;pointer-events:none;
+ background:
+ repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.05) 3px 4px),
+ linear-gradient(90deg,transparent 0 48%,rgba(255,255,255,.025) 48% 52%,transparent 52%);
+}
+.title-logo{
+ font-size:clamp(52px,8vw,110px);font-weight:900;font-style:italic;
+ letter-spacing:-4px;text-shadow:5px 5px 0 #b42a27,9px 9px 0 #050b20;
+ transform:skew(-5deg);z-index:1
+}
+.title-sub{font-size:20px;letter-spacing:6px;color:#f0d948;margin-top:15px;z-index:1}
+.press-start{
+ margin-top:70px;font-size:30px;font-weight:900;letter-spacing:4px;
+ animation:blink90 1s steps(1) infinite;cursor:pointer;z-index:1
+}
+.title-footer{position:absolute;bottom:30px;font-size:11px;color:#8aa0d7;letter-spacing:2px}
+@keyframes blink90{50%{opacity:.15}}
+.welcome-box{padding:28px 30px}
+.welcome-badge{
+ display:inline-block;background:#10265f;color:white;border:3px solid #fff;
+ padding:6px 14px;box-shadow:3px 3px 0 #111;margin-bottom:15px;
+ font-weight:900;letter-spacing:2px
+}
+.match-layout90{display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,.8fr);gap:14px}
+.current-action90{
+ min-height:125px;background:linear-gradient(#ece4cf,#d0c6a9);color:#101010;
+ border:4px solid #fff;box-shadow:4px 4px 0 #03091b;padding:18px;
+ display:flex;flex-direction:column;justify-content:center
+}
+.current-action90.home{border-left:12px solid #2b63c7}
+.current-action90.away{border-left:12px solid #b63232}
+.current-action90 .minute{font-size:16px;font-weight:900}
+.current-action90 .actiontext{font-size:26px;font-weight:900;line-height:1.15;margin-top:8px}
+.history90{font-family:Arial,Helvetica,sans-serif;
+ background:#0b1537;color:#d9e6ff;border:3px solid #6a79a1;
+ max-height:430px;overflow:auto;padding:8px;font-size:13px
+}
+.history90 .hist-item{padding:7px 6px;border-bottom:1px solid #33416b}
+.history90 .hist-item.home{border-left:4px solid #2b63c7}
+.history90 .hist-item.away{border-left:4px solid #b63232}
+.pitch-wrap90{display:none;margin-top:12px}
+.pitch-wrap90.active{display:block}
+.match-flair90{
+ display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:12px
+}
+.flair-chip{background:#10265f;color:#fff;border:2px solid #fff;padding:4px 8px}
+@media(max-width:850px){.match-layout90{grid-template-columns:1fr}.history90{font-family:Arial,Helvetica,sans-serif;max-height:180px}.current-action90 .actiontext{font-size:22px}}
+</style>
+</head>
+<body>
+<header><div><h1>SERIE A '90 SIM</h1><small id="headerSub">Manager storico</small></div><div id="headerRight">—</div></header>
+<div id="titleScreen" class="title-screen">
+  <div class="title-logo">SERIE A '90 SIM</div>
+  <div class="title-sub">IL GRANDE CALCIO ITALIANO</div>
+  <div class="press-start" id="pressStart">PRESS START</div>
+  <div class="title-footer">© 1990-2000 STYLE FOOTBALL MANAGEMENT SYSTEM</div>
+</div>
+<main>
+
+<section id="setup" class="screen active">
+<div id="managerStep" class="panel setup90">
+<div class="welcome-box">
+<div class="welcome-badge">LEGA CALCIO</div>
+<h2>BENVENUTO, MISTER!</h2>
+<p>La stagione sta per iniziare.</p>
+<p>Gli stadi sono pieni, i giornali parlano già di mercato e ogni domenica può cambiare tutto.</p>
+<p><b>Prima di affidarti una panchina dobbiamo sapere una cosa...</b></p>
+<h3>QUAL È IL TUO NOME?</h3>
+<input id="managerName" maxlength="24" placeholder="NOME MANAGER">
+<br><br><button class="primary" id="managerNext">AVANTI ▶</button>
+</div>
+</div>
+
+<div id="teamStep" class="panel team-selector" style="display:none">
+<h2 style="text-align:center">SCEGLI LA TUA SQUADRA</h2>
+<div class="team-stage">
+<div class="team-side" id="teamLeftInfo"></div>
+<div class="team-main">
+<div style="display:flex;align-items:center;justify-content:center;gap:18px">
+<button class="arrow90" id="prevTeam">◀</button>
+<div>
+<div class="team-emblem" id="teamEmblem">FC</div>
+<div class="team-name-big" id="teamNameBig"></div>
+<div class="team-season-big" id="teamSeasonBig"></div>
+</div>
+<button class="arrow90" id="nextTeam">▶</button>
+</div>
+</div>
+<div class="team-side" id="teamRightInfo"></div>
+</div>
+<div style="text-align:center"><button id="teamBack">◀ INDIETRO</button> <button class="primary" id="createCareer">CONFERMA SQUADRA ▶</button></div>
+</div>
+<select id="managerTeam" style="display:none"></select>
+<div id="teamPreview" style="display:none"></div>
+</section>
+
+<section id="season" class="screen">
+<div class="grid">
+<div class="panel">
+<h2>RIEPILOGO STAGIONE</h2>
+<div id="managerSummary"></div>
+<div class="toolbar" style="margin-top:12px">
+<button data-view="next" class="active">Prossima partita</button>
+<button data-view="results">Risultati</button>
+<button data-view="table">Classifica</button>
+<button data-view="scorers">Marcatori</button>
+<button data-view="assists">Assist</button>
+</div>
+</div>
+<div class="panel">
+<h2>STATO</h2>
+<div id="seasonStatus"></div>
+</div>
+</div>
+<div class="panel" style="margin-top:14px" id="seasonContent"></div>
+</section>
+
+<section id="prematch" class="screen">
+<div class="grid">
+<div class="panel">
+<h2>PRE-PARTITA</h2>
+<div id="prematchInfo"></div>
+<h3>Modulo</h3><div id="formationChoices" class="choicegrid"></div>
+<h3>Atteggiamento</h3><div class="toolbar">
+<button data-ment="Difensivo">Difensivo</button>
+<button data-ment="Normale">Normale</button>
+<button data-ment="Offensivo">Offensivo</button>
+</div>
+</div>
+<div class="panel">
+<h2>Formazione</h2>
+<div id="lineupPreview"></div>
+<br><button id="prematchLineup">MODIFICA TITOLARI / RISERVE</button>
+<h3>Battitori</h3>
+<div id="setPieces"></div>
+</div>
+</div>
+<div class="panel" style="margin-top:14px">
+<div class="toolbar"><button id="backSeason">← Riepilogo stagione</button><button class="primary" id="startMatch">INIZIA PARTITA</button></div>
+</div>
+</section>
+
+<section id="match" class="screen">
+<div class="match-flair90"><div class="flair-chip">RADIO PARTITA</div><div class="flair-chip">DIRETTA STADIO</div></div>
+<div class="match-layout90"><div id="currentAction" class="current-action90"><div class="minute">0'</div><div class="actiontext">Le squadre stanno entrando in campo...</div></div><div><div style="font-weight:900;margin-bottom:5px">CRONACA</div><div id="commentary" class="history90"></div></div></div>
+<div class="grid">
+<div class="panel">
+<h2>PARTITA</h2>
+<div class="matchhead" id="score">—</div>
+<div class="toolbar" style="margin-bottom:8px">
+<button id="pauseBtn">PAUSA</button><button id="tacticsBtn">TATTICA / CAMBI</button>
+<button data-speed="1" class="active">1x</button><button data-speed="2">2x</button><button data-speed="4">4x</button>
+</div>
+<div id="pitchWrap90" class="pitch-wrap90"><div id="pitch">
+<div class="pitch-mark touchline"></div>
+<div class="pitch-mark halfway"></div>
+<div class="pitch-mark center-circle"></div>
+<div class="pitch-mark center-spot"></div>
+<div class="pitch-mark penalty-box-left"></div>
+<div class="pitch-mark penalty-box-right"></div>
+<div class="pitch-mark goal-box-left"></div>
+<div class="pitch-mark goal-box-right"></div>
+<div class="pitch-mark penalty-spot-left"></div>
+<div class="pitch-mark penalty-spot-right"></div>
+<div class="pitch-mark penalty-arc-left"></div>
+<div class="pitch-mark penalty-arc-right"></div>
+<div class="pitch-mark corner tl"></div>
+<div class="pitch-mark corner tr"></div>
+<div class="pitch-mark corner bl"></div>
+<div class="pitch-mark corner br"></div>
+<div class="goal left"></div>
+<div class="goal right"></div>
+<div id="overlay"><div id="overlayBox"></div></div>
+</div></div>
+</div>
+<div class="panel">
+<h2>CRONACA</h2>
+<div class="log" id="log"></div>
+</div>
+</div>
+</section>
+
+<section id="halftime" class="screen">
+<div class="panel hero">
+<h2>INTERVALLO</h2>
+<div id="halftimeScore"></div>
+<div id="halftimeStats"></div>
+<br>
+<div class="toolbar">
+<button id="halfTactics">TATTICA / CAMBI</button>
+<button class="primary" id="resumeSecond">INIZIA SECONDO TEMPO</button>
+</div>
+</div>
+</section>
+
+<section id="postmatch" class="screen">
+<div class="panel">
+<h2>ANALISI POST-PARTITA</h2>
+<div id="postScore"></div>
+<div class="grid" style="margin-top:12px">
+<div><h3>Statistiche</h3><div id="postStats"></div></div>
+<div><h3>Eventi chiave</h3><div id="postEvents"></div></div>
+</div>
+<br><button class="primary" id="returnSeason">TORNA AL RIEPILOGO STAGIONE</button>
+</div>
+</section>
+
+<div id="tacticsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;align-items:center;justify-content:center">
+<div class="panel" style="width:min(900px,94vw);max-height:90vh;overflow:auto">
+<h2>TATTICA / CAMBI</h2>
+<div class="grid">
+<div>
+<label>Modulo <select id="liveFormation"></select></label><br><br>
+<label>Atteggiamento <select id="liveMentality"><option>Difensivo</option><option>Normale</option><option>Offensivo</option></select></label>
+<h3>Battitori</h3><div id="liveSetPieces"></div>
+</div>
+<div>
+<h3>Cambio</h3>
+<div class="stat">Sostituzioni: <span id="subsCount">0/3</span></div><br>
+<div class="subhint">Seleziona prima un <b>titolare</b>, poi una <b>riserva</b>. Vedi ruolo, OVR e morale prima di confermare.</div>
+<h3>TITOLARI</h3>
+<div id="startersTable"></div>
+<h3>RISERVE</h3>
+<div id="benchTable"></div>
+<br><button id="doSub" disabled>EFFETTUA CAMBIO</button>
+</div>
+</div>
+<br><button class="primary" id="closeTactics">CHIUDI</button>
+</div></div>
+
+
+<div id="playerModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:150;align-items:center;justify-content:center">
+<div class="panel" style="width:min(620px,94vw)">
+<div class="player-profile-head">
+<h2 id="playerProfileName">GIOCATORE</h2>
+<div id="playerProfileMeta"></div>
+</div>
+<div class="player-profile-grid">
+<div class="setpiece-stat"><div class="label">CROSS</div><div class="big" id="profileCross">—</div><div>Calci d'angolo</div></div>
+<div class="setpiece-stat"><div class="label">TIRO</div><div class="big" id="profilePenalty">—</div><div>Rigori</div></div>
+<div class="setpiece-stat"><div class="label">TIRO</div><div class="big" id="profileFreeKick">—</div><div>Calci di punizione</div></div>
+<div class="setpiece-stat"><div class="label">TECNICA</div><div class="big" id="profileTechnique">—</div><div>Controllo del pallone</div></div>
+</div>
+<br><button class="primary" id="closePlayerProfile">CHIUDI</button>
+</div>
+</div>
+
+</main>
+<script>
+const DB={"meta": {"title": "Calcio Retro V1", "version": "1.0-prototype", "database_target": "Supabase", "frontend_target": "GitHub Pages"}, "teams": [{"id": "inter_9798", "name": "Inter", "season": "1997/98", "coach": "Luigi Simoni", "strength": 90, "formations": ["4-4-1-1", "4-3-1-2", "3-5-2"], "players": [{"id": "inter_9798_1", "name": "Gianluca Pagliuca", "pos": "GK", "stats": {"speed": 92, "technique": 94, "passing": 90, "dribbling": 78, "shooting": 78, "defending": 84, "heading": 90, "physical": 81, "vision": 85, "positioning": 86, "crossing": 90}, "overall": 88}, {"id": "inter_9798_2", "name": "Giuseppe Bergomi", "pos": "DF", "stats": {"speed": 80, "technique": 81, "passing": 93, "dribbling": 91, "shooting": 88, "defending": 94, "heading": 86, "physical": 85, "vision": 87, "positioning": 92, "crossing": 88}, "overall": 86}, {"id": "inter_9798_3", "name": "Taribo West", "pos": "DF", "stats": {"speed": 78, "technique": 86, "passing": 81, "dribbling": 78, "shooting": 87, "defending": 87, "heading": 82, "physical": 79, "vision": 91, "positioning": 89, "crossing": 85}, "overall": 83}, {"id": "inter_9798_4", "name": "Javier Zanetti", "pos": "DF", "stats": {"speed": 83, "technique": 97, "passing": 83, "dribbling": 88, "shooting": 95, "defending": 94, "heading": 93, "physical": 90, "vision": 88, "positioning": 89, "crossing": 89}, "overall": 89}, {"id": "inter_9798_5", "name": "Fabio Galante", "pos": "DF", "stats": {"speed": 74, "technique": 78, "passing": 79, "dribbling": 79, "shooting": 87, "defending": 79, "heading": 85, "physical": 78, "vision": 82, "positioning": 83, "crossing": 79}, "overall": 80}, {"id": "inter_9798_6", "name": "Francesco Moriero", "pos": "MF", "stats": {"speed": 83, "technique": 80, "passing": 78, "dribbling": 74, "shooting": 88, "defending": 85, "heading": 76, "physical": 78, "vision": 85, "positioning": 78, "crossing": 80}, "overall": 84}, {"id": "inter_9798_7", "name": "Diego Simeone", "pos": "MF", "stats": {"speed": 89, "technique": 81, "passing": 88, "dribbling": 95, "shooting": 75, "defending": 78, "heading": 93, "physical": 77, "vision": 88, "positioning": 82, "crossing": 86}, "overall": 85}, {"id": "inter_9798_8", "name": "Aron Winter", "pos": "MF", "stats": {"speed": 79, "technique": 83, "passing": 79, "dribbling": 76, "shooting": 86, "defending": 78, "heading": 86, "physical": 90, "vision": 89, "positioning": 88, "crossing": 82}, "overall": 82}, {"id": "inter_9798_9", "name": "Youri Djorkaeff", "pos": "AM", "stats": {"speed": 85, "technique": 85, "passing": 80, "dribbling": 92, "shooting": 81, "defending": 85, "heading": 93, "physical": 90, "vision": 85, "positioning": 94, "crossing": 83}, "overall": 87}, {"id": "inter_9798_10", "name": "Ronaldo", "pos": "ST", "stats": {"speed": 100, "technique": 97, "passing": 88, "dribbling": 97, "shooting": 97, "defending": 100, "heading": 100, "physical": 100, "vision": 100, "positioning": 100, "crossing": 94}, "overall": 96}, {"id": "inter_9798_11", "name": "Ivan Zamorano", "pos": "ST", "stats": {"speed": 86, "technique": 82, "passing": 82, "dribbling": 95, "shooting": 93, "defending": 85, "heading": 85, "physical": 87, "vision": 91, "positioning": 87, "crossing": 84}, "overall": 86}, {"id": "inter_9798_12", "name": "Benoît Cauet", "pos": "MF", "stats": {"speed": 82, "technique": 75, "passing": 77, "dribbling": 87, "shooting": 82, "defending": 78, "heading": 77, "physical": 86, "vision": 87, "positioning": 79, "crossing": 78}, "overall": 79}, {"id": "inter_9798_13", "name": "Zé Elias", "pos": "MF", "stats": {"speed": 86, "technique": 87, "passing": 84, "dribbling": 76, "shooting": 70, "defending": 85, "heading": 82, "physical": 75, "vision": 71, "positioning": 74, "crossing": 82}, "overall": 79}, {"id": "inter_9798_14", "name": "Francesco Colonnese", "pos": "DF", "stats": {"speed": 76, "technique": 75, "passing": 74, "dribbling": 81, "shooting": 80, "defending": 81, "heading": 74, "physical": 86, "vision": 81, "positioning": 73, "crossing": 76}, "overall": 79}, {"id": "inter_9798_15", "name": "Álvaro Recoba", "pos": "ST", "stats": {"speed": 82, "technique": 76, "passing": 87, "dribbling": 91, "shooting": 87, "defending": 78, "heading": 82, "physical": 74, "vision": 78, "positioning": 81, "crossing": 81}, "overall": 82}, {"id": "inter_9798_16", "name": "Nwankwo Kanu", "pos": "ST", "stats": {"speed": 85, "technique": 78, "passing": 77, "dribbling": 82, "shooting": 90, "defending": 79, "heading": 88, "physical": 80, "vision": 83, "positioning": 82, "crossing": 79}, "overall": 80}]}, {"id": "milan_0607", "name": "Milan", "season": "2006/07", "coach": "Carlo Ancelotti", "strength": 91, "formations": ["4-3-2-1", "4-3-1-2", "4-4-2"], "players": [{"id": "milan_0607_1", "name": "Dida", "pos": "GK", "stats": {"speed": 89, "technique": 90, "passing": 79, "dribbling": 80, "shooting": 87, "defending": 90, "heading": 83, "physical": 92, "vision": 95, "positioning": 80, "crossing": 86}, "overall": 86}, {"id": "milan_0607_2", "name": "Massimo Oddo", "pos": "DF", "stats": {"speed": 76, "technique": 92, "passing": 78, "dribbling": 83, "shooting": 79, "defending": 76, "heading": 89, "physical": 83, "vision": 80, "positioning": 81, "crossing": 83}, "overall": 84}, {"id": "milan_0607_3", "name": "Alessandro Nesta", "pos": "DF", "stats": {"speed": 94, "technique": 93, "passing": 98, "dribbling": 99, "shooting": 100, "defending": 93, "heading": 86, "physical": 84, "vision": 99, "positioning": 98, "crossing": 96}, "overall": 91}, {"id": "milan_0607_4", "name": "Paolo Maldini", "pos": "DF", "stats": {"speed": 92, "technique": 83, "passing": 87, "dribbling": 80, "shooting": 94, "defending": 81, "heading": 96, "physical": 92, "vision": 92, "positioning": 92, "crossing": 87}, "overall": 89}, {"id": "milan_0607_5", "name": "Marek Jankulovski", "pos": "DF", "stats": {"speed": 79, "technique": 88, "passing": 79, "dribbling": 83, "shooting": 89, "defending": 89, "heading": 77, "physical": 75, "vision": 92, "positioning": 80, "crossing": 85}, "overall": 82}, {"id": "milan_0607_6", "name": "Gennaro Gattuso", "pos": "MF", "stats": {"speed": 95, "technique": 81, "passing": 81, "dribbling": 82, "shooting": 86, "defending": 78, "heading": 79, "physical": 84, "vision": 97, "positioning": 94, "crossing": 84}, "overall": 87}, {"id": "milan_0607_7", "name": "Andrea Pirlo", "pos": "MF", "stats": {"speed": 99, "technique": 87, "passing": 91, "dribbling": 95, "shooting": 88, "defending": 80, "heading": 85, "physical": 95, "vision": 92, "positioning": 88, "crossing": 90}, "overall": 92}, {"id": "milan_0607_8", "name": "Massimo Ambrosini", "pos": "MF", "stats": {"speed": 79, "technique": 85, "passing": 87, "dribbling": 84, "shooting": 90, "defending": 77, "heading": 83, "physical": 86, "vision": 85, "positioning": 87, "crossing": 86}, "overall": 84}, {"id": "milan_0607_9", "name": "Clarence Seedorf", "pos": "AM", "stats": {"speed": 90, "technique": 97, "passing": 85, "dribbling": 94, "shooting": 88, "defending": 98, "heading": 96, "physical": 87, "vision": 87, "positioning": 93, "crossing": 90}, "overall": 90}, {"id": "milan_0607_10", "name": "Kaká", "pos": "AM", "stats": {"speed": 100, "technique": 97, "passing": 94, "dribbling": 99, "shooting": 95, "defending": 92, "heading": 99, "physical": 94, "vision": 100, "positioning": 100, "crossing": 96}, "overall": 95}, {"id": "milan_0607_11", "name": "Filippo Inzaghi", "pos": "ST", "stats": {"speed": 92, "technique": 91, "passing": 82, "dribbling": 96, "shooting": 80, "defending": 92, "heading": 94, "physical": 84, "vision": 95, "positioning": 84, "crossing": 88}, "overall": 88}, {"id": "milan_0607_12", "name": "Alberto Gilardino", "pos": "ST", "stats": {"speed": 87, "technique": 79, "passing": 78, "dribbling": 80, "shooting": 88, "defending": 90, "heading": 80, "physical": 85, "vision": 87, "positioning": 89, "crossing": 80}, "overall": 83}, {"id": "milan_0607_13", "name": "Cafu", "pos": "DF", "stats": {"speed": 87, "technique": 87, "passing": 85, "dribbling": 83, "shooting": 82, "defending": 75, "heading": 87, "physical": 86, "vision": 82, "positioning": 89, "crossing": 85}, "overall": 84}, {"id": "milan_0607_14", "name": "Daniele Bonera", "pos": "DF", "stats": {"speed": 86, "technique": 82, "passing": 86, "dribbling": 69, "shooting": 72, "defending": 85, "heading": 85, "physical": 81, "vision": 80, "positioning": 83, "crossing": 83}, "overall": 78}, {"id": "milan_0607_15", "name": "Serginho", "pos": "MF", "stats": {"speed": 83, "technique": 82, "passing": 81, "dribbling": 71, "shooting": 81, "defending": 79, "heading": 84, "physical": 73, "vision": 84, "positioning": 75, "crossing": 82}, "overall": 81}, {"id": "milan_0607_16", "name": "Ronaldo", "pos": "ST", "stats": {"speed": 81, "technique": 88, "passing": 88, "dribbling": 95, "shooting": 87, "defending": 89, "heading": 80, "physical": 92, "vision": 81, "positioning": 83, "crossing": 87}, "overall": 86}]}, {"id": "fiorentina_9596", "name": "Fiorentina", "season": "1995/96", "coach": "Claudio Ranieri", "strength": 86, "formations": ["4-4-2", "4-3-1-2", "3-5-2"], "players": [{"id": "fiorentina_9596_1", "name": "Francesco Toldo", "pos": "GK", "stats": {"speed": 83, "technique": 83, "passing": 94, "dribbling": 96, "shooting": 82, "defending": 77, "heading": 79, "physical": 93, "vision": 95, "positioning": 89, "crossing": 90}, "overall": 88}, {"id": "fiorentina_9596_2", "name": "Lorenzo Amoruso", "pos": "DF", "stats": {"speed": 76, "technique": 78, "passing": 85, "dribbling": 81, "shooting": 84, "defending": 71, "heading": 76, "physical": 89, "vision": 82, "positioning": 82, "crossing": 82}, "overall": 82}, {"id": "fiorentina_9596_3", "name": "Pasquale Padalino", "pos": "DF", "stats": {"speed": 74, "technique": 87, "passing": 86, "dribbling": 87, "shooting": 89, "defending": 71, "heading": 72, "physical": 80, "vision": 84, "positioning": 88, "crossing": 86}, "overall": 80}, {"id": "fiorentina_9596_4", "name": "Alberto Malusci", "pos": "DF", "stats": {"speed": 70, "technique": 82, "passing": 82, "dribbling": 78, "shooting": 68, "defending": 80, "heading": 68, "physical": 77, "vision": 72, "positioning": 84, "crossing": 80}, "overall": 78}, {"id": "fiorentina_9596_5", "name": "Daniele Carnasciali", "pos": "DF", "stats": {"speed": 88, "technique": 85, "passing": 76, "dribbling": 89, "shooting": 75, "defending": 84, "heading": 81, "physical": 87, "vision": 78, "positioning": 75, "crossing": 80}, "overall": 80}, {"id": "fiorentina_9596_6", "name": "Stefan Schwarz", "pos": "MF", "stats": {"speed": 79, "technique": 89, "passing": 76, "dribbling": 92, "shooting": 74, "defending": 91, "heading": 81, "physical": 87, "vision": 90, "positioning": 89, "crossing": 83}, "overall": 84}, {"id": "fiorentina_9596_7", "name": "Rui Costa", "pos": "AM", "stats": {"speed": 91, "technique": 87, "passing": 98, "dribbling": 100, "shooting": 92, "defending": 93, "heading": 92, "physical": 83, "vision": 95, "positioning": 94, "crossing": 94}, "overall": 91}, {"id": "fiorentina_9596_8", "name": "Giovanni Tedesco", "pos": "MF", "stats": {"speed": 84, "technique": 87, "passing": 81, "dribbling": 88, "shooting": 69, "defending": 69, "heading": 75, "physical": 82, "vision": 78, "positioning": 79, "crossing": 82}, "overall": 79}, {"id": "fiorentina_9596_9", "name": "Anselmo Robbiati", "pos": "MF", "stats": {"speed": 83, "technique": 82, "passing": 84, "dribbling": 89, "shooting": 87, "defending": 73, "heading": 74, "physical": 87, "vision": 74, "positioning": 82, "crossing": 81}, "overall": 81}, {"id": "fiorentina_9596_10", "name": "Gabriel Batistuta", "pos": "ST", "stats": {"speed": 92, "technique": 96, "passing": 97, "dribbling": 84, "shooting": 100, "defending": 92, "heading": 85, "physical": 86, "vision": 88, "positioning": 100, "crossing": 95}, "overall": 94}, {"id": "fiorentina_9596_11", "name": "Francesco Baiano", "pos": "ST", "stats": {"speed": 91, "technique": 89, "passing": 84, "dribbling": 77, "shooting": 94, "defending": 84, "heading": 91, "physical": 90, "vision": 76, "positioning": 81, "crossing": 84}, "overall": 84}, {"id": "fiorentina_9596_12", "name": "Emiliano Bigica", "pos": "MF", "stats": {"speed": 71, "technique": 78, "passing": 86, "dribbling": 78, "shooting": 77, "defending": 75, "heading": 85, "physical": 74, "vision": 85, "positioning": 75, "crossing": 83}, "overall": 78}, {"id": "fiorentina_9596_13", "name": "Stefano Pioli", "pos": "DF", "stats": {"speed": 73, "technique": 85, "passing": 81, "dribbling": 74, "shooting": 76, "defending": 78, "heading": 69, "physical": 82, "vision": 83, "positioning": 75, "crossing": 83}, "overall": 79}, {"id": "fiorentina_9596_14", "name": "Massimo Orlando", "pos": "MF", "stats": {"speed": 83, "technique": 85, "passing": 80, "dribbling": 76, "shooting": 87, "defending": 72, "heading": 80, "physical": 84, "vision": 85, "positioning": 84, "crossing": 83}, "overall": 80}, {"id": "fiorentina_9596_15", "name": "Luis Oliveira", "pos": "ST", "stats": {"speed": 77, "technique": 82, "passing": 76, "dribbling": 82, "shooting": 90, "defending": 72, "heading": 81, "physical": 75, "vision": 78, "positioning": 77, "crossing": 78}, "overall": 82}, {"id": "fiorentina_9596_16", "name": "Alessandro Orlando", "pos": "DF", "stats": {"speed": 76, "technique": 79, "passing": 84, "dribbling": 76, "shooting": 69, "defending": 77, "heading": 78, "physical": 79, "vision": 72, "positioning": 81, "crossing": 80}, "overall": 77}]}, {"id": "roma_0001", "name": "Roma", "season": "2000/01", "coach": "Fabio Capello", "strength": 92, "formations": ["3-4-1-2", "3-5-2", "4-3-1-2"], "players": [{"id": "roma_0001_1", "name": "Francesco Antonioli", "pos": "GK", "stats": {"speed": 75, "technique": 89, "passing": 86, "dribbling": 74, "shooting": 74, "defending": 80, "heading": 73, "physical": 83, "vision": 91, "positioning": 77, "crossing": 88}, "overall": 83}, {"id": "roma_0001_2", "name": "Cafu", "pos": "DF", "stats": {"speed": 85, "technique": 86, "passing": 82, "dribbling": 86, "shooting": 94, "defending": 88, "heading": 81, "physical": 82, "vision": 84, "positioning": 86, "crossing": 84}, "overall": 90}, {"id": "roma_0001_3", "name": "Walter Samuel", "pos": "DF", "stats": {"speed": 87, "technique": 87, "passing": 94, "dribbling": 91, "shooting": 91, "defending": 77, "heading": 94, "physical": 84, "vision": 99, "positioning": 95, "crossing": 93}, "overall": 89}, {"id": "roma_0001_4", "name": "Aldair", "pos": "DF", "stats": {"speed": 78, "technique": 85, "passing": 80, "dribbling": 84, "shooting": 81, "defending": 77, "heading": 79, "physical": 83, "vision": 94, "positioning": 88, "crossing": 85}, "overall": 86}, {"id": "roma_0001_5", "name": "Vincent Candela", "pos": "DF", "stats": {"speed": 92, "technique": 89, "passing": 94, "dribbling": 91, "shooting": 82, "defending": 81, "heading": 83, "physical": 90, "vision": 91, "positioning": 83, "crossing": 92}, "overall": 86}, {"id": "roma_0001_6", "name": "Damiano Tommasi", "pos": "MF", "stats": {"speed": 83, "technique": 85, "passing": 85, "dribbling": 82, "shooting": 82, "defending": 90, "heading": 87, "physical": 84, "vision": 76, "positioning": 85, "crossing": 83}, "overall": 84}, {"id": "roma_0001_7", "name": "Emerson", "pos": "MF", "stats": {"speed": 90, "technique": 92, "passing": 91, "dribbling": 90, "shooting": 86, "defending": 82, "heading": 84, "physical": 97, "vision": 97, "positioning": 84, "crossing": 93}, "overall": 89}, {"id": "roma_0001_8", "name": "Francesco Totti", "pos": "AM", "stats": {"speed": 96, "technique": 98, "passing": 93, "dribbling": 90, "shooting": 84, "defending": 82, "heading": 86, "physical": 100, "vision": 96, "positioning": 97, "crossing": 95}, "overall": 94}, {"id": "roma_0001_9", "name": "Gabriel Batistuta", "pos": "ST", "stats": {"speed": 100, "technique": 98, "passing": 94, "dribbling": 98, "shooting": 89, "defending": 97, "heading": 93, "physical": 88, "vision": 100, "positioning": 86, "crossing": 97}, "overall": 92}, {"id": "roma_0001_10", "name": "Vincenzo Montella", "pos": "ST", "stats": {"speed": 80, "technique": 87, "passing": 82, "dribbling": 84, "shooting": 79, "defending": 89, "heading": 90, "physical": 85, "vision": 81, "positioning": 91, "crossing": 84}, "overall": 88}, {"id": "roma_0001_11", "name": "Marco Delvecchio", "pos": "ST", "stats": {"speed": 79, "technique": 85, "passing": 91, "dribbling": 74, "shooting": 94, "defending": 80, "heading": 85, "physical": 90, "vision": 93, "positioning": 88, "crossing": 89}, "overall": 84}, {"id": "roma_0001_12", "name": "Cristiano Zanetti", "pos": "MF", "stats": {"speed": 88, "technique": 84, "passing": 87, "dribbling": 92, "shooting": 87, "defending": 79, "heading": 79, "physical": 87, "vision": 92, "positioning": 79, "crossing": 87}, "overall": 82}, {"id": "roma_0001_13", "name": "Jonathan Zebina", "pos": "DF", "stats": {"speed": 72, "technique": 76, "passing": 78, "dribbling": 81, "shooting": 89, "defending": 72, "heading": 80, "physical": 84, "vision": 72, "positioning": 86, "crossing": 76}, "overall": 79}, {"id": "roma_0001_14", "name": "Eusebio Di Francesco", "pos": "MF", "stats": {"speed": 87, "technique": 75, "passing": 72, "dribbling": 78, "shooting": 70, "defending": 71, "heading": 82, "physical": 74, "vision": 78, "positioning": 88, "crossing": 74}, "overall": 80}, {"id": "roma_0001_15", "name": "Abel Balbo", "pos": "ST", "stats": {"speed": 86, "technique": 76, "passing": 76, "dribbling": 84, "shooting": 85, "defending": 78, "heading": 73, "physical": 73, "vision": 75, "positioning": 80, "crossing": 76}, "overall": 78}, {"id": "roma_0001_16", "name": "Hidetoshi Nakata", "pos": "AM", "stats": {"speed": 84, "technique": 85, "passing": 85, "dribbling": 93, "shooting": 87, "defending": 90, "heading": 80, "physical": 87, "vision": 85, "positioning": 91, "crossing": 85}, "overall": 84}]}, {"id": "juve_9798", "name": "Juventus", "season": "1997/98", "coach": "Marcello Lippi", "strength": 93, "formations": ["4-3-1-2", "4-4-2", "3-5-2"], "players": [{"id": "juve_9798_1", "name": "Angelo Peruzzi", "pos": "GK", "stats": {"speed": 97, "technique": 97, "passing": 87, "dribbling": 88, "shooting": 82, "defending": 95, "heading": 85, "physical": 87, "vision": 81, "positioning": 90, "crossing": 89}, "overall": 89}, {"id": "juve_9798_2", "name": "Ciro Ferrara", "pos": "DF", "stats": {"speed": 84, "technique": 83, "passing": 86, "dribbling": 87, "shooting": 98, "defending": 94, "heading": 81, "physical": 83, "vision": 99, "positioning": 89, "crossing": 88}, "overall": 89}, {"id": "juve_9798_3", "name": "Paolo Montero", "pos": "DF", "stats": {"speed": 82, "technique": 83, "passing": 86, "dribbling": 85, "shooting": 87, "defending": 89, "heading": 84, "physical": 95, "vision": 83, "positioning": 86, "crossing": 84}, "overall": 88}, {"id": "juve_9798_4", "name": "Moreno Torricelli", "pos": "DF", "stats": {"speed": 79, "technique": 79, "passing": 79, "dribbling": 81, "shooting": 86, "defending": 87, "heading": 87, "physical": 76, "vision": 81, "positioning": 84, "crossing": 79}, "overall": 84}, {"id": "juve_9798_5", "name": "Gianluca Pessotto", "pos": "DF", "stats": {"speed": 86, "technique": 92, "passing": 80, "dribbling": 85, "shooting": 90, "defending": 89, "heading": 80, "physical": 91, "vision": 77, "positioning": 79, "crossing": 84}, "overall": 84}, {"id": "juve_9798_6", "name": "Didier Deschamps", "pos": "MF", "stats": {"speed": 88, "technique": 85, "passing": 91, "dribbling": 97, "shooting": 86, "defending": 92, "heading": 79, "physical": 81, "vision": 80, "positioning": 85, "crossing": 87}, "overall": 88}, {"id": "juve_9798_7", "name": "Edgar Davids", "pos": "MF", "stats": {"speed": 92, "technique": 84, "passing": 92, "dribbling": 93, "shooting": 80, "defending": 90, "heading": 95, "physical": 90, "vision": 92, "positioning": 85, "crossing": 89}, "overall": 89}, {"id": "juve_9798_8", "name": "Antonio Conte", "pos": "MF", "stats": {"speed": 79, "technique": 92, "passing": 89, "dribbling": 76, "shooting": 84, "defending": 81, "heading": 81, "physical": 93, "vision": 82, "positioning": 90, "crossing": 89}, "overall": 85}, {"id": "juve_9798_9", "name": "Zinedine Zidane", "pos": "AM", "stats": {"speed": 94, "technique": 95, "passing": 87, "dribbling": 95, "shooting": 93, "defending": 85, "heading": 97, "physical": 92, "vision": 100, "positioning": 91, "crossing": 92}, "overall": 94}, {"id": "juve_9798_10", "name": "Alessandro Del Piero", "pos": "ST", "stats": {"speed": 91, "technique": 97, "passing": 100, "dribbling": 91, "shooting": 84, "defending": 90, "heading": 94, "physical": 100, "vision": 92, "positioning": 96, "crossing": 97}, "overall": 94}, {"id": "juve_9798_11", "name": "Filippo Inzaghi", "pos": "ST", "stats": {"speed": 84, "technique": 86, "passing": 85, "dribbling": 85, "shooting": 94, "defending": 90, "heading": 81, "physical": 90, "vision": 85, "positioning": 87, "crossing": 85}, "overall": 90}, {"id": "juve_9798_12", "name": "Alessio Tacchinardi", "pos": "MF", "stats": {"speed": 84, "technique": 84, "passing": 82, "dribbling": 83, "shooting": 84, "defending": 79, "heading": 79, "physical": 91, "vision": 90, "positioning": 82, "crossing": 84}, "overall": 83}, {"id": "juve_9798_13", "name": "Mark Iuliano", "pos": "DF", "stats": {"speed": 89, "technique": 82, "passing": 88, "dribbling": 72, "shooting": 86, "defending": 84, "heading": 75, "physical": 75, "vision": 78, "positioning": 81, "crossing": 84}, "overall": 82}, {"id": "juve_9798_14", "name": "Angelo Di Livio", "pos": "MF", "stats": {"speed": 91, "technique": 85, "passing": 79, "dribbling": 93, "shooting": 74, "defending": 90, "heading": 85, "physical": 88, "vision": 89, "positioning": 81, "crossing": 83}, "overall": 84}, {"id": "juve_9798_15", "name": "Daniel Fonseca", "pos": "ST", "stats": {"speed": 74, "technique": 78, "passing": 78, "dribbling": 90, "shooting": 86, "defending": 77, "heading": 79, "physical": 86, "vision": 76, "positioning": 85, "crossing": 78}, "overall": 80}, {"id": "juve_9798_16", "name": "Nicola Amoruso", "pos": "ST", "stats": {"speed": 86, "technique": 75, "passing": 77, "dribbling": 89, "shooting": 78, "defending": 69, "heading": 85, "physical": 71, "vision": 86, "positioning": 87, "crossing": 78}, "overall": 79}]}, {"id": "reggina_0203", "name": "Reggina", "season": "2002/03", "coach": "Luigi De Canio", "strength": 77, "formations": ["4-4-1-1", "4-4-2", "3-5-2"], "players": [{"id": "reggina_0203_1", "name": "Emanuele Belardi", "pos": "GK", "stats": {"speed": 81, "technique": 79, "passing": 72, "dribbling": 70, "shooting": 68, "defending": 65, "heading": 75, "physical": 82, "vision": 86, "positioning": 73, "crossing": 77}, "overall": 76}, {"id": "reggina_0203_2", "name": "Jorge Vargas", "pos": "DF", "stats": {"speed": 72, "technique": 84, "passing": 81, "dribbling": 86, "shooting": 86, "defending": 81, "heading": 74, "physical": 78, "vision": 70, "positioning": 78, "crossing": 80}, "overall": 77}, {"id": "reggina_0203_3", "name": "Bruno Cirillo", "pos": "DF", "stats": {"speed": 80, "technique": 83, "passing": 83, "dribbling": 69, "shooting": 86, "defending": 74, "heading": 84, "physical": 81, "vision": 80, "positioning": 72, "crossing": 82}, "overall": 77}, {"id": "reggina_0203_4", "name": "Andrea Sottil", "pos": "DF", "stats": {"speed": 73, "technique": 74, "passing": 79, "dribbling": 85, "shooting": 78, "defending": 71, "heading": 68, "physical": 76, "vision": 72, "positioning": 74, "crossing": 76}, "overall": 76}, {"id": "reggina_0203_5", "name": "Martin Jiránek", "pos": "DF", "stats": {"speed": 85, "technique": 81, "passing": 83, "dribbling": 75, "shooting": 84, "defending": 68, "heading": 73, "physical": 73, "vision": 85, "positioning": 78, "crossing": 83}, "overall": 77}, {"id": "reggina_0203_6", "name": "Mozart", "pos": "MF", "stats": {"speed": 85, "technique": 89, "passing": 80, "dribbling": 90, "shooting": 79, "defending": 73, "heading": 88, "physical": 80, "vision": 79, "positioning": 84, "crossing": 83}, "overall": 83}, {"id": "reggina_0203_7", "name": "Francesco Cozza", "pos": "AM", "stats": {"speed": 84, "technique": 88, "passing": 78, "dribbling": 73, "shooting": 79, "defending": 87, "heading": 78, "physical": 77, "vision": 85, "positioning": 77, "crossing": 83}, "overall": 82}, {"id": "reggina_0203_8", "name": "Shunsuke Nakamura", "pos": "AM", "stats": {"speed": 77, "technique": 89, "passing": 86, "dribbling": 91, "shooting": 83, "defending": 73, "heading": 87, "physical": 86, "vision": 84, "positioning": 87, "crossing": 87}, "overall": 85}, {"id": "reggina_0203_9", "name": "Carlos Paredes", "pos": "MF", "stats": {"speed": 81, "technique": 83, "passing": 82, "dribbling": 71, "shooting": 70, "defending": 82, "heading": 84, "physical": 77, "vision": 80, "positioning": 77, "crossing": 82}, "overall": 78}, {"id": "reggina_0203_10", "name": "Giandomenico Mesto", "pos": "MF", "stats": {"speed": 71, "technique": 74, "passing": 76, "dribbling": 72, "shooting": 74, "defending": 84, "heading": 75, "physical": 73, "vision": 76, "positioning": 78, "crossing": 75}, "overall": 78}, {"id": "reggina_0203_11", "name": "Emiliano Bonazzoli", "pos": "ST", "stats": {"speed": 87, "technique": 81, "passing": 83, "dribbling": 78, "shooting": 73, "defending": 69, "heading": 88, "physical": 81, "vision": 82, "positioning": 79, "crossing": 82}, "overall": 80}, {"id": "reggina_0203_12", "name": "Davide Dionigi", "pos": "ST", "stats": {"speed": 81, "technique": 84, "passing": 70, "dribbling": 74, "shooting": 68, "defending": 75, "heading": 67, "physical": 70, "vision": 83, "positioning": 78, "crossing": 78}, "overall": 77}, {"id": "reggina_0203_13", "name": "Julio León", "pos": "AM", "stats": {"speed": 78, "technique": 82, "passing": 71, "dribbling": 81, "shooting": 72, "defending": 80, "heading": 68, "physical": 73, "vision": 75, "positioning": 77, "crossing": 76}, "overall": 77}, {"id": "reggina_0203_14", "name": "Aimo Diana", "pos": "MF", "stats": {"speed": 73, "technique": 73, "passing": 70, "dribbling": 70, "shooting": 82, "defending": 66, "heading": 73, "physical": 76, "vision": 86, "positioning": 85, "crossing": 74}, "overall": 78}, {"id": "reggina_0203_15", "name": "Roberto Stellone", "pos": "ST", "stats": {"speed": 85, "technique": 76, "passing": 85, "dribbling": 67, "shooting": 74, "defending": 71, "heading": 79, "physical": 84, "vision": 71, "positioning": 77, "crossing": 79}, "overall": 77}, {"id": "reggina_0203_16", "name": "Ivan Pelizzoli", "pos": "GK", "stats": {"speed": 70, "technique": 79, "passing": 77, "dribbling": 74, "shooting": 79, "defending": 76, "heading": 70, "physical": 85, "vision": 73, "positioning": 80, "crossing": 77}, "overall": 77}]}, {"id": "parma_9899", "name": "Parma", "season": "1998/99", "coach": "Alberto Malesani", "strength": 91, "formations": ["3-4-1-2", "3-5-2", "4-3-1-2"], "players": [{"id": "parma_9899_1", "name": "Gianluigi Buffon", "pos": "GK", "stats": {"speed": 99, "technique": 89, "passing": 90, "dribbling": 94, "shooting": 92, "defending": 85, "heading": 85, "physical": 91, "vision": 84, "positioning": 86, "crossing": 88}, "overall": 92}, {"id": "parma_9899_2", "name": "Fabio Cannavaro", "pos": "DF", "stats": {"speed": 98, "technique": 99, "passing": 99, "dribbling": 100, "shooting": 90, "defending": 84, "heading": 92, "physical": 90, "vision": 96, "positioning": 95, "crossing": 98}, "overall": 91}, {"id": "parma_9899_3", "name": "Lilian Thuram", "pos": "DF", "stats": {"speed": 95, "technique": 90, "passing": 96, "dribbling": 96, "shooting": 89, "defending": 85, "heading": 98, "physical": 99, "vision": 94, "positioning": 97, "crossing": 94}, "overall": 92}, {"id": "parma_9899_4", "name": "Roberto Sensini", "pos": "DF", "stats": {"speed": 79, "technique": 90, "passing": 94, "dribbling": 76, "shooting": 86, "defending": 90, "heading": 94, "physical": 86, "vision": 83, "positioning": 87, "crossing": 90}, "overall": 86}, {"id": "parma_9899_5", "name": "Dino Baggio", "pos": "MF", "stats": {"speed": 83, "technique": 88, "passing": 78, "dribbling": 95, "shooting": 83, "defending": 91, "heading": 77, "physical": 85, "vision": 90, "positioning": 84, "crossing": 84}, "overall": 86}, {"id": "parma_9899_6", "name": "Juan Sebastián Verón", "pos": "MF", "stats": {"speed": 86, "technique": 91, "passing": 95, "dribbling": 93, "shooting": 88, "defending": 81, "heading": 97, "physical": 83, "vision": 85, "positioning": 97, "crossing": 92}, "overall": 91}, {"id": "parma_9899_7", "name": "Alain Boghossian", "pos": "MF", "stats": {"speed": 92, "technique": 89, "passing": 90, "dribbling": 79, "shooting": 94, "defending": 76, "heading": 88, "physical": 76, "vision": 83, "positioning": 91, "crossing": 88}, "overall": 84}, {"id": "parma_9899_8", "name": "Diego Fuser", "pos": "MF", "stats": {"speed": 78, "technique": 85, "passing": 90, "dribbling": 90, "shooting": 76, "defending": 87, "heading": 82, "physical": 78, "vision": 86, "positioning": 90, "crossing": 87}, "overall": 85}, {"id": "parma_9899_9", "name": "Ariel Ortega", "pos": "AM", "stats": {"speed": 81, "technique": 86, "passing": 86, "dribbling": 85, "shooting": 85, "defending": 78, "heading": 94, "physical": 85, "vision": 93, "positioning": 83, "crossing": 87}, "overall": 86}, {"id": "parma_9899_10", "name": "Hernán Crespo", "pos": "ST", "stats": {"speed": 84, "technique": 86, "passing": 95, "dribbling": 92, "shooting": 97, "defending": 90, "heading": 89, "physical": 99, "vision": 96, "positioning": 92, "crossing": 92}, "overall": 91}, {"id": "parma_9899_11", "name": "Enrico Chiesa", "pos": "ST", "stats": {"speed": 97, "technique": 88, "passing": 96, "dribbling": 92, "shooting": 84, "defending": 80, "heading": 82, "physical": 97, "vision": 96, "positioning": 91, "crossing": 93}, "overall": 89}, {"id": "parma_9899_12", "name": "Faustino Asprilla", "pos": "ST", "stats": {"speed": 90, "technique": 84, "passing": 77, "dribbling": 84, "shooting": 74, "defending": 85, "heading": 77, "physical": 81, "vision": 90, "positioning": 90, "crossing": 82}, "overall": 84}, {"id": "parma_9899_13", "name": "Stefano Fiore", "pos": "MF", "stats": {"speed": 77, "technique": 91, "passing": 79, "dribbling": 74, "shooting": 93, "defending": 80, "heading": 75, "physical": 90, "vision": 75, "positioning": 82, "crossing": 82}, "overall": 83}, {"id": "parma_9899_14", "name": "Luigi Sartor", "pos": "DF", "stats": {"speed": 75, "technique": 82, "passing": 79, "dribbling": 70, "shooting": 76, "defending": 79, "heading": 85, "physical": 75, "vision": 78, "positioning": 82, "crossing": 80}, "overall": 80}, {"id": "parma_9899_15", "name": "Antonio Benarrivo", "pos": "DF", "stats": {"speed": 83, "technique": 87, "passing": 85, "dribbling": 80, "shooting": 90, "defending": 85, "heading": 88, "physical": 86, "vision": 94, "positioning": 92, "crossing": 88}, "overall": 84}, {"id": "parma_9899_16", "name": "Abel Balbo", "pos": "ST", "stats": {"speed": 72, "technique": 83, "passing": 76, "dribbling": 72, "shooting": 87, "defending": 75, "heading": 88, "physical": 82, "vision": 81, "positioning": 76, "crossing": 79}, "overall": 80}]}, {"id": "samp_9091", "name": "Sampdoria", "season": "1990/91", "coach": "Vujadin Boškov", "strength": 90, "formations": ["4-4-2", "4-3-1-2", "3-5-2"], "players": [{"id": "samp_9091_1", "name": "Gianluca Pagliuca", "pos": "GK", "stats": {"speed": 80, "technique": 83, "passing": 95, "dribbling": 77, "shooting": 91, "defending": 79, "heading": 86, "physical": 89, "vision": 87, "positioning": 83, "crossing": 89}, "overall": 87}, {"id": "samp_9091_2", "name": "Pietro Vierchowod", "pos": "DF", "stats": {"speed": 86, "technique": 90, "passing": 86, "dribbling": 84, "shooting": 83, "defending": 96, "heading": 94, "physical": 93, "vision": 99, "positioning": 94, "crossing": 90}, "overall": 90}, {"id": "samp_9091_3", "name": "Moreno Mannini", "pos": "DF", "stats": {"speed": 77, "technique": 92, "passing": 87, "dribbling": 92, "shooting": 88, "defending": 84, "heading": 84, "physical": 80, "vision": 89, "positioning": 81, "crossing": 89}, "overall": 85}, {"id": "samp_9091_4", "name": "Marco Lanna", "pos": "DF", "stats": {"speed": 86, "technique": 85, "passing": 78, "dribbling": 82, "shooting": 89, "defending": 83, "heading": 88, "physical": 90, "vision": 82, "positioning": 85, "crossing": 81}, "overall": 82}, {"id": "samp_9091_5", "name": "Attilio Lombardo", "pos": "MF", "stats": {"speed": 91, "technique": 93, "passing": 88, "dribbling": 84, "shooting": 88, "defending": 86, "heading": 81, "physical": 84, "vision": 89, "positioning": 87, "crossing": 90}, "overall": 86}, {"id": "samp_9091_6", "name": "Toninho Cerezo", "pos": "MF", "stats": {"speed": 88, "technique": 94, "passing": 84, "dribbling": 95, "shooting": 96, "defending": 76, "heading": 82, "physical": 80, "vision": 94, "positioning": 89, "crossing": 90}, "overall": 88}, {"id": "samp_9091_7", "name": "Fausto Pari", "pos": "MF", "stats": {"speed": 75, "technique": 89, "passing": 79, "dribbling": 75, "shooting": 88, "defending": 84, "heading": 90, "physical": 90, "vision": 84, "positioning": 88, "crossing": 84}, "overall": 82}, {"id": "samp_9091_8", "name": "Giuseppe Dossena", "pos": "MF", "stats": {"speed": 92, "technique": 85, "passing": 83, "dribbling": 87, "shooting": 87, "defending": 80, "heading": 81, "physical": 89, "vision": 84, "positioning": 90, "crossing": 84}, "overall": 84}, {"id": "samp_9091_9", "name": "Roberto Mancini", "pos": "ST", "stats": {"speed": 84, "technique": 87, "passing": 89, "dribbling": 96, "shooting": 84, "defending": 87, "heading": 86, "physical": 85, "vision": 96, "positioning": 95, "crossing": 90}, "overall": 91}, {"id": "samp_9091_10", "name": "Gianluca Vialli", "pos": "ST", "stats": {"speed": 98, "technique": 98, "passing": 92, "dribbling": 99, "shooting": 96, "defending": 97, "heading": 83, "physical": 84, "vision": 98, "positioning": 89, "crossing": 95}, "overall": 92}, {"id": "samp_9091_11", "name": "Luca Pellegrini", "pos": "DF", "stats": {"speed": 86, "technique": 84, "passing": 80, "dribbling": 85, "shooting": 72, "defending": 83, "heading": 86, "physical": 90, "vision": 83, "positioning": 82, "crossing": 82}, "overall": 82}, {"id": "samp_9091_12", "name": "Srečko Katanec", "pos": "MF", "stats": {"speed": 79, "technique": 81, "passing": 80, "dribbling": 87, "shooting": 77, "defending": 83, "heading": 88, "physical": 84, "vision": 86, "positioning": 85, "crossing": 82}, "overall": 82}, {"id": "samp_9091_13", "name": "Giovanni Invernizzi", "pos": "MF", "stats": {"speed": 76, "technique": 73, "passing": 84, "dribbling": 84, "shooting": 68, "defending": 86, "heading": 82, "physical": 78, "vision": 86, "positioning": 84, "crossing": 81}, "overall": 78}, {"id": "samp_9091_14", "name": "Vladimir Jugović", "pos": "MF", "stats": {"speed": 73, "technique": 87, "passing": 80, "dribbling": 88, "shooting": 85, "defending": 68, "heading": 82, "physical": 72, "vision": 77, "positioning": 75, "crossing": 82}, "overall": 80}, {"id": "samp_9091_15", "name": "Marco Branca", "pos": "ST", "stats": {"speed": 70, "technique": 77, "passing": 77, "dribbling": 80, "shooting": 70, "defending": 71, "heading": 76, "physical": 83, "vision": 87, "positioning": 85, "crossing": 79}, "overall": 78}, {"id": "samp_9091_16", "name": "Dario Bonetti", "pos": "DF", "stats": {"speed": 87, "technique": 79, "passing": 74, "dribbling": 77, "shooting": 71, "defending": 87, "heading": 75, "physical": 74, "vision": 76, "positioning": 82, "crossing": 76}, "overall": 80}]}, {"id": "lazio_9798", "name": "Lazio", "season": "1997/98", "coach": "Sven-Göran Eriksson", "strength": 89, "formations": ["4-4-2", "4-3-1-2", "3-5-2"], "players": [{"id": "lazio_9798_1", "name": "Luca Marchegiani", "pos": "GK", "stats": {"speed": 84, "technique": 90, "passing": 93, "dribbling": 91, "shooting": 77, "defending": 87, "heading": 79, "physical": 83, "vision": 88, "positioning": 87, "crossing": 91}, "overall": 86}, {"id": "lazio_9798_2", "name": "Alessandro Nesta", "pos": "DF", "stats": {"speed": 91, "technique": 97, "passing": 87, "dribbling": 100, "shooting": 92, "defending": 99, "heading": 98, "physical": 88, "vision": 95, "positioning": 87, "crossing": 92}, "overall": 92}, {"id": "lazio_9798_3", "name": "Giuseppe Favalli", "pos": "DF", "stats": {"speed": 80, "technique": 92, "passing": 81, "dribbling": 77, "shooting": 78, "defending": 87, "heading": 90, "physical": 81, "vision": 80, "positioning": 91, "crossing": 85}, "overall": 84}, {"id": "lazio_9798_4", "name": "Paolo Negro", "pos": "DF", "stats": {"speed": 87, "technique": 84, "passing": 75, "dribbling": 79, "shooting": 79, "defending": 72, "heading": 86, "physical": 74, "vision": 85, "positioning": 77, "crossing": 80}, "overall": 82}, {"id": "lazio_9798_5", "name": "Giuseppe Pancaro", "pos": "DF", "stats": {"speed": 83, "technique": 78, "passing": 78, "dribbling": 81, "shooting": 74, "defending": 86, "heading": 87, "physical": 87, "vision": 91, "positioning": 77, "crossing": 81}, "overall": 82}, {"id": "lazio_9798_6", "name": "Pavel Nedvěd", "pos": "MF", "stats": {"speed": 92, "technique": 90, "passing": 92, "dribbling": 80, "shooting": 97, "defending": 95, "heading": 86, "physical": 83, "vision": 83, "positioning": 98, "crossing": 90}, "overall": 90}, {"id": "lazio_9798_7", "name": "Matías Almeyda", "pos": "MF", "stats": {"speed": 89, "technique": 83, "passing": 94, "dribbling": 86, "shooting": 82, "defending": 93, "heading": 79, "physical": 93, "vision": 87, "positioning": 85, "crossing": 89}, "overall": 87}, {"id": "lazio_9798_8", "name": "Vladimir Jugović", "pos": "MF", "stats": {"speed": 78, "technique": 87, "passing": 81, "dribbling": 90, "shooting": 84, "defending": 74, "heading": 91, "physical": 81, "vision": 96, "positioning": 89, "crossing": 86}, "overall": 86}, {"id": "lazio_9798_9", "name": "Diego Fuser", "pos": "MF", "stats": {"speed": 80, "technique": 88, "passing": 92, "dribbling": 74, "shooting": 94, "defending": 80, "heading": 77, "physical": 92, "vision": 81, "positioning": 84, "crossing": 88}, "overall": 84}, {"id": "lazio_9798_10", "name": "Roberto Mancini", "pos": "ST", "stats": {"speed": 92, "technique": 90, "passing": 86, "dribbling": 87, "shooting": 96, "defending": 91, "heading": 94, "physical": 83, "vision": 87, "positioning": 83, "crossing": 88}, "overall": 87}, {"id": "lazio_9798_11", "name": "Pierluigi Casiraghi", "pos": "ST", "stats": {"speed": 78, "technique": 90, "passing": 79, "dribbling": 79, "shooting": 85, "defending": 89, "heading": 81, "physical": 84, "vision": 91, "positioning": 84, "crossing": 85}, "overall": 86}, {"id": "lazio_9798_12", "name": "Alen Bokšić", "pos": "ST", "stats": {"speed": 93, "technique": 92, "passing": 88, "dribbling": 82, "shooting": 80, "defending": 83, "heading": 87, "physical": 83, "vision": 85, "positioning": 84, "crossing": 89}, "overall": 85}, {"id": "lazio_9798_13", "name": "Guerino Gottardi", "pos": "DF", "stats": {"speed": 73, "technique": 81, "passing": 85, "dribbling": 74, "shooting": 79, "defending": 75, "heading": 72, "physical": 71, "vision": 77, "positioning": 81, "crossing": 82}, "overall": 78}, {"id": "lazio_9798_14", "name": "Attilio Lombardo", "pos": "MF", "stats": {"speed": 78, "technique": 85, "passing": 76, "dribbling": 90, "shooting": 74, "defending": 76, "heading": 87, "physical": 76, "vision": 80, "positioning": 76, "crossing": 80}, "overall": 80}, {"id": "lazio_9798_15", "name": "Giorgio Venturin", "pos": "MF", "stats": {"speed": 71, "technique": 85, "passing": 84, "dribbling": 87, "shooting": 76, "defending": 68, "heading": 78, "physical": 81, "vision": 70, "positioning": 80, "crossing": 82}, "overall": 78}, {"id": "lazio_9798_16", "name": "Marco Ballotta", "pos": "GK", "stats": {"speed": 73, "technique": 77, "passing": 69, "dribbling": 70, "shooting": 66, "defending": 84, "heading": 71, "physical": 74, "vision": 84, "positioning": 73, "crossing": 75}, "overall": 76}]}, {"id": "udinese_9798", "name": "Udinese", "season": "1997/98", "coach": "Alberto Zaccheroni", "strength": 84, "formations": ["3-4-3", "3-5-2", "4-4-2"], "players": [{"id": "udinese_9798_1", "name": "Luigi Turci", "pos": "GK", "stats": {"speed": 87, "technique": 88, "passing": 72, "dribbling": 83, "shooting": 71, "defending": 74, "heading": 85, "physical": 80, "vision": 78, "positioning": 83, "crossing": 79}, "overall": 80}, {"id": "udinese_9798_2", "name": "Valerio Bertotto", "pos": "DF", "stats": {"speed": 77, "technique": 77, "passing": 83, "dribbling": 86, "shooting": 80, "defending": 85, "heading": 79, "physical": 80, "vision": 92, "positioning": 84, "crossing": 83}, "overall": 82}, {"id": "udinese_9798_3", "name": "Thomas Helveg", "pos": "DF", "stats": {"speed": 89, "technique": 86, "passing": 79, "dribbling": 80, "shooting": 89, "defending": 87, "heading": 75, "physical": 89, "vision": 84, "positioning": 81, "crossing": 82}, "overall": 84}, {"id": "udinese_9798_4", "name": "Alessandro Calori", "pos": "DF", "stats": {"speed": 82, "technique": 82, "passing": 77, "dribbling": 79, "shooting": 82, "defending": 86, "heading": 77, "physical": 74, "vision": 72, "positioning": 78, "crossing": 78}, "overall": 80}, {"id": "udinese_9798_5", "name": "Giuliano Giannichedda", "pos": "MF", "stats": {"speed": 79, "technique": 80, "passing": 83, "dribbling": 86, "shooting": 87, "defending": 90, "heading": 75, "physical": 83, "vision": 85, "positioning": 87, "crossing": 82}, "overall": 82}, {"id": "udinese_9798_6", "name": "Martin Jørgensen", "pos": "MF", "stats": {"speed": 81, "technique": 81, "passing": 76, "dribbling": 93, "shooting": 77, "defending": 76, "heading": 87, "physical": 92, "vision": 84, "positioning": 79, "crossing": 79}, "overall": 84}, {"id": "udinese_9798_7", "name": "Márcio Amoroso", "pos": "ST", "stats": {"speed": 91, "technique": 91, "passing": 86, "dribbling": 81, "shooting": 78, "defending": 76, "heading": 85, "physical": 93, "vision": 91, "positioning": 94, "crossing": 89}, "overall": 87}, {"id": "udinese_9798_8", "name": "Oliver Bierhoff", "pos": "ST", "stats": {"speed": 85, "technique": 94, "passing": 97, "dribbling": 98, "shooting": 90, "defending": 85, "heading": 82, "physical": 99, "vision": 83, "positioning": 85, "crossing": 93}, "overall": 91}, {"id": "udinese_9798_9", "name": "Paolo Poggi", "pos": "ST", "stats": {"speed": 90, "technique": 89, "passing": 84, "dribbling": 90, "shooting": 89, "defending": 80, "heading": 88, "physical": 88, "vision": 80, "positioning": 86, "crossing": 85}, "overall": 82}, {"id": "udinese_9798_10", "name": "Raffaele Ametrano", "pos": "MF", "stats": {"speed": 71, "technique": 78, "passing": 83, "dribbling": 74, "shooting": 77, "defending": 72, "heading": 85, "physical": 77, "vision": 77, "positioning": 84, "crossing": 80}, "overall": 77}, {"id": "udinese_9798_11", "name": "Jonathan Bachini", "pos": "MF", "stats": {"speed": 75, "technique": 80, "passing": 73, "dribbling": 89, "shooting": 69, "defending": 71, "heading": 86, "physical": 86, "vision": 82, "positioning": 83, "crossing": 77}, "overall": 79}, {"id": "udinese_9798_12", "name": "Fabio Rossitto", "pos": "MF", "stats": {"speed": 82, "technique": 85, "passing": 80, "dribbling": 78, "shooting": 84, "defending": 72, "heading": 72, "physical": 72, "vision": 77, "positioning": 79, "crossing": 81}, "overall": 79}, {"id": "udinese_9798_13", "name": "Mohammed Gargo", "pos": "DF", "stats": {"speed": 75, "technique": 76, "passing": 80, "dribbling": 74, "shooting": 81, "defending": 83, "heading": 78, "physical": 74, "vision": 81, "positioning": 79, "crossing": 79}, "overall": 77}, {"id": "udinese_9798_14", "name": "David Pizarro", "pos": "MF", "stats": {"speed": 77, "technique": 78, "passing": 84, "dribbling": 67, "shooting": 73, "defending": 69, "heading": 69, "physical": 70, "vision": 76, "positioning": 74, "crossing": 80}, "overall": 76}, {"id": "udinese_9798_15", "name": "Andrea Sottil", "pos": "DF", "stats": {"speed": 77, "technique": 78, "passing": 82, "dribbling": 78, "shooting": 86, "defending": 78, "heading": 73, "physical": 79, "vision": 76, "positioning": 77, "crossing": 79}, "overall": 78}, {"id": "udinese_9798_16", "name": "Massimo Margiotta", "pos": "ST", "stats": {"speed": 79, "technique": 74, "passing": 84, "dribbling": 73, "shooting": 84, "defending": 80, "heading": 77, "physical": 73, "vision": 77, "positioning": 73, "crossing": 79}, "overall": 76}]}, {"id": "brescia_0001", "name": "Brescia", "season": "2000/01", "coach": "Carlo Mazzone", "strength": 82, "formations": ["3-5-1-1", "4-3-1-2", "4-4-2"], "players": [{"id": "brescia_0001_1", "name": "Pavel Srníček", "pos": "GK", "stats": {"speed": 84, "technique": 85, "passing": 78, "dribbling": 89, "shooting": 89, "defending": 70, "heading": 75, "physical": 79, "vision": 74, "positioning": 82, "crossing": 80}, "overall": 79}, {"id": "brescia_0001_2", "name": "Daniele Bonera", "pos": "DF", "stats": {"speed": 83, "technique": 78, "passing": 73, "dribbling": 71, "shooting": 77, "defending": 85, "heading": 85, "physical": 84, "vision": 89, "positioning": 82, "crossing": 78}, "overall": 80}, {"id": "brescia_0001_3", "name": "Fabio Petruzzi", "pos": "DF", "stats": {"speed": 85, "technique": 72, "passing": 73, "dribbling": 81, "shooting": 88, "defending": 79, "heading": 74, "physical": 82, "vision": 70, "positioning": 82, "crossing": 72}, "overall": 78}, {"id": "brescia_0001_4", "name": "Daniele Adani", "pos": "DF", "stats": {"speed": 88, "technique": 84, "passing": 73, "dribbling": 81, "shooting": 91, "defending": 78, "heading": 79, "physical": 86, "vision": 89, "positioning": 77, "crossing": 80}, "overall": 81}, {"id": "brescia_0001_5", "name": "Emanuele Filippini", "pos": "MF", "stats": {"speed": 87, "technique": 74, "passing": 87, "dribbling": 76, "shooting": 70, "defending": 83, "heading": 78, "physical": 72, "vision": 79, "positioning": 84, "crossing": 81}, "overall": 79}, {"id": "brescia_0001_6", "name": "Antonio Filippini", "pos": "MF", "stats": {"speed": 86, "technique": 80, "passing": 82, "dribbling": 79, "shooting": 88, "defending": 68, "heading": 80, "physical": 72, "vision": 78, "positioning": 76, "crossing": 80}, "overall": 79}, {"id": "brescia_0001_7", "name": "Josep Guardiola", "pos": "MF", "stats": {"speed": 88, "technique": 91, "passing": 83, "dribbling": 83, "shooting": 78, "defending": 75, "heading": 87, "physical": 78, "vision": 79, "positioning": 82, "crossing": 85}, "overall": 86}, {"id": "brescia_0001_8", "name": "Andrea Pirlo", "pos": "MF", "stats": {"speed": 88, "technique": 81, "passing": 87, "dribbling": 79, "shooting": 88, "defending": 87, "heading": 86, "physical": 91, "vision": 81, "positioning": 87, "crossing": 84}, "overall": 87}, {"id": "brescia_0001_9", "name": "Roberto Baggio", "pos": "AM", "stats": {"speed": 86, "technique": 99, "passing": 100, "dribbling": 96, "shooting": 85, "defending": 98, "heading": 87, "physical": 91, "vision": 94, "positioning": 99, "crossing": 98}, "overall": 92}, {"id": "brescia_0001_10", "name": "Jonathan Bachini", "pos": "MF", "stats": {"speed": 79, "technique": 79, "passing": 78, "dribbling": 82, "shooting": 79, "defending": 68, "heading": 81, "physical": 78, "vision": 81, "positioning": 77, "crossing": 79}, "overall": 80}, {"id": "brescia_0001_11", "name": "Dario Hübner", "pos": "ST", "stats": {"speed": 84, "technique": 87, "passing": 84, "dribbling": 93, "shooting": 77, "defending": 75, "heading": 76, "physical": 81, "vision": 80, "positioning": 86, "crossing": 84}, "overall": 84}, {"id": "brescia_0001_12", "name": "Igli Tare", "pos": "ST", "stats": {"speed": 76, "technique": 88, "passing": 88, "dribbling": 89, "shooting": 80, "defending": 87, "heading": 73, "physical": 78, "vision": 80, "positioning": 78, "crossing": 86}, "overall": 80}, {"id": "brescia_0001_13", "name": "Aimo Diana", "pos": "MF", "stats": {"speed": 76, "technique": 85, "passing": 83, "dribbling": 87, "shooting": 71, "defending": 73, "heading": 71, "physical": 75, "vision": 77, "positioning": 84, "crossing": 82}, "overall": 78}, {"id": "brescia_0001_14", "name": "Federico Giunti", "pos": "MF", "stats": {"speed": 84, "technique": 85, "passing": 82, "dribbling": 72, "shooting": 89, "defending": 72, "heading": 84, "physical": 86, "vision": 85, "positioning": 84, "crossing": 84}, "overall": 80}, {"id": "brescia_0001_15", "name": "Gigi Di Biagio", "pos": "MF", "stats": {"speed": 87, "technique": 90, "passing": 79, "dribbling": 74, "shooting": 85, "defending": 76, "heading": 77, "physical": 80, "vision": 84, "positioning": 79, "crossing": 84}, "overall": 82}, {"id": "brescia_0001_16", "name": "Luca Castellazzi", "pos": "GK", "stats": {"speed": 71, "technique": 77, "passing": 72, "dribbling": 76, "shooting": 67, "defending": 72, "heading": 81, "physical": 80, "vision": 83, "positioning": 78, "crossing": 76}, "overall": 77}]}, {"id": "chievo_0102", "name": "Chievo", "season": "2001/02", "coach": "Luigi Delneri", "strength": 82, "formations": ["4-4-2", "4-3-1-2", "3-5-2"], "players": [{"id": "chievo_0102_1", "name": "Cristiano Lupatelli", "pos": "GK", "stats": {"speed": 80, "technique": 85, "passing": 81, "dribbling": 71, "shooting": 88, "defending": 71, "heading": 74, "physical": 79, "vision": 85, "positioning": 77, "crossing": 83}, "overall": 80}, {"id": "chievo_0102_2", "name": "Massimo Oddo", "pos": "DF", "stats": {"speed": 89, "technique": 88, "passing": 77, "dribbling": 76, "shooting": 86, "defending": 90, "heading": 74, "physical": 91, "vision": 83, "positioning": 77, "crossing": 82}, "overall": 83}, {"id": "chievo_0102_3", "name": "Nicola Legrottaglie", "pos": "DF", "stats": {"speed": 82, "technique": 90, "passing": 81, "dribbling": 90, "shooting": 74, "defending": 75, "heading": 86, "physical": 87, "vision": 75, "positioning": 87, "crossing": 83}, "overall": 83}, {"id": "chievo_0102_4", "name": "Lorenzo D'Anna", "pos": "DF", "stats": {"speed": 81, "technique": 77, "passing": 83, "dribbling": 69, "shooting": 89, "defending": 77, "heading": 86, "physical": 87, "vision": 77, "positioning": 78, "crossing": 80}, "overall": 79}, {"id": "chievo_0102_5", "name": "Salvatore Lanna", "pos": "DF", "stats": {"speed": 83, "technique": 74, "passing": 86, "dribbling": 76, "shooting": 76, "defending": 77, "heading": 73, "physical": 79, "vision": 81, "positioning": 85, "crossing": 81}, "overall": 78}, {"id": "chievo_0102_6", "name": "Eriberto/Luciano", "pos": "MF", "stats": {"speed": 89, "technique": 86, "passing": 91, "dribbling": 89, "shooting": 90, "defending": 86, "heading": 92, "physical": 91, "vision": 87, "positioning": 80, "crossing": 88}, "overall": 84}, {"id": "chievo_0102_7", "name": "Simone Perrotta", "pos": "MF", "stats": {"speed": 91, "technique": 86, "passing": 77, "dribbling": 86, "shooting": 83, "defending": 76, "heading": 77, "physical": 80, "vision": 76, "positioning": 88, "crossing": 80}, "overall": 84}, {"id": "chievo_0102_8", "name": "Eugenio Corini", "pos": "MF", "stats": {"speed": 91, "technique": 93, "passing": 90, "dribbling": 85, "shooting": 86, "defending": 80, "heading": 83, "physical": 91, "vision": 91, "positioning": 88, "crossing": 91}, "overall": 85}, {"id": "chievo_0102_9", "name": "Christian Manfredini", "pos": "MF", "stats": {"speed": 74, "technique": 89, "passing": 82, "dribbling": 90, "shooting": 89, "defending": 85, "heading": 84, "physical": 83, "vision": 88, "positioning": 88, "crossing": 86}, "overall": 81}, {"id": "chievo_0102_10", "name": "Bernardo Corradi", "pos": "ST", "stats": {"speed": 82, "technique": 78, "passing": 85, "dribbling": 75, "shooting": 85, "defending": 91, "heading": 77, "physical": 80, "vision": 79, "positioning": 81, "crossing": 81}, "overall": 83}, {"id": "chievo_0102_11", "name": "Federico Cossato", "pos": "ST", "stats": {"speed": 85, "technique": 87, "passing": 87, "dribbling": 88, "shooting": 70, "defending": 86, "heading": 74, "physical": 82, "vision": 86, "positioning": 85, "crossing": 87}, "overall": 80}, {"id": "chievo_0102_12", "name": "Sergio Pellissier", "pos": "ST", "stats": {"speed": 77, "technique": 82, "passing": 76, "dribbling": 83, "shooting": 80, "defending": 71, "heading": 67, "physical": 78, "vision": 85, "positioning": 78, "crossing": 80}, "overall": 77}, {"id": "chievo_0102_13", "name": "Mario Frick", "pos": "ST", "stats": {"speed": 75, "technique": 76, "passing": 85, "dribbling": 78, "shooting": 72, "defending": 80, "heading": 73, "physical": 70, "vision": 88, "positioning": 75, "crossing": 82}, "overall": 78}, {"id": "chievo_0102_14", "name": "Ivano Della Morte", "pos": "MF", "stats": {"speed": 81, "technique": 77, "passing": 83, "dribbling": 80, "shooting": 68, "defending": 69, "heading": 72, "physical": 82, "vision": 73, "positioning": 77, "crossing": 79}, "overall": 77}, {"id": "chievo_0102_15", "name": "Federico Giunti", "pos": "MF", "stats": {"speed": 74, "technique": 86, "passing": 74, "dribbling": 87, "shooting": 90, "defending": 70, "heading": 75, "physical": 79, "vision": 84, "positioning": 79, "crossing": 80}, "overall": 80}, {"id": "chievo_0102_16", "name": "Andrea Barzagli", "pos": "DF", "stats": {"speed": 73, "technique": 80, "passing": 69, "dribbling": 78, "shooting": 70, "defending": 83, "heading": 81, "physical": 78, "vision": 70, "positioning": 75, "crossing": 73}, "overall": 76}]}, {"id": "perugia_9900", "name": "Perugia", "season": "1999/00", "coach": "Carlo Mazzone", "strength": 79, "formations": ["4-4-2", "4-3-1-2", "3-5-2"], "players": [{"id": "perugia_9900_1", "name": "Andrea Mazzantini", "pos": "GK", "stats": {"speed": 79, "technique": 71, "passing": 85, "dribbling": 74, "shooting": 69, "defending": 80, "heading": 67, "physical": 79, "vision": 78, "positioning": 71, "crossing": 79}, "overall": 77}, {"id": "perugia_9900_2", "name": "Marco Materazzi", "pos": "DF", "stats": {"speed": 75, "technique": 83, "passing": 76, "dribbling": 85, "shooting": 92, "defending": 80, "heading": 83, "physical": 86, "vision": 85, "positioning": 80, "crossing": 80}, "overall": 82}, {"id": "perugia_9900_3", "name": "Zé Maria", "pos": "DF", "stats": {"speed": 80, "technique": 84, "passing": 76, "dribbling": 88, "shooting": 82, "defending": 87, "heading": 76, "physical": 78, "vision": 80, "positioning": 81, "crossing": 80}, "overall": 82}, {"id": "perugia_9900_4", "name": "Mauro Milanese", "pos": "DF", "stats": {"speed": 85, "technique": 85, "passing": 78, "dribbling": 81, "shooting": 79, "defending": 66, "heading": 71, "physical": 81, "vision": 74, "positioning": 77, "crossing": 80}, "overall": 78}, {"id": "perugia_9900_5", "name": "Renato Olive", "pos": "MF", "stats": {"speed": 76, "technique": 77, "passing": 74, "dribbling": 77, "shooting": 70, "defending": 73, "heading": 69, "physical": 81, "vision": 71, "positioning": 75, "crossing": 74}, "overall": 78}, {"id": "perugia_9900_6", "name": "Hidetoshi Nakata", "pos": "AM", "stats": {"speed": 88, "technique": 92, "passing": 93, "dribbling": 84, "shooting": 95, "defending": 79, "heading": 95, "physical": 84, "vision": 91, "positioning": 81, "crossing": 92}, "overall": 87}, {"id": "perugia_9900_7", "name": "Fabio Liverani", "pos": "MF", "stats": {"speed": 74, "technique": 81, "passing": 88, "dribbling": 79, "shooting": 77, "defending": 90, "heading": 83, "physical": 74, "vision": 92, "positioning": 84, "crossing": 86}, "overall": 82}, {"id": "perugia_9900_8", "name": "Dmitri Alenichev", "pos": "MF", "stats": {"speed": 79, "technique": 80, "passing": 73, "dribbling": 80, "shooting": 82, "defending": 84, "heading": 79, "physical": 84, "vision": 80, "positioning": 87, "crossing": 77}, "overall": 81}, {"id": "perugia_9900_9", "name": "Nicola Amoruso", "pos": "ST", "stats": {"speed": 76, "technique": 79, "passing": 86, "dribbling": 72, "shooting": 90, "defending": 81, "heading": 88, "physical": 78, "vision": 73, "positioning": 79, "crossing": 81}, "overall": 81}, {"id": "perugia_9900_10", "name": "Alessandro Melli", "pos": "ST", "stats": {"speed": 79, "technique": 74, "passing": 86, "dribbling": 77, "shooting": 85, "defending": 74, "heading": 70, "physical": 75, "vision": 72, "positioning": 76, "crossing": 79}, "overall": 78}, {"id": "perugia_9900_11", "name": "Massimiliano Esposito", "pos": "ST", "stats": {"speed": 72, "technique": 74, "passing": 75, "dribbling": 87, "shooting": 87, "defending": 76, "heading": 76, "physical": 79, "vision": 71, "positioning": 84, "crossing": 74}, "overall": 77}, {"id": "perugia_9900_12", "name": "Davide Baiocco", "pos": "MF", "stats": {"speed": 71, "technique": 86, "passing": 74, "dribbling": 73, "shooting": 78, "defending": 85, "heading": 78, "physical": 81, "vision": 79, "positioning": 77, "crossing": 79}, "overall": 78}, {"id": "perugia_9900_13", "name": "Fabio Gatti", "pos": "MF", "stats": {"speed": 77, "technique": 70, "passing": 71, "dribbling": 83, "shooting": 82, "defending": 80, "heading": 76, "physical": 69, "vision": 68, "positioning": 72, "crossing": 70}, "overall": 76}, {"id": "perugia_9900_14", "name": "Salvatore Monaco", "pos": "DF", "stats": {"speed": 77, "technique": 70, "passing": 76, "dribbling": 85, "shooting": 77, "defending": 72, "heading": 82, "physical": 77, "vision": 84, "positioning": 84, "crossing": 76}, "overall": 76}, {"id": "perugia_9900_15", "name": "Giovanni Tedesco", "pos": "MF", "stats": {"speed": 81, "technique": 75, "passing": 79, "dribbling": 86, "shooting": 68, "defending": 81, "heading": 77, "physical": 74, "vision": 86, "positioning": 72, "crossing": 79}, "overall": 78}, {"id": "perugia_9900_16", "name": "Iván Kaviedes", "pos": "ST", "stats": {"speed": 77, "technique": 84, "passing": 83, "dribbling": 67, "shooting": 74, "defending": 79, "heading": 71, "physical": 79, "vision": 80, "positioning": 80, "crossing": 83}, "overall": 77}]}, {"id": "venezia_9899", "name": "Venezia", "season": "1998/99", "coach": "Walter Novellino", "strength": 78, "formations": ["4-4-1-1", "4-4-2", "3-5-2"], "players": [{"id": "venezia_9899_1", "name": "Massimo Taibi", "pos": "GK", "stats": {"speed": 82, "technique": 86, "passing": 84, "dribbling": 88, "shooting": 88, "defending": 87, "heading": 84, "physical": 85, "vision": 78, "positioning": 78, "crossing": 84}, "overall": 80}, {"id": "venezia_9899_2", "name": "Alessandro Dal Canto", "pos": "DF", "stats": {"speed": 83, "technique": 80, "passing": 73, "dribbling": 69, "shooting": 73, "defending": 70, "heading": 69, "physical": 80, "vision": 73, "positioning": 79, "crossing": 75}, "overall": 78}, {"id": "venezia_9899_3", "name": "Fabio Bilica", "pos": "DF", "stats": {"speed": 73, "technique": 81, "passing": 78, "dribbling": 87, "shooting": 80, "defending": 72, "heading": 77, "physical": 77, "vision": 74, "positioning": 71, "crossing": 78}, "overall": 77}, {"id": "venezia_9899_4", "name": "Giovanni Bia", "pos": "DF", "stats": {"speed": 74, "technique": 79, "passing": 70, "dribbling": 76, "shooting": 74, "defending": 70, "heading": 80, "physical": 82, "vision": 82, "positioning": 83, "crossing": 76}, "overall": 78}, {"id": "venezia_9899_5", "name": "Stefano Bettarini", "pos": "DF", "stats": {"speed": 87, "technique": 78, "passing": 87, "dribbling": 80, "shooting": 71, "defending": 78, "heading": 87, "physical": 83, "vision": 78, "positioning": 76, "crossing": 82}, "overall": 79}, {"id": "venezia_9899_6", "name": "Stefano Volpi", "pos": "MF", "stats": {"speed": 85, "technique": 88, "passing": 85, "dribbling": 88, "shooting": 78, "defending": 77, "heading": 74, "physical": 89, "vision": 83, "positioning": 87, "crossing": 86}, "overall": 82}, {"id": "venezia_9899_7", "name": "Álvaro Recoba", "pos": "AM", "stats": {"speed": 95, "technique": 87, "passing": 98, "dribbling": 96, "shooting": 91, "defending": 94, "heading": 82, "physical": 82, "vision": 83, "positioning": 93, "crossing": 91}, "overall": 90}, {"id": "venezia_9899_8", "name": "Filippo Maniero", "pos": "ST", "stats": {"speed": 91, "technique": 79, "passing": 75, "dribbling": 78, "shooting": 91, "defending": 89, "heading": 83, "physical": 78, "vision": 76, "positioning": 85, "crossing": 77}, "overall": 83}, {"id": "venezia_9899_9", "name": "Fabian Valtolina", "pos": "MF", "stats": {"speed": 83, "technique": 80, "passing": 74, "dribbling": 82, "shooting": 79, "defending": 80, "heading": 80, "physical": 83, "vision": 75, "positioning": 81, "crossing": 76}, "overall": 77}, {"id": "venezia_9899_10", "name": "Emanuele Brioschi", "pos": "MF", "stats": {"speed": 82, "technique": 71, "passing": 74, "dribbling": 84, "shooting": 72, "defending": 69, "heading": 72, "physical": 75, "vision": 86, "positioning": 70, "crossing": 75}, "overall": 76}, {"id": "venezia_9899_11", "name": "Massimo Pedone", "pos": "MF", "stats": {"speed": 83, "technique": 75, "passing": 83, "dribbling": 79, "shooting": 83, "defending": 68, "heading": 78, "physical": 76, "vision": 69, "positioning": 74, "crossing": 77}, "overall": 77}, {"id": "venezia_9899_12", "name": "Domenico Morfeo", "pos": "AM", "stats": {"speed": 82, "technique": 91, "passing": 89, "dribbling": 91, "shooting": 94, "defending": 85, "heading": 76, "physical": 86, "vision": 90, "positioning": 85, "crossing": 90}, "overall": 84}, {"id": "venezia_9899_13", "name": "Giuseppe Iachini", "pos": "MF", "stats": {"speed": 70, "technique": 86, "passing": 86, "dribbling": 85, "shooting": 86, "defending": 78, "heading": 78, "physical": 85, "vision": 85, "positioning": 77, "crossing": 86}, "overall": 78}, {"id": "venezia_9899_14", "name": "Daniele Amerini", "pos": "MF", "stats": {"speed": 78, "technique": 71, "passing": 72, "dribbling": 82, "shooting": 68, "defending": 70, "heading": 79, "physical": 84, "vision": 77, "positioning": 83, "crossing": 73}, "overall": 76}, {"id": "venezia_9899_15", "name": "Marco Zanchi", "pos": "DF", "stats": {"speed": 84, "technique": 82, "passing": 73, "dribbling": 83, "shooting": 84, "defending": 68, "heading": 70, "physical": 71, "vision": 78, "positioning": 79, "crossing": 77}, "overall": 76}, {"id": "venezia_9899_16", "name": "Gianluca Luppi", "pos": "DF", "stats": {"speed": 78, "technique": 80, "passing": 78, "dribbling": 69, "shooting": 79, "defending": 81, "heading": 69, "physical": 82, "vision": 72, "positioning": 72, "crossing": 78}, "overall": 77}]}, {"id": "vicenza_9697", "name": "Vicenza", "season": "1996/97", "coach": "Francesco Guidolin", "strength": 81, "formations": ["4-4-2", "4-3-1-2", "3-5-2"], "players": [{"id": "vicenza_9697_1", "name": "Luca Mondini", "pos": "GK", "stats": {"speed": 84, "technique": 83, "passing": 70, "dribbling": 68, "shooting": 80, "defending": 82, "heading": 85, "physical": 84, "vision": 71, "positioning": 75, "crossing": 75}, "overall": 78}, {"id": "vicenza_9697_2", "name": "Joachim Björklund", "pos": "DF", "stats": {"speed": 81, "technique": 86, "passing": 75, "dribbling": 77, "shooting": 91, "defending": 80, "heading": 82, "physical": 87, "vision": 84, "positioning": 87, "crossing": 81}, "overall": 82}, {"id": "vicenza_9697_3", "name": "Giovanni Lopez", "pos": "DF", "stats": {"speed": 84, "technique": 85, "passing": 85, "dribbling": 82, "shooting": 85, "defending": 85, "heading": 75, "physical": 72, "vision": 76, "positioning": 80, "crossing": 83}, "overall": 80}, {"id": "vicenza_9697_4", "name": "Gustavo Méndez", "pos": "DF", "stats": {"speed": 88, "technique": 82, "passing": 83, "dribbling": 82, "shooting": 84, "defending": 78, "heading": 86, "physical": 86, "vision": 84, "positioning": 84, "crossing": 83}, "overall": 81}, {"id": "vicenza_9697_5", "name": "Francesco Coco", "pos": "DF", "stats": {"speed": 80, "technique": 84, "passing": 76, "dribbling": 71, "shooting": 70, "defending": 75, "heading": 69, "physical": 80, "vision": 86, "positioning": 77, "crossing": 81}, "overall": 78}, {"id": "vicenza_9697_6", "name": "Domenico Di Carlo", "pos": "MF", "stats": {"speed": 84, "technique": 90, "passing": 75, "dribbling": 86, "shooting": 77, "defending": 73, "heading": 74, "physical": 85, "vision": 92, "positioning": 82, "crossing": 84}, "overall": 82}, {"id": "vicenza_9697_7", "name": "Giampiero Maini", "pos": "MF", "stats": {"speed": 72, "technique": 79, "passing": 87, "dribbling": 82, "shooting": 82, "defending": 74, "heading": 84, "physical": 80, "vision": 85, "positioning": 86, "crossing": 84}, "overall": 80}, {"id": "vicenza_9697_8", "name": "Fabio Viviani", "pos": "MF", "stats": {"speed": 87, "technique": 87, "passing": 74, "dribbling": 81, "shooting": 82, "defending": 75, "heading": 83, "physical": 75, "vision": 90, "positioning": 85, "crossing": 82}, "overall": 80}, {"id": "vicenza_9697_9", "name": "Lamberto Zauli", "pos": "AM", "stats": {"speed": 82, "technique": 89, "passing": 77, "dribbling": 90, "shooting": 78, "defending": 84, "heading": 87, "physical": 89, "vision": 92, "positioning": 76, "crossing": 84}, "overall": 82}, {"id": "vicenza_9697_10", "name": "Pasquale Luiso", "pos": "ST", "stats": {"speed": 79, "technique": 82, "passing": 88, "dribbling": 83, "shooting": 75, "defending": 75, "heading": 93, "physical": 90, "vision": 84, "positioning": 93, "crossing": 85}, "overall": 85}, {"id": "vicenza_9697_11", "name": "Roberto Murgita", "pos": "ST", "stats": {"speed": 86, "technique": 77, "passing": 84, "dribbling": 90, "shooting": 89, "defending": 73, "heading": 84, "physical": 75, "vision": 90, "positioning": 84, "crossing": 83}, "overall": 80}, {"id": "vicenza_9697_12", "name": "Marcelo Otero", "pos": "ST", "stats": {"speed": 78, "technique": 79, "passing": 82, "dribbling": 83, "shooting": 92, "defending": 73, "heading": 90, "physical": 80, "vision": 77, "positioning": 78, "crossing": 80}, "overall": 83}, {"id": "vicenza_9697_13", "name": "Massimo Beghetto", "pos": "MF", "stats": {"speed": 84, "technique": 82, "passing": 81, "dribbling": 78, "shooting": 85, "defending": 82, "heading": 78, "physical": 79, "vision": 87, "positioning": 81, "crossing": 83}, "overall": 78}, {"id": "vicenza_9697_14", "name": "Gabriele Ambrosetti", "pos": "MF", "stats": {"speed": 88, "technique": 87, "passing": 86, "dribbling": 70, "shooting": 87, "defending": 68, "heading": 77, "physical": 83, "vision": 76, "positioning": 74, "crossing": 84}, "overall": 80}, {"id": "vicenza_9697_15", "name": "Giovanni Sartor", "pos": "DF", "stats": {"speed": 71, "technique": 82, "passing": 85, "dribbling": 67, "shooting": 82, "defending": 67, "heading": 76, "physical": 72, "vision": 79, "positioning": 75, "crossing": 83}, "overall": 77}, {"id": "vicenza_9697_16", "name": "Marco Ambrosio", "pos": "GK", "stats": {"speed": 70, "technique": 83, "passing": 77, "dribbling": 70, "shooting": 77, "defending": 64, "heading": 81, "physical": 69, "vision": 78, "positioning": 70, "crossing": 79}, "overall": 76}]}, {"id": "foggia_9192", "name": "Foggia", "season": "1991/92", "coach": "Zdeněk Zeman", "strength": 82, "formations": ["4-3-3", "4-2-3-1", "4-4-2"], "players": [{"id": "foggia_9192_1", "name": "Francesco Mancini", "pos": "GK", "stats": {"speed": 82, "technique": 75, "passing": 82, "dribbling": 84, "shooting": 79, "defending": 79, "heading": 76, "physical": 77, "vision": 78, "positioning": 78, "crossing": 79}, "overall": 81}, {"id": "foggia_9192_2", "name": "Giovanni Bucaro", "pos": "DF", "stats": {"speed": 78, "technique": 73, "passing": 80, "dribbling": 73, "shooting": 71, "defending": 69, "heading": 79, "physical": 79, "vision": 83, "positioning": 84, "crossing": 78}, "overall": 79}, {"id": "foggia_9192_3", "name": "Pasquale Padalino", "pos": "DF", "stats": {"speed": 88, "technique": 77, "passing": 72, "dribbling": 79, "shooting": 89, "defending": 70, "heading": 84, "physical": 86, "vision": 88, "positioning": 83, "crossing": 77}, "overall": 80}, {"id": "foggia_9192_4", "name": "Dan Petrescu", "pos": "DF", "stats": {"speed": 87, "technique": 80, "passing": 77, "dribbling": 93, "shooting": 76, "defending": 78, "heading": 88, "physical": 82, "vision": 80, "positioning": 87, "crossing": 79}, "overall": 84}, {"id": "foggia_9192_5", "name": "Luigi Di Biagio", "pos": "MF", "stats": {"speed": 73, "technique": 78, "passing": 78, "dribbling": 78, "shooting": 86, "defending": 70, "heading": 72, "physical": 75, "vision": 81, "positioning": 88, "crossing": 79}, "overall": 81}, {"id": "foggia_9192_6", "name": "Igor Shalimov", "pos": "MF", "stats": {"speed": 93, "technique": 95, "passing": 91, "dribbling": 78, "shooting": 87, "defending": 94, "heading": 79, "physical": 91, "vision": 85, "positioning": 95, "crossing": 91}, "overall": 87}, {"id": "foggia_9192_7", "name": "Roberto Rambaudi", "pos": "FW", "stats": {"speed": 76, "technique": 87, "passing": 92, "dribbling": 77, "shooting": 79, "defending": 91, "heading": 76, "physical": 77, "vision": 77, "positioning": 79, "crossing": 87}, "overall": 84}, {"id": "foggia_9192_8", "name": "Giuseppe Signori", "pos": "ST", "stats": {"speed": 91, "technique": 87, "passing": 89, "dribbling": 85, "shooting": 80, "defending": 93, "heading": 88, "physical": 83, "vision": 92, "positioning": 90, "crossing": 89}, "overall": 89}, {"id": "foggia_9192_9", "name": "Francesco Baiano", "pos": "ST", "stats": {"speed": 79, "technique": 89, "passing": 80, "dribbling": 76, "shooting": 92, "defending": 75, "heading": 93, "physical": 89, "vision": 91, "positioning": 81, "crossing": 85}, "overall": 86}, {"id": "foggia_9192_10", "name": "Bryan Roy", "pos": "FW", "stats": {"speed": 83, "technique": 86, "passing": 78, "dribbling": 88, "shooting": 81, "defending": 77, "heading": 87, "physical": 92, "vision": 87, "positioning": 88, "crossing": 83}, "overall": 84}, {"id": "foggia_9192_11", "name": "Luigi De Agostini", "pos": "MF", "stats": {"speed": 74, "technique": 89, "passing": 88, "dribbling": 87, "shooting": 76, "defending": 83, "heading": 87, "physical": 80, "vision": 87, "positioning": 86, "crossing": 88}, "overall": 81}, {"id": "foggia_9192_12", "name": "Andrea Seno", "pos": "MF", "stats": {"speed": 80, "technique": 83, "passing": 83, "dribbling": 67, "shooting": 80, "defending": 69, "heading": 83, "physical": 78, "vision": 83, "positioning": 76, "crossing": 83}, "overall": 77}, {"id": "foggia_9192_13", "name": "Giuseppe Colucci", "pos": "MF", "stats": {"speed": 84, "technique": 72, "passing": 81, "dribbling": 78, "shooting": 73, "defending": 82, "heading": 79, "physical": 75, "vision": 69, "positioning": 79, "crossing": 75}, "overall": 76}, {"id": "foggia_9192_14", "name": "Antonio Soda", "pos": "ST", "stats": {"speed": 85, "technique": 86, "passing": 78, "dribbling": 76, "shooting": 81, "defending": 83, "heading": 74, "physical": 83, "vision": 85, "positioning": 81, "crossing": 82}, "overall": 78}, {"id": "foggia_9192_15", "name": "Giuseppe Carannante", "pos": "DF", "stats": {"speed": 78, "technique": 72, "passing": 75, "dribbling": 78, "shooting": 69, "defending": 67, "heading": 79, "physical": 81, "vision": 86, "positioning": 85, "crossing": 76}, "overall": 77}, {"id": "foggia_9192_16", "name": "Cosimo Nocera", "pos": "DF", "stats": {"speed": 80, "technique": 78, "passing": 70, "dribbling": 83, "shooting": 86, "defending": 69, "heading": 77, "physical": 80, "vision": 86, "positioning": 74, "crossing": 76}, "overall": 76}]}]}, teams=DB.teams, $=s=>document.querySelector(s);
+let career=null,current=null,paused=false,speed=1,halfResolver=null;
+
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));$("#"+id).classList.add("active")}
+function T(id){return teams.find(t=>t.id===id)}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function avg(a){return a.reduce((x,y)=>x+y,0)/a.length}
+function wait(ms){return new Promise(r=>setTimeout(r,ms/speed))}
+function log(t){let e=$("#log");e.textContent+="\n"+t;e.scrollTop=e.scrollHeight}
+
+
+const teamMeta={
+ inter_9798:{city:"Milano",stadium:"Giuseppe Meazza",motto:"Pazza Inter",colors:["#111","#2256a8"]},
+ milan_0607:{city:"Milano",stadium:"San Siro",motto:"Cuore rossonero",colors:["#b51f2e","#111"]},
+ fiorentina_9596:{city:"Firenze",stadium:"Artemio Franchi",motto:"Forza Viola",colors:["#5b3192","#fff"]},
+ roma_0001:{city:"Roma",stadium:"Olimpico",motto:"La Magica",colors:["#8b1d24","#e0a62b"]},
+ juve_9798:{city:"Torino",stadium:"Delle Alpi",motto:"Fino alla fine",colors:["#111","#eee"]},
+ reggina_0203:{city:"Reggio Calabria",stadium:"Oreste Granillo",motto:"Orgoglio amaranto",colors:["#791d24","#fff"]},
+ parma_9899:{city:"Parma",stadium:"Ennio Tardini",motto:"Crociati",colors:["#1f4a98","#e9d63b"]},
+ samp_9091:{city:"Genova",stadium:"Luigi Ferraris",motto:"Forza Doria",colors:["#2465a7","#fff"]},
+ lazio_9798:{city:"Roma",stadium:"Olimpico",motto:"Avanti Lazio",colors:["#74b9dd","#fff"]},
+ udinese_9798:{city:"Udine",stadium:"Friuli",motto:"Forza Zebrette",colors:["#111","#eee"]},
+ brescia_0001:{city:"Brescia",stadium:"Mario Rigamonti",motto:"Rondinelle",colors:["#2762a8","#fff"]},
+ chievo_0102:{city:"Verona",stadium:"Marcantonio Bentegodi",motto:"Il miracolo continua",colors:["#e4d42c","#2d5ca8"]},
+ perugia_9900:{city:"Perugia",stadium:"Renato Curi",motto:"Grifo!",colors:["#b12c2c","#fff"]},
+ venezia_9899:{city:"Venezia",stadium:"Pier Luigi Penzo",motto:"Leoni alati",colors:["#111","#e67e22"]},
+ vicenza_9697:{city:"Vicenza",stadium:"Romeo Menti",motto:"Lane!",colors:["#c72e32","#fff"]},
+ foggia_9192:{city:"Foggia",stadium:"Pino Zaccheria",motto:"Zemanlandia",colors:["#c62c31","#111"]}
+};
+let selectedTeamIndex=0, audioCtx=null, crowdNode=null, crowdGain=null;
+function audio(){
+ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+ return audioCtx;
+}
+function whistle(){
+ const a=audio(),o=a.createOscillator(),g=a.createGain();
+ o.type="square";o.frequency.setValueAtTime(1800,a.currentTime);o.frequency.exponentialRampToValueAtTime(2500,a.currentTime+.12);
+ g.gain.setValueAtTime(.10,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.32);
+ o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.34);
+}
+function crowd(level=.025,dur=1.8){
+ const a=audio(),len=a.sampleRate*2,buf=a.createBuffer(1,len,a.sampleRate),d=buf.getChannelData(0);
+ for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(.25+Math.sin(i/1200)*.08);
+ const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();
+ s.buffer=buf;s.loop=true;f.type="lowpass";f.frequency.value=650;g.gain.value=level;s.connect(f);f.connect(g);g.connect(a.destination);s.start();
+ setTimeout(()=>{try{s.stop()}catch(e){}},dur*1000);
+}
+function goalRoar(){crowd(.09,3.2)}
+function renderTeamPicker(){
+ const t=teams[selectedTeamIndex],m=teamMeta[t.id]||{city:"Italia",stadium:"Stadio Comunale",motto:"Forza!",colors:["#333","#aaa"]};
+ $("#managerTeam").value=t.id;
+ $("#teamEmblem").textContent=t.name.substring(0,2).toUpperCase();
+ $("#teamEmblem").style.background=`linear-gradient(135deg,${m.colors[0]} 0 50%,${m.colors[1]} 50% 100%)`;
+ $("#teamNameBig").textContent=t.name;$("#teamSeasonBig").textContent=t.season;
+ $("#teamLeftInfo").innerHTML=`<b>CITTÀ</b><br>${m.city}<br><br><b>STADIO</b><br>${m.stadium}<br><br><b>VICE</b><br>${t.coach}<br><br><i>"${m.motto}"</i>`;
+ $("#teamRightInfo").innerHTML=`<b>OVERALL</b><div class="overall90">${t.strength}</div><br><b>MODULI</b><br>${t.formations.join("<br>")}`;
+}
+
+teams.forEach(t=>{let o=document.createElement("option");o.value=t.id;o.textContent=`${t.name} ${t.season}`;$("#managerTeam").appendChild(o)})
+function teamPreview(){let t=T($("#managerTeam").value);$("#teamPreview").innerHTML=`<b>${t.name} ${t.season}</b><br>Vice: ${t.coach}<br>Forza base ${t.strength}/100`}
+$("#managerTeam").onchange=teamPreview;teamPreview();
+$("#managerNext").onclick=()=>{audio();$("#managerStep").style.display="none";$("#teamStep").style.display="block";renderTeamPicker();
+$("#pressStart").onclick=()=>{audio();crowd(.018,1.4);$("#titleScreen").style.display="none";};crowd(.018,1.2)};
+$("#teamBack").onclick=()=>{$("#teamStep").style.display="none";$("#managerStep").style.display="block"};
+$("#prevTeam").onclick=()=>{selectedTeamIndex=(selectedTeamIndex-1+teams.length)%teams.length;renderTeamPicker()};
+$("#nextTeam").onclick=()=>{selectedTeamIndex=(selectedTeamIndex+1)%teams.length;renderTeamPicker()};
+renderTeamPicker();
+
+function fixtures(ids){let a=[...ids],r=[];for(let k=0;k<a.length-1;k++){let rd=[];for(let i=0;i<a.length/2;i++){let h=a[i],aw=a[a.length-1-i];if(k%2)[h,aw]=[aw,h];rd.push([h,aw])}r.push(rd);a.splice(1,0,a.pop())}return r.concat(r.map(x=>x.map(([h,a])=>[a,h])))}
+function initStats(){let o={};teams.forEach(t=>o[t.id]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0});return o}
+function initPlayerStats(){let o={};teams.forEach(t=>t.players.forEach(p=>o[p.id]={name:p.name,team:t.id,goals:0,assists:0,apps:0}));return o}
+function roleGroup(pos){
+ if(pos==="GK")return "POR";
+ if(pos==="DF")return "DIF";
+ if(["MF","AM"].includes(pos))return "CEN";
+ return "ATT";
+}
+function ensureBenchRoles(ps,lineup){
+ const groups=["POR","DIF","CEN","ATT"];
+ let bench=ps.filter(p=>!lineup.includes(p.id));
+ for(const g of groups){
+   if(!bench.some(p=>roleGroup(p.pos)===g)){
+     const starter=ps.find(p=>lineup.includes(p.id)&&roleGroup(p.pos)===g);
+     const replacement=ps.find(p=>!lineup.includes(p.id)&&roleGroup(p.pos)!==g);
+     if(starter && replacement){
+       lineup[lineup.indexOf(starter.id)]=replacement.id;
+       bench=ps.filter(p=>!lineup.includes(p.id));
+     }
+   }
+ }
+ return lineup;
+}
+function buildInitialLineup(ps){
+ const wanted={POR:1,DIF:4,CEN:4,ATT:2};
+ let lineup=[];
+ for(const g of ["POR","DIF","CEN","ATT"]){
+   lineup.push(...ps.filter(p=>roleGroup(p.pos)===g).slice(0,wanted[g]).map(p=>p.id));
+ }
+ for(const p of ps){ if(lineup.length<11 && !lineup.includes(p.id)) lineup.push(p.id); }
+ return ensureBenchRoles(ps,lineup.slice(0,11));
+}
+function initTeamState(t){
+ let ps=t.players.map(p=>({...p,morale:rand(35,90)}));
+ // Se una rosa prototipale non ha un secondo portiere, aggiungiamo una riserva tecnica
+ if(ps.filter(p=>roleGroup(p.pos)==="POR").length<2){
+   ps.push({id:t.id+"_reserve_gk",name:"Portiere di riserva",pos:"GK",overall:68,morale:rand(35,90),stats:{}});
+ }
+ let lineup=buildInitialLineup(ps);
+ return {formation:t.formations[0],mentality:"Normale",subs:0,players:ps,lineup,
+ setPieces:{penalty:lineup[9]||lineup[0],direct:lineup[8]||lineup[0],indirect:lineup[7]||lineup[0],cornerL:lineup[7]||lineup[0],cornerR:lineup[8]||lineup[0]}}
+}
+$("#createCareer").onclick=()=>{
+ let name=$("#managerName").value.trim()||"Manager",team=$("#managerTeam").value;
+ career={manager:name,user:team,round:0,fixtures:fixtures(teams.map(t=>t.id)),stats:initStats(),pstats:initPlayerStats(),teamStates:{},results:[]};
+ teams.forEach(t=>career.teamStates[t.id]=initTeamState(t));
+ renderSeason();show("season")
+}
+
+function rowSort(){return teams.map(t=>({t,s:career.stats[t.id]})).sort((a,b)=>b.s.pts-a.s.pts||((b.s.gf-b.s.ga)-(a.s.gf-a.s.ga))||b.s.gf-a.s.gf)}
+function nextUserGame(){
+ if(career.round>=career.fixtures.length)return null;
+ return career.fixtures[career.round].find(g=>g.includes(career.user))
+}
+function renderSeason(){
+ let t=T(career.user),ng=nextUserGame();
+ $("#headerSub").textContent=`${career.manager} · ${t.name} ${t.season}`;
+ $("#headerRight").textContent=`Giornata ${career.round}/${career.fixtures.length}`;
+ $("#managerSummary").innerHTML=`<b>Manager:</b> ${career.manager}<br><b>Squadra:</b> ${t.name} ${t.season}<br><b>Vice:</b> ${t.coach}`;
+ $("#seasonStatus").innerHTML=career.round>=career.fixtures.length?`Stagione conclusa`:`Prossima giornata: ${career.round+1}`;
+ renderSeasonView("next");
+}
+document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-view]").forEach(x=>x.classList.remove("active"));b.classList.add("active");renderSeasonView(b.dataset.view)})
+function renderSeasonView(v){
+ let c=$("#seasonContent");
+ if(v==="next"){
+  let g=nextUserGame();
+  if(!g){c.innerHTML="<h3>STAGIONE TERMINATA</h3>";return}
+  let h=T(g[0]),a=T(g[1]);
+  c.innerHTML=`<h2>PROSSIMA PARTITA</h2><div class="matchhead">${h.name} ${h.season} vs ${a.name} ${a.season}</div><p>Giornata ${career.round+1}</p><button class="primary" id="goPrematch">PREPARA PARTITA</button>`;
+  $("#goPrematch").onclick=()=>openPrematch(g);
+ }
+ if(v==="results"){
+  c.innerHTML="<h2>RISULTATI</h2>"+(career.results.length?career.results.slice().reverse().map(r=>`<div class="card">${T(r.h).name} ${r.hg} - ${r.ag} ${T(r.a).name} <span class="muted">G${r.round}</span></div>`).join(""):"Nessuna partita giocata.");
+ }
+ if(v==="table"){
+  c.innerHTML="<h2>CLASSIFICA</h2><table><tr><th>#</th><th>Squadra</th><th>Pt</th><th>G</th><th>GF</th><th>GS</th></tr>"+
+  rowSort().map((r,i)=>`<tr><td>${i+1}</td><td>${r.t.name} ${r.t.season}</td><td><b>${r.s.pts}</b></td><td>${r.s.p}</td><td>${r.s.gf}</td><td>${r.s.ga}</td></tr>`).join("")+"</table>";
+ }
+ if(v==="scorers"||v==="assists"){
+  let key=v==="scorers"?"goals":"assists",title=v==="scorers"?"MARCATORI":"ASSIST";
+  let list=Object.values(career.pstats).filter(p=>p[key]>0).sort((a,b)=>b[key]-a[key]).slice(0,20);
+  c.innerHTML=list.length ? (`<h2>${title}</h2><table><tr><th>#</th><th>Giocatore</th><th>Squadra</th><th>${title}</th></tr>`+
+  list.map((p,i)=>`<tr><td>${i+1}</td><td>${p.name}</td><td>${T(p.team).name}</td><td><b>${p[key]}</b></td></tr>`).join("")+"</table>") :
+  `<h2>${title}</h2><p class="muted">Ancora nessun dato: compariranno solo i giocatori con almeno ${key==="goals"?"un gol":"un assist"}.</p>`;
+ }
+}
+function openPrematch(g){
+ current={fixture:g}; let st=career.teamStates[career.user],t=T(career.user),opp=T(g[0]===career.user?g[1]:g[0]);
+ $("#prematchInfo").innerHTML=`<b>${t.name} ${t.season}</b> vs <b>${opp.name} ${opp.season}</b><br>Vice: ${t.coach}`;
+ $("#formationChoices").innerHTML=t.formations.map(f=>`<button data-form="${f}" class="${f===st.formation?"active":""}">${f}</button>`).join("");
+ document.querySelectorAll("[data-form]").forEach(b=>b.onclick=()=>{st.formation=b.dataset.form;document.querySelectorAll("[data-form]").forEach(x=>x.classList.toggle("active",x.dataset.form===st.formation))})
+ document.querySelectorAll("[data-ment]").forEach(b=>{b.classList.toggle("active",b.dataset.ment===st.mentality);b.onclick=()=>{st.mentality=b.dataset.ment;document.querySelectorAll("[data-ment]").forEach(x=>x.classList.toggle("active",x.dataset.ment===st.mentality))}})
+ renderPrematchLineup(); renderSetPieces("#setPieces"); show("prematch");
+}
+function playerName(id){let st=career.teamStates[career.user];return st.players.find(p=>p.id===id)?.name||"—"}
+
+function findUserPlayer(id){
+ const st=career?.teamStates?.[career.user];
+ return st?.players?.find(p=>p.id===id)||null;
+}
+function showPlayerProfile(id){
+ const p=findUserPlayer(id); if(!p)return;
+ $("#playerProfileName").textContent=p.name;
+ $("#playerProfileMeta").innerHTML=`${roleGroup(p.pos)} · ${p.pos} · OVR ${p.overall} · Morale ${p.morale}`;
+ $("#profileCross").textContent=p.stats?.crossing??"—";
+ $("#profilePenalty").textContent=p.stats?.shooting??"—";
+ $("#profileFreeKick").textContent=p.stats?.shooting??"—";
+ $("#profileTechnique").textContent=p.stats?.technique??"—";
+ $("#playerModal").style.display="flex";
+}
+$("#closePlayerProfile").onclick=()=>$("#playerModal").style.display="none";
+
+function renderPrematchLineup(){
+ let st=career.teamStates[career.user];let ps=st.players.filter(p=>st.lineup.includes(p.id));
+ $("#lineupPreview").innerHTML=ps.map(p=>`<div class="card player-click" data-player-card="${p.id}">${p.name} · ${p.pos} · OVR ${p.overall} · Morale ${p.morale}</div>`).join(""); document.querySelectorAll("[data-player-card]").forEach(x=>x.onclick=()=>showPlayerProfile(x.dataset.playerCard))
+}
+function renderSetPieces(sel){
+ let st=career.teamStates[career.user],labels={penalty:"Rigori",direct:"Punizioni dirette",indirect:"Punizioni indirette",cornerL:"Angolo SX",cornerR:"Angolo DX"};
+ let el=$(sel); el.innerHTML=Object.keys(labels).map(k=>`<div class="card"><b>${labels[k]}</b><br><select data-sp="${k}">${st.players.map(p=>`<option value="${p.id}" ${st.setPieces[k]===p.id?"selected":""}>${p.name}</option>`).join("")}</select></div>`).join("");
+ el.querySelectorAll("[data-sp]").forEach(s=>s.onchange=()=>st.setPieces[s.dataset.sp]=s.value)
+}
+$("#backSeason").onclick=()=>{renderSeason();show("season")}
+$("#prematchLineup").onclick=()=>{openTactics();window._prematchEdit=true};
+
+function moraleMult(m){return m<=20?.92:m<=40?.96:m<=60?1:m<=80?1.04:1.08}
+function mentalityMult(m){return m==="Offensivo"?1.08:m==="Difensivo"?.94:1}
+function lineupPower(id){let t=T(id),s=career.teamStates[id],ps=s.players.filter(p=>s.lineup.includes(p.id));return avg(ps.map(p=>p.overall*moraleMult(p.morale)))*.7+t.strength*.3}
+function poisson(l){let L=Math.exp(-l),k=0,p=1;do{k++;p*=Math.random()}while(p>L);return k-1}
+function attackers(id){let s=career.teamStates[id],ps=s.players.filter(p=>s.lineup.includes(p.id)),f=ps.filter(p=>["ST","FW","AM","MF"].includes(p.pos));return f.length?f:ps}
+function buildMatch(h,a){
+ let hp=lineupPower(h)*mentalityMult(career.teamStates[h].mentality),ap=lineupPower(a)*mentalityMult(career.teamStates[a].mentality);
+ let hg=Math.min(6,poisson(Math.max(.3,1.15+(hp-ap)/18+.18))),ag=Math.min(6,poisson(Math.max(.25,1.00+(ap-hp)/18)));
+ let ev=[];
+ const goalEv=(id,count,side)=>{for(let i=0;i<count;i++){let scorer=pick(attackers(id)),pool=attackers(id).filter(x=>x.id!==scorer.id),ass=pool.length?pick(pool):null;ev.push({min:rand(5,89),type:"goal",side,player:scorer,assist:ass})}}
+ goalEv(h,hg,"home");goalEv(a,ag,"away");
+ for(let i=0;i<rand(7,12);i++){let side=Math.random()<.5?"home":"away",id=side==="home"?h:a;ev.push({min:rand(3,89),type:"chance",side,player:pick(attackers(id))})}
+ for(let i=0;i<rand(2,5);i++){let side=Math.random()<.5?"home":"away",id=side==="home"?h:a;ev.push({min:rand(8,88),type:Math.random()<.1?"red":"yellow",side,player:pick(career.teamStates[id].players)})}
+ for(let i=0;i<rand(5,9);i++){let side=Math.random()<.5?"home":"away",id=side==="home"?h:a;ev.push({min:rand(2,89),type:"foul",side,player:pick(career.teamStates[id].players)})}
+ return {h,a,scoreH:0,scoreA:0,minute:0,events:ev.sort((x,y)=>x.min-y.min),stats:{shotsH:0,shotsA:0,onH:0,onA:0},keyEvents:[]}
+}
+function setupPitch(){let p=$("#pitch");[...p.querySelectorAll(".dot,.ball")].forEach(x=>x.remove());let H=[[15,50],[29,18],[29,38],[29,62],[29,82],[44,20],[44,40],[44,60],[44,80],[60,40],[60,60]],A=H.map(([x,y])=>[100-x,y]);H.forEach((c,i)=>mk(c,"home",i));A.forEach((c,i)=>mk(c,"away",i));let b=document.createElement("div");b.className="ball";b.id="ball";b.style.left="50%";b.style.top="50%";p.appendChild(b)}
+function mk(c,cl,i){let d=document.createElement("div");d.className=`dot ${cl}`;d.style.left=c[0]+"%";d.style.top=c[1]+"%";$("#pitch").appendChild(d)}
+function updateScore(){ $("#score").innerHTML=`<b>${T(current.h).name}</b> ${current.scoreH} - ${current.scoreA} <b>${T(current.a).name}</b>`; $("#headerRight").textContent=current.minute+"'"}
+async function ov(html,ms){$("#overlayBox").innerHTML=html;$("#overlay").style.display="flex";await wait(ms);$("#overlay").style.display="none"}
+function showPitchImportant(){
+ const w=$("#pitchWrap90");if(w)w.classList.add("active");
+}
+function hidePitch(){
+ const w=$("#pitchWrap90");if(w)w.classList.remove("active");
+}
+async function moveBallTo(x,y,ms=520){
+ let b=$("#ball");b.style.transition=`left ${ms}ms linear, top ${ms}ms linear`;b.style.left=x+"%";b.style.top=y+"%";await wait(ms+80);
+}
+async function moveDotTo(d,x,y,ms=620){
+ d.style.transition=`left ${ms}ms linear, top ${ms}ms linear`;d.style.left=x+"%";d.style.top=y+"%";await wait(ms+60);
+}
+async function animAttack(side,outcome="chance"){
+ const home=side==="home", dir=home?1:-1;
+ const ds=[...document.querySelectorAll(".dot."+side)].slice(-4);
+ const passer=ds[0], support=ds[1], shooter=ds[3];
+ const p1={x:home?48:52,y:home?35:65};
+ const p2={x:home?63:37,y:home?55:45};
+ const p3={x:home?79:21,y:50};
+
+ // La palla segue davvero i giocatori: conduzione -> passaggio -> assist -> tiro
+ await moveDotTo(passer,p1.x,p1.y,520); await moveBallTo(p1.x,p1.y,300);
+ await moveDotTo(support,p2.x,p2.y,520); await moveBallTo(p2.x,p2.y,430);
+ await moveDotTo(shooter,p3.x,p3.y,520); await moveBallTo(p3.x,p3.y,430);
+
+ if(outcome==="goal"){
+   // tiro dentro lo specchio e oltre la linea: solo ora è gol
+   const gy=rand(43,57);
+   await moveBallTo(home?102:-2,gy,520);
+ }else if(outcome==="save"){
+   // tiro nello specchio ma fermato davanti alla porta
+   await moveBallTo(home?94:6,rand(44,56),500);
+ }else if(outcome==="post"){
+   await moveBallTo(home?98:2,home?40:60,500);
+ }else{
+   // fuori: supera la linea di fondo ma NON tra i pali
+   await moveBallTo(home?101:-1,rand(18,32),500);
+ }
+}
+async function doEvent(e){
+ while(paused)await wait(250);current.minute=e.min;updateScore();
+
+ if(e.type==="chance"){
+   let team=T(e.side==="home"?current.h:current.a);
+   const r=Math.random(), outcome=r<.48?"save":r<.82?"miss":"post";
+   log(`${e.min}' OCCASIONE ${team.name} - ${e.player.name}`,e.side);showPitchImportant();
+   await animAttack(e.side,outcome);
+   if(e.side==="home"){current.stats.shotsH++;if(outcome==="save")current.stats.onH++}
+   else{current.stats.shotsA++;if(outcome==="save")current.stats.onA++}
+   if(outcome==="save")log(`${e.min}' PARATA DEL PORTIERE!`,e.side);
+   else if(outcome==="post")log(`${e.min}' PALO!`,e.side);
+   else log(`${e.min}' TIRO FUORI.`,e.side);
+   await wait(1050);
+   setupPitch();hidePitch();
+ }
+
+ if(e.type==="foul"){
+   whistle();
+   // Tutti si fermano: la palla resta immobile per la pausa arbitrale
+   log(`${e.min}' FALLO di ${e.player.name}. L\'arbitro ferma il gioco.`,e.side);showPitchImportant();
+   await wait(1300);
+   crowd(.018,.7);hidePitch();
+ }
+ if(e.type==="yellow"||e.type==="red"){
+   log(`${e.min}' ${e.type==="red"?"ESPULSIONE":"AMMONIZIONE"} - ${e.player.name}`,e.side);showPitchImportant();
+   current.keyEvents.push(`${e.min}' ${e.type==="red"?"Rosso":"Giallo"} ${e.player.name}`);
+   await ov(`<div style="font-size:70px">${e.type==="red"?"✋🟥":"✋🟨"}</div><b>${e.player.name}</b>`,1400);hidePitch();
+ }
+
+ if(e.type==="goal"){
+   let team=T(e.side==="home"?current.h:current.a);
+   log(`${e.min}' ${team.name} costruisce l\'azione...`,e.side);showPitchImportant();
+   await animAttack(e.side,"goal");
+
+   // Il risultato cambia soltanto dopo che la palla ha attraversato la porta
+   if(e.side==="home")current.scoreH++;else current.scoreA++;
+   career.pstats[e.player.id].goals++;
+   if(e.assist){career.pstats[e.assist.id].assists++}
+   career.pstats[e.player.id].apps++;
+   updateScore();
+
+   goalRoar();log(`${e.min}' GOOOL! ${e.player.name}`,e.side);
+   current.keyEvents.push(`${e.min}' GOL ${e.player.name}${e.assist?" (assist "+e.assist.name+")":""}`);
+   await ov(`<div class="goal">GOOOL!</div><h2>${e.player.name}</h2>${e.assist?`<div>Assist: ${e.assist.name}</div>`:""}<h3>${T(current.h).name} ${current.scoreH} - ${current.scoreA} ${T(current.a).name}</h3>`,2600);
+
+   let ds=[...document.querySelectorAll(".dot."+e.side)].slice(-4);
+   ds.forEach((d,i)=>{d.style.left="50%";d.style.top=(38+i*8)+"%"});
+   await wait(1100);setupPitch();hidePitch();log(`${e.min+1}' Si riparte dal centro.`,"neutral");
+ } 
+}
+async function playHalf(a,b){for(const e of current.events.filter(x=>x.min>=a&&x.min<=b)){while(paused)await wait(250);await wait(Math.max(500,(e.min-current.minute)*175));await doEvent(e)}current.minute=b;updateScore()}
+function updateLeague(m){let H=career.stats[m.h],A=career.stats[m.a];H.p++;A.p++;H.gf+=m.scoreH;H.ga+=m.scoreA;A.gf+=m.scoreA;A.ga+=m.scoreH;if(m.scoreH>m.scoreA){H.w++;A.l++;H.pts+=3}else if(m.scoreH<m.scoreA){A.w++;H.l++;A.pts+=3}else{H.d++;A.d++;H.pts++;A.pts++};career.results.push({round:career.round+1,h:m.h,a:m.a,hg:m.scoreH,ag:m.scoreA})}
+function simOther(h,a){let m=buildMatch(h,a);m.scoreH=m.events.filter(e=>e.type==="goal"&&e.side==="home").length;m.scoreA=m.events.filter(e=>e.type==="goal"&&e.side==="away").length;m.events.filter(e=>e.type==="goal").forEach(e=>{career.pstats[e.player.id].goals++;if(e.assist)career.pstats[e.assist.id].assists++});updateLeague(m)}
+
+$("#startMatch").onclick=async()=>{
+ let g=current.fixture;let userHome=g[0]===career.user;current=buildMatch(g[0],g[1]);setupPitch();$("#log").textContent=`${T(current.h).name} ${T(current.h).season} - ${T(current.a).name} ${T(current.a).season}\n00' CALCIO D'INIZIO`;show("match");updateScore();hidePitch();crowd(.035,2.5);
+ paused=false;await playHalf(1,45);paused=true;
+ $("#halftimeScore").innerHTML=`<h2>${T(current.h).name} ${current.scoreH} - ${current.scoreA} ${T(current.a).name}</h2>`;
+ $("#halftimeStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}`;
+ show("halftime"); await new Promise(r=>halfResolver=r); paused=false;show("match");await playHalf(46,90);log("90' FINE PARTITA");
+ let games=career.fixtures[career.round];for(const [h,a] of games){if(h===current.h&&a===current.a)continue;simOther(h,a)}
+ updateLeague(current);career.round++;
+ $("#postScore").innerHTML=`<h2>${T(current.h).name} ${current.scoreH} - ${current.scoreA} ${T(current.a).name}</h2>`;
+ $("#postStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}<br>Modulo: ${career.teamStates[career.user].formation}<br>Atteggiamento: ${career.teamStates[career.user].mentality}`;
+ $("#postEvents").innerHTML=current.keyEvents.length?current.keyEvents.map(x=>`<div class="card">${x}</div>`).join(""):"Nessun evento chiave.";
+ show("postmatch")
+}
+$("#resumeSecond").onclick=()=>{if(halfResolver){let r=halfResolver;halfResolver=null;r()}}
+$("#returnSeason").onclick=()=>{renderSeason();show("season")}
+
+$("#pauseBtn").onclick=()=>{paused=!paused;$("#pauseBtn").textContent=paused?"RIPRENDI":"PAUSA"}
+document.querySelectorAll("[data-speed]").forEach(b=>b.onclick=()=>{speed=+b.dataset.speed;document.querySelectorAll("[data-speed]").forEach(x=>x.classList.toggle("active",x===b))})
+
+let selectedOut=null,selectedIn=null;
+function playerRow(p,kind){
+ return `<tr class="selectable" data-${kind}="${p.id}">
+ <td><span class="rolebadge">${roleGroup(p.pos)}</span></td>
+ <td><b class="player-click" data-profile="${p.id}">${p.name}</b><div class="smallstat">${p.pos}</div></td>
+ <td>${p.overall}</td><td>${p.morale}</td>
+ <td>${p.stats?.speed??"—"}</td><td>${p.stats?.technique??"—"}</td><td>${p.stats?.passing??"—"}</td>
+ </tr>`;
+}
+function bindSubRows(){
+ document.querySelectorAll("[data-out]").forEach(tr=>tr.onclick=()=>{
+   selectedOut=tr.dataset.out;document.querySelectorAll("[data-out]").forEach(x=>x.classList.toggle("selected",x===tr));updateSubButton();
+ });
+ document.querySelectorAll("[data-in]").forEach(tr=>tr.onclick=()=>{
+   selectedIn=tr.dataset.in;document.querySelectorAll("[data-in]").forEach(x=>x.classList.toggle("selected",x===tr));updateSubButton();
+ });
+ document.querySelectorAll("[data-profile]").forEach(el=>el.onclick=(ev)=>{ev.stopPropagation();showPlayerProfile(el.dataset.profile)});
+}
+function updateSubButton(){
+ let st=career.teamStates[career.user];
+ $("#doSub").disabled=!(selectedOut&&selectedIn)||(!window._prematchEdit&&st.subs>=3);
+}
+function openTactics(){
+ let st=career.teamStates[career.user],t=T(career.user);paused=true;selectedOut=null;selectedIn=null;
+ $("#liveFormation").innerHTML=t.formations.map(f=>`<option ${f===st.formation?"selected":""}>${f}</option>`).join("");$("#liveMentality").value=st.mentality;
+ renderSetPieces("#liveSetPieces");
+ let starters=st.players.filter(p=>st.lineup.includes(p.id)),bench=st.players.filter(p=>!st.lineup.includes(p.id));
+ const head=`<table class="player-table"><tr><th>Ruolo</th><th>Giocatore</th><th>OVR</th><th>MOR</th><th>VEL</th><th>TEC</th><th>PAS</th></tr>`;
+ $("#startersTable").innerHTML=head+starters.map(p=>playerRow(p,"out")).join("")+"</table>";
+ $("#benchTable").innerHTML=head+bench.map(p=>playerRow(p,"in")).join("")+"</table>";
+ $("#subsCount").textContent=st.subs+"/3";bindSubRows();updateSubButton();$("#tacticsModal").style.display="flex"
+}
+$("#tacticsBtn").onclick=openTactics;$("#halfTactics").onclick=openTactics;
+$("#doSub").onclick=()=>{
+ let st=career.teamStates[career.user];
+ if(!window._prematchEdit&&st.subs>=3)return alert("Hai già effettuato 3 sostituzioni.");
+ if(!selectedOut||!selectedIn)return;
+ let ix=st.lineup.indexOf(selectedOut);if(ix<0)return;
+ const outName=st.players.find(p=>p.id===selectedOut)?.name||"—";
+ const inName=st.players.find(p=>p.id===selectedIn)?.name||"—";
+ st.lineup[ix]=selectedIn;
+ if(!window._prematchEdit){st.subs++;log(`CAMBIO: ${outName} ↓  ${inName} ↑`);}
+ else{renderPrematchLineup();}
+ openTactics();
+}
+$("#closeTactics").onclick=()=>{let st=career.teamStates[career.user];st.formation=$("#liveFormation").value;st.mentality=$("#liveMentality").value;$("#tacticsModal").style.display="none";
+ const wasPrematch=!!window._prematchEdit;window._prematchEdit=false;
+ if($("#halftime").classList.contains("active"))paused=true;else if(wasPrematch)paused=false;else paused=false}
+</script>
+<div class="scanline"></div></body>
+</html>
