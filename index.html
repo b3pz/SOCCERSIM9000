@@ -821,24 +821,44 @@ function buildMatch(h,a){
 function setupPitch(){
  let p=$("#pitch"); if(!p||!current)return;
  p.querySelectorAll(".dot,#ball").forEach(x=>x.remove());
+
  const secondHalf = current.minute>=45 || current.half===2;
  const homeColors=getTeamColors(current.h), awayColors=getTeamColors(current.a);
 
  function addTeam(side,teamId,colors){
    const st=career.teamStates[teamId];
    const ids=st.lineup.slice(0,11);
+
    ids.forEach((id,i)=>{
+     const player=st.players.find(x=>x.id===id);
      const d=document.createElement("div");
      d.className="dot teamdot "+side;
      d.dataset.pid=id;
-     // side is visual possession label; actual field side flips at half-time
      d.style.background=colors[0];
      d.style.borderColor=colors[1] || "#fff";
-     const col=i===0?8:(i<5?28:(i<9?50:70));
-     const x = side==="home" ? col : 100-col;
-     const finalX = secondHalf ? 100-x : x;
-     d.style.left=finalX+"%";
-     d.style.top=(10+(i%5)*18)+"%";
+
+     let x,y;
+
+     if(player && roleGroup(player.pos)==="POR"){
+       // Portiere centrato tra i pali, leggermente dentro il campo.
+       // Casa difende a sinistra nel 1° tempo e a destra nel 2°.
+       const homeDefendsLeft = !secondHalf;
+       const defendsLeft = side==="home" ? homeDefendsLeft : !homeDefendsLeft;
+       x = defendsLeft ? 4.6 : 95.4;
+       y = 50;
+     } else {
+       // Disposizione base dei giocatori di movimento.
+       const fieldIndex = Math.max(1,i);
+       const baseCol = fieldIndex<5 ? 27 : (fieldIndex<9 ? 50 : 72);
+       const attacksRight = side==="home" ? !secondHalf : secondHalf;
+       x = attacksRight ? baseCol : 100-baseCol;
+
+       const rowMap=[16,32,50,68,84];
+       y = rowMap[(fieldIndex-1)%rowMap.length];
+     }
+
+     d.style.left=x+"%";
+     d.style.top=y+"%";
      p.appendChild(d);
    });
  }
@@ -849,10 +869,14 @@ function setupPitch(){
  const b=document.createElement("div");
  b.id="ball";
  b.style.position="absolute";
- b.style.width="10px";b.style.height="10px";
- b.style.borderRadius="50%";b.style.background="#fff";
- b.style.border="2px solid #111";b.style.zIndex="9";
- b.style.left="50%";b.style.top="50%";
+ b.style.width="10px";
+ b.style.height="10px";
+ b.style.borderRadius="50%";
+ b.style.background="#fff";
+ b.style.border="2px solid #111";
+ b.style.zIndex="9";
+ b.style.left="50%";
+ b.style.top="50%";
  b.style.transform="translate(-50%,-50%)";
  p.appendChild(b);
 }
