@@ -1,0 +1,134 @@
+/* SerieA 9000 SIM V6.5.1 — BACKGROUND MASTER FIX
+   Loaded AFTER V6.4. This file is intentionally dedicated to the new scene backgrounds.
+   It does not change career/save/match logic. */
+
+:root{
+  --v651-navy:#06142f;
+  --v651-cream:#eee5c9;
+  --v651-gold:#d1b35a;
+}
+
+/* All game screens: make the scene itself fill the available game viewport. */
+.screen{
+  background-repeat:no-repeat!important;
+  background-size:cover!important;
+  background-position:center center!important;
+  background-attachment:scroll!important;
+}
+
+/* NEW MASTER BACKGROUNDS */
+#mainMenu{
+  background-image:linear-gradient(rgba(2,8,20,.10),rgba(2,8,20,.24)),url('../assets/backgrounds_v65/bg_menu_studio.jpg')!important;
+}
+#season{
+  background-image:linear-gradient(rgba(2,8,20,.08),rgba(2,8,20,.18)),url('../assets/backgrounds_v65/bg_hub_redazione.jpg')!important;
+}
+#prematch,#halftime{
+  background-image:linear-gradient(rgba(2,8,20,.06),rgba(2,8,20,.14)),url('../assets/backgrounds_v65/bg_prepartita_spogliatoio.jpg')!important;
+}
+#kits{
+  background-image:linear-gradient(rgba(2,8,20,.05),rgba(2,8,20,.12)),url('../assets/backgrounds_v65/bg_scelta_divise_tunnel.jpg')!important;
+}
+#match{
+  background-image:linear-gradient(rgba(2,8,20,.06),rgba(2,8,20,.14)),url('../assets/backgrounds_v65/bg_match_regia.jpg')!important;
+}
+#cupsMenu{
+  background-image:linear-gradient(rgba(2,8,20,.10),rgba(2,8,20,.20)),url('../assets/backgrounds_v65/bg_albo_oro.jpg')!important;
+}
+#season.v51-calendar-bg{
+  background-image:linear-gradient(rgba(2,8,20,.08),rgba(2,8,20,.16)),url('../assets/backgrounds_v65/bg_riepilogo_stagione.jpg')!important;
+}
+#season.v51-europe-bg{
+  background-image:linear-gradient(rgba(2,8,20,.08),rgba(2,8,20,.18)),url('../assets/backgrounds_v65/bg_coppe_europee.jpg')!important;
+}
+#postmatch,#simpleMessage{
+  background-image:linear-gradient(rgba(2,8,20,.08),rgba(2,8,20,.18)),url('../assets/backgrounds_v65/bg_riepilogo_stagione.jpg')!important;
+}
+
+/* The team/manager setup shares a neutral football studio atmosphere until a dedicated setup scene is made. */
+#setup{
+  background-image:linear-gradient(rgba(2,8,20,.06),rgba(2,8,20,.14)),url('../assets/backgrounds_v65/bg_hub_redazione.jpg')!important;
+}
+
+/* Remove the old giant page logo from internal management screens: the new scenery needs breathing room.
+   Keep it on menu and setup where it is useful. */
+#season>.v51-page-logo,
+#prematch>.v51-page-logo,
+#kits>.v51-page-logo,
+#match>.v51-page-logo,
+#postmatch>.v51-page-logo,
+#simpleMessage>.v51-page-logo{
+  display:none!important;
+}
+
+/* New backgrounds are deliberately atmospheric, so old translucent white washes should be much lighter. */
+@media (min-width: 801px){
+  #season>.grid>.panel:first-child,
+  #season>.grid>.panel:nth-child(2),
+  #season>#seasonContent,
+  #prematch>.grid>.panel:first-child,
+  #prematch>.grid>.panel:nth-child(2){
+    background:rgba(238,229,201,.78)!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+
+  /* Hub: stop trying to match the newspaper artwork from the old background. Use a centered management console. */
+  #season>.grid{
+    left:10%!important;
+    top:16%!important;
+    width:80%!important;
+    height:30%!important;
+  }
+  #season>.grid>.panel:first-child{
+    left:0!important;top:0!important;width:46%!important;height:100%!important;
+    padding:1.2% 1.5%!important;
+  }
+  #season>.grid>.panel:nth-child(2){
+    left:auto!important;right:0!important;top:0!important;width:46%!important;height:100%!important;
+    padding:1.2% 1.5%!important;
+  }
+  #season>#seasonContent{
+    left:10%!important;top:50%!important;width:80%!important;height:31%!important;
+    padding:1.2% 1.5%!important;
+  }
+
+  /* Pre-match: keep controls left, lineup right, leave the tactical board visually open in the middle. */
+  #prematch>.grid>.panel:first-child{
+    left:7%!important;top:20%!important;width:24%!important;height:55%!important;
+    padding:1.1% 1.2%!important;
+  }
+  #prematch>.grid>.panel:nth-child(2){
+    right:7%!important;top:20%!important;width:27%!important;height:55%!important;
+    padding:1.0% 1.1%!important;
+  }
+  #prematch>.panel:last-of-type{
+    left:37%!important;bottom:6%!important;width:26%!important;
+  }
+
+  /* Kits: use the tunnel as atmosphere; cards stay clearly readable. */
+  #kits>.panel{
+    left:8%!important;top:12%!important;width:84%!important;height:76%!important;
+  }
+  #kits .kit-imgbox{
+    background:rgba(255,255,255,.94)!important;
+  }
+
+  /* Match frame becomes the dominant foreground element against the control-room background. */
+  #match .match-shell{
+    left:17%!important;top:15%!important;width:72%!important;height:79%!important;
+    box-shadow:0 12px 38px rgba(0,0,0,.55)!important;
+  }
+}
+
+/* Mobile: use the same scenes as atmosphere, let V6.2 handle the portrait layout. */
+@media (max-width:800px){
+  .screen{
+    background-size:auto 100%!important;
+    background-position:center top!important;
+  }
+  #season>.grid>.panel,#season>#seasonContent,
+  #prematch>.grid>.panel:first-child,#prematch>.grid>.panel:nth-child(2){
+    background:rgba(238,229,201,.90)!important;
+  }
+}
