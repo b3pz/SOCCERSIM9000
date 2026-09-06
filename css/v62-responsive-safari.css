@@ -1,0 +1,136 @@
+/* SerieA 9000 SIM — V6.2 RESPONSIVE SAFARI / IPHONE
+   Override-only: non modifica logica, salvataggi o match engine. */
+:root{--v62-safe-top:env(safe-area-inset-top,0px);--v62-safe-bottom:env(safe-area-inset-bottom,0px);--v62-navy:rgba(5,18,47,.88);--v62-paper:rgba(244,237,216,.92);--v62-gold:#d7b85b;--v62-ink:#10182a}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;background:#020a20}
+body{min-height:100dvh;overscroll-behavior-y:none}
+button,input,select{font:inherit;-webkit-tap-highlight-color:transparent}
+button{touch-action:manipulation}
+
+@media (max-width:760px){
+  html,body{width:100%;max-width:100%;overflow-x:hidden!important}
+  header{display:none!important}
+  main{width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
+  .screen{box-sizing:border-box!important;width:100%!important;min-height:100svh!important;min-height:100dvh!important;padding:calc(12px + var(--v62-safe-top)) 14px calc(22px + var(--v62-safe-bottom))!important;overflow-x:hidden!important;overflow-y:auto!important;background-size:cover!important;background-position:center top!important;background-attachment:scroll!important}
+  .screen>.v51-page-logo{position:relative!important;display:block!important;left:auto!important;top:auto!important;transform:none!important;width:min(48vw,260px)!important;margin:10px auto 20px!important;z-index:4!important}
+  .toolbar{display:flex!important;flex-wrap:wrap!important;gap:8px!important}
+  button{min-height:44px!important;padding:10px 12px!important;font-size:13px!important;line-height:1.1!important}
+
+  /* SETUP / NOME MANAGER */
+  #setup{display:flex!important;flex-direction:column!important;align-items:center!important;background-position:center top!important}
+  #setup #managerStep{position:relative!important;left:auto!important;top:auto!important;width:min(92%,520px)!important;margin:12vh auto 0!important;padding:18px!important;background:rgba(245,238,216,.18)!important;border:0!important;color:#0d1730!important;text-align:center!important;backdrop-filter:none!important}
+  #setup #managerStep .welcome-box{max-width:100%!important}
+  #setup #managerStep .lore-strip{padding:0 8px!important;font-size:15px!important;line-height:1.35!important;text-align:left!important}
+  #setup #managerStep h2{font-size:23px!important;line-height:1.05!important}
+  #setup #managerStep h3{font-size:16px!important;line-height:1.15!important;margin-top:22px!important}
+  #setup #managerStep input{width:min(100%,320px)!important;box-sizing:border-box!important;min-height:50px!important;font-size:18px!important;text-align:center!important;background:rgba(249,244,226,.68)!important}
+
+  /* SCELTA SQUADRA — artboard centrale, nessun foglio bianco */
+  #setup #teamStep{position:relative!important;left:auto!important;top:auto!important;width:min(94%,560px)!important;margin:5vh auto 0!important;padding:8px 10px 16px!important;background:transparent!important;color:#0b1733!important}
+  #setup #teamStep h2{font-size:20px!important;margin:0 0 10px!important}
+  #setup .team-stage{display:grid!important;grid-template-columns:52px minmax(0,1fr) 52px!important;gap:4px!important;min-height:0!important;padding:0!important;align-items:center!important}
+  #setup .team-side{display:block!important;font-size:12px!important;line-height:1.3!important;min-width:0!important}
+  #setup .team-side:first-child{grid-column:1/2;display:none!important}
+  #setup .team-main{grid-column:1/4!important;min-width:0!important}
+  #setup .team-main>div{gap:8px!important}
+  #setup .team-emblem{width:min(42vw,205px)!important;height:min(42vw,205px)!important;max-width:none!important;max-height:none!important;margin:auto!important}
+  #setup .team-name-big{font-size:27px!important;line-height:1!important}
+  #setup .team-season-big{font-size:19px!important}
+  #setup .arrow90{width:50px!important;min-width:50px!important;height:54px!important;padding:0!important;font-size:25px!important}
+  #setup #teamLeftInfo,#setup #teamRightInfo{position:absolute!important;top:150px!important;width:115px!important;display:block!important;font-size:11px!important;line-height:1.3!important;pointer-events:none!important}
+  #setup #teamLeftInfo{left:3px!important;text-align:left!important}
+  #setup #teamRightInfo{right:3px!important;text-align:left!important}
+
+  /* DASHBOARD STAGIONE — card mobili leggibili e leggere */
+  #season{display:flex!important;flex-direction:column!important;gap:10px!important;align-items:stretch!important;background-position:center top!important}
+  #season>.grid{position:relative!important;left:auto!important;top:auto!important;width:100%!important;height:auto!important;margin:4px 0 0!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
+  #season>.grid>.panel{min-height:0!important;padding:12px!important;background:rgba(245,238,216,.74)!important;border:1px solid rgba(215,184,91,.65)!important;color:#10182a!important;overflow:visible!important}
+  #season>.grid>.panel h2{font-size:18px!important;margin:0 0 7px!important}
+  #season #managerSummary,#season #seasonStatus{font-size:12px!important;line-height:1.3!important}
+  #season .toolbar{margin-top:10px!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
+  #season button{width:100%!important;min-width:0!important;min-height:42px!important;padding:7px 5px!important;font-size:11px!important;white-space:normal!important}
+  #season>#seasonContent{position:relative!important;left:auto!important;top:auto!important;width:100%!important;height:auto!important;min-height:220px!important;margin:0!important;padding:14px!important;box-sizing:border-box!important;background:rgba(245,238,216,.78)!important;border:1px solid rgba(215,184,91,.65)!important;color:#10182a!important;overflow-x:auto!important;overflow-y:visible!important}
+  #season>#seasonContent h2,#season>#seasonContent h3{font-size:18px!important}
+  #season table{min-width:520px!important;font-size:11px!important}
+
+  /* PRE-PARTITA — layout verticale vero */
+  #prematch{display:flex!important;flex-direction:column!important;align-items:stretch!important;background-position:center top!important}
+  #prematch>.grid{position:relative!important;left:auto!important;top:auto!important;width:100%!important;height:auto!important;margin:0!important;display:flex!important;flex-direction:column!important;gap:10px!important}
+  #prematch>.grid>.panel{width:100%!important;box-sizing:border-box!important;padding:13px!important;background:rgba(245,238,216,.72)!important;border:1px solid rgba(215,184,91,.65)!important;color:#10182a!important;overflow:visible!important}
+  #prematch>.grid>.panel h2{font-size:20px!important;margin:0 0 8px!important}
+  #prematch>.grid>.panel h3{font-size:14px!important;margin:12px 0 6px!important}
+  #prematch #prematchInfo{font-size:13px!important;line-height:1.35!important}
+  #prematch #formationChoices{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+  #prematch #formationChoices button,#prematch .toolbar button{min-width:0!important;width:100%!important;font-size:11px!important;padding:8px 4px!important}
+  #prematch #lineupPreview{display:grid!important;grid-template-columns:1fr!important;gap:3px!important}
+  #prematch #lineupPreview>div{display:grid!important;grid-template-columns:minmax(0,1fr) 58px!important;align-items:center!important;min-height:38px!important;padding:5px 7px!important;background:rgba(247,241,222,.46)!important;font-size:13px!important;line-height:1.15!important}
+  #prematch>.panel:last-of-type{position:relative!important;left:auto!important;bottom:auto!important;width:100%!important;margin:10px 0 0!important;padding:8px!important;background:rgba(5,18,47,.80)!important;border:1px solid rgba(215,184,91,.7)!important}
+  #prematch>.panel:last-of-type .toolbar{display:grid!important;grid-template-columns:1fr 1fr!important}
+  #prematch>.panel:last-of-type button{font-size:11px!important}
+
+  /* DIVISE — due card affiancate su iPhone, immagini grandi e testo leggibile */
+  #kits{background-position:center top!important}
+  #kits>.panel{position:relative!important;left:auto!important;top:auto!important;width:100%!important;height:auto!important;margin:0!important;padding:10px!important;box-sizing:border-box!important;background:rgba(3,16,42,.42)!important;color:#fff!important}
+  #kits>.panel>h2{font-size:21px!important;margin:0 0 5px!important}
+  #kits>.panel>.muted{font-size:12px!important;line-height:1.3!important;color:rgba(255,255,255,.78)!important}
+  #kits .kit-stage{display:grid!important;grid-template-columns:minmax(0,1fr) 36px minmax(0,1fr)!important;gap:6px!important;align-items:center!important;margin-top:10px!important}
+  #kits .kit-card h3{font-size:16px!important;line-height:1.1!important;min-height:36px!important}
+  #kits .kit-imgbox{height:auto!important;min-height:0!important;aspect-ratio:3/4!important;display:flex!important;align-items:center!important;justify-content:center!important}
+  #kits .kit-imgbox img{max-width:100%!important;max-height:100%!important;object-fit:contain!important}
+  #kits .kit-vs{font-size:24px!important}
+  #kits .kit-choice{display:grid!important;grid-template-columns:1fr!important;gap:5px!important}
+  #kits .kit-choice button{font-size:10px!important;min-height:40px!important;padding:6px 3px!important}
+  #kits .contrast-ok{font-size:11px!important;padding:8px!important;text-align:center!important}
+  #kits>.panel>.toolbar{display:grid!important;grid-template-columns:.8fr 1.2fr!important;gap:6px!important}
+  #kits>.panel>.toolbar button{font-size:10px!important;white-space:normal!important}
+
+  /* MATCH — quasi tutta larghezza, cronaca sotto */
+  #match{padding-left:6px!important;padding-right:6px!important;background-position:center top!important}
+  #match>.v51-page-logo{width:min(42vw,220px)!important;margin-bottom:10px!important}
+  #match .match-shell{position:relative!important;left:auto!important;top:auto!important;width:100%!important;height:auto!important;margin:0!important;border:1px solid var(--v62-gold)!important;box-sizing:border-box!important;background:rgba(4,16,45,.80)!important}
+  #match .match-topbar{grid-template-columns:58px minmax(0,1fr) 12px minmax(0,1fr)!important;min-width:0!important}
+  #match .clock-box{min-width:0!important}
+  #match .clock-box #matchMinute{font-size:24px!important}
+  #match .score-side{min-width:0!important;padding:5px!important;gap:5px!important}
+  #match .score-team{font-size:13px!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+  #match .score-num{flex:0 0 38px!important;width:38px!important;height:40px!important;font-size:23px!important}
+  #match .match-tabs{display:grid!important;grid-template-columns:repeat(4,1fr)!important}
+  #match .match-tabs span{font-size:8px!important;padding:7px 2px!important}
+  #match .match-controls{display:grid!important;grid-template-columns:1.2fr 1.7fr .65fr .65fr .65fr!important;gap:4px!important;padding:5px!important}
+  #match .match-controls button{width:100%!important;min-width:0!important;min-height:42px!important;padding:5px 2px!important;font-size:10px!important;white-space:normal!important}
+  #match .match-main-grid{display:flex!important;flex-direction:column!important;gap:8px!important;padding:6px!important;background:transparent!important}
+  #match .match-stage{width:100%!important;min-width:0!important}
+  #match .action-banner{min-height:72px!important;grid-template-columns:52px minmax(0,1fr)!important;padding:8px!important;gap:8px!important}
+  #match .action-minute{font-size:17px!important}
+  #match .action-text{font-size:15px!important;line-height:1.15!important}
+  #match .pitch-wrap90{width:100%!important;max-width:none!important;margin:0!important}
+  #match #pitch{width:100%!important;aspect-ratio:1.75/1!important;min-height:0!important;height:auto!important}
+  #match .radio-strip{font-size:8px!important;padding:6px!important}
+  #match .match-history-panel{width:100%!important;max-height:190px!important;min-width:0!important}
+  #match .history90{max-height:150px!important;font-size:11px!important}
+
+  /* INTERVALLO / POST */
+  #halftime,#postmatch{display:flex!important;flex-direction:column!important;align-items:center!important}
+  #halftime>.panel,#postmatch>.panel{position:relative!important;left:auto!important;top:auto!important;width:100%!important;margin:14vh 0 0!important;padding:16px!important;box-sizing:border-box!important;background:rgba(245,238,216,.80)!important;border:1px solid rgba(215,184,91,.7)!important;color:#10182a!important}
+  #halftime>.panel .toolbar,#postmatch>.panel .toolbar{display:grid!important;grid-template-columns:1fr 1fr!important;gap:7px!important}
+
+  /* MODALI SALVATAGGIO: full width sicura, niente overflow Safari */
+  .save-modal,.career-modal,.modal{max-width:calc(100vw - 20px)!important;box-sizing:border-box!important}
+}
+
+@media (max-width:430px){
+  #season>.grid{grid-template-columns:1fr!important}
+  #season .toolbar{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #setup #teamLeftInfo,#setup #teamRightInfo{font-size:10px!important;width:95px!important}
+  #prematch #lineupPreview>div{font-size:12px!important}
+  #kits .kit-stage{grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr)!important}
+  #match .score-team{font-size:12px!important}
+  #match .match-controls{grid-template-columns:1.15fr 1.55fr .6fr .6fr!important}
+  #match .match-controls button[data-speed="4"]{grid-column:1/2!important}
+}
+
+@media (orientation:landscape) and (max-height:600px){
+  header{display:none!important}
+  .screen{min-height:100dvh!important;padding-top:8px!important}
+  .screen>.v51-page-logo{width:min(22vw,190px)!important;margin:2px auto 8px!important}
+  #match .match-shell{max-width:980px!important;margin:0 auto!important}
+}
