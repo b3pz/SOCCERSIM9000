@@ -697,6 +697,7 @@ main{max-width:none!important;padding:0!important}
 <link rel="stylesheet" href="css/save-system.css">
 <link rel="stylesheet" href="css/v61-artboard-ui.css?v=61">
 <link rel="stylesheet" href="css/v62-responsive-safari.css?v=62">
+<link rel="stylesheet" href="css/v63-precision-artboard.css?v=63">
 </head>
 <body>
 <header><div><h1>SERIEA 9000 SIM</h1><small id="headerSub">IL CAMPIONATO DEI CAMPIONI</small></div><div id="headerRight">—</div></header>
@@ -855,6 +856,7 @@ main{max-width:none!important;padding:0!important}
 
 <section id="prematch" class="screen">
 <img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
+<div id="v63TacticalXI" aria-hidden="true"></div>
 <div class="grid">
 <div class="panel">
 <h2>PRE-PARTITA</h2>
@@ -1226,7 +1228,7 @@ function openPrematch(g){
  current={fixture:g}; let st=career.teamStates[career.user],t=T(career.user),opp=T(g[0]===career.user?g[1]:g[0]);
  $("#prematchInfo").innerHTML=`<b>${t.name} ${t.season}</b> vs <b>${opp.name} ${opp.season}</b><br>Vice: ${t.coach}`;
  $("#formationChoices").innerHTML=t.formations.map(f=>`<button data-form="${f}" class="${f===st.formation?"active":""}">${f}</button>`).join("");
- document.querySelectorAll("[data-form]").forEach(b=>b.onclick=()=>{st.formation=b.dataset.form;document.querySelectorAll("[data-form]").forEach(x=>x.classList.toggle("active",x.dataset.form===st.formation))})
+ document.querySelectorAll("[data-form]").forEach(b=>b.onclick=()=>{st.formation=b.dataset.form;document.querySelectorAll("[data-form]").forEach(x=>x.classList.toggle("active",x.dataset.form===st.formation));renderV63TacticalXI()})
  document.querySelectorAll("[data-ment]").forEach(b=>{b.classList.toggle("active",b.dataset.ment===st.mentality);b.onclick=()=>{st.mentality=b.dataset.ment;document.querySelectorAll("[data-ment]").forEach(x=>x.classList.toggle("active",x.dataset.ment===st.mentality))}})
  renderPrematchLineup(); renderSetPieces("#setPieces");collapseSetPieceMenus(); show("prematch");
 }
@@ -1260,6 +1262,30 @@ function moraleBadge(m){
  return `<span class="morale-badge ${cls}" title="Stato forma ${m}/100">${arrow}&nbsp;${m}</span>`;
 }
 
+function renderV63TacticalXI(){
+ const box=document.getElementById("v63TacticalXI");
+ if(!box || !career?.teamStates?.[career.user])return;
+ const st=career.teamStates[career.user];
+ const ps=st.players.filter(p=>st.lineup.includes(p.id));
+ const by=(...roles)=>ps.filter(p=>roles.includes(p.pos));
+ let ordered=[];
+ const gk=by("GK"); const df=by("DF"); const mf=by("MF","AM"); const fw=by("ST");
+ ordered=[...gk,...df,...mf,...fw].slice(0,11);
+ while(ordered.length<11 && ps[ordered.length])ordered.push(ps[ordered.length]);
+ const f=st.formation||"4-4-1-1";
+ const layouts={
+  "4-4-1-1":[[8,50],[27,16],[27,38],[27,62],[27,84],[51,14],[51,38],[51,62],[51,86],[70,50],[86,50]],
+  "4-3-1-2":[[8,50],[28,16],[28,38],[28,62],[28,84],[52,25],[52,50],[52,75],[69,50],[86,34],[86,66]],
+  "3-5-2":[[8,50],[29,24],[29,50],[29,76],[53,10],[53,30],[53,50],[53,70],[53,90],[84,34],[84,66]],
+  "4-4-2":[[8,50],[27,16],[27,38],[27,62],[27,84],[54,15],[54,38],[54,62],[54,85],[84,34],[84,66]],
+  "4-3-2-1":[[8,50],[27,16],[27,38],[27,62],[27,84],[52,25],[52,50],[52,75],[70,34],[70,66],[87,50]],
+  "4-2-3-1":[[8,50],[27,16],[27,38],[27,62],[27,84],[48,35],[48,65],[68,18],[68,50],[68,82],[87,50]],
+  "4-3-3":[[8,50],[27,16],[27,38],[27,62],[27,84],[53,25],[53,50],[53,75],[84,18],[84,50],[84,82]]
+ };
+ const pos=layouts[f]||layouts["4-4-1-1"];
+ box.innerHTML=ordered.map((p,i)=>{const [y,x]=pos[i]||[50,50];const short=p.name.split(" ").slice(-1)[0];return `<div class="v63-player" style="left:${x}%;top:${y}%"><div class="v63-dot">${i+1}</div><div class="v63-name">${short}</div></div>`}).join("");
+}
+
 function renderPrematchLineup(){
  let st=career.teamStates[career.user];
  let ps=st.players.filter(p=>st.lineup.includes(p.id));
@@ -1269,6 +1295,7 @@ function renderPrematchLineup(){
      ${moraleBadge(p.morale)}
    </div>`).join("");
  document.querySelectorAll("[data-player-card]").forEach(x=>x.onclick=()=>showPlayerProfile(x.dataset.playerCard));
+ renderV63TacticalXI();
 }
 
 function collapseSetPieceMenus(){
