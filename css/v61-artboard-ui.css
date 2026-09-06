@@ -1,0 +1,82 @@
+/* SerieA 9000 SIM — V6.1 ARTBOARD UI
+   Preserva la logica V6. Elimina i pannelli opachi sovrapposti agli sfondi grafici. */
+:root{--ui-ink:#10182a;--ui-paper:rgba(246,239,217,.08);--ui-navy:#0b2457;--ui-gold:#d5b34f}
+html,body{background:#020a20}
+main{max-width:none!important;padding:0!important;margin:0!important}
+.screen{position:relative!important;width:100%!important;min-height:calc(100vh - 78px)!important;padding:0!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important;overflow:hidden!important}
+.screen>.v51-page-logo{position:absolute!important;z-index:4!important;left:50%!important;top:2.5%!important;transform:translateX(-50%)!important;width:min(290px,28vw)!important;margin:0!important;pointer-events:none}
+
+/* Regola fondamentale: lo sfondo E' la cornice. HTML = dati, non cartoncini. */
+#setup .panel,#season .panel,#prematch .panel,#kits .panel,#halftime .panel,#postmatch .panel,#simpleMessage .main-menu-shell{
+ background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;border-radius:0!important
+}
+#setup .welcome-box,#setup .lore-strip,#season .lore-strip,#prematch .lore-strip{background:transparent!important;box-shadow:none!important}
+
+/* SETUP — usa le tre aree già stampate nello sfondo */
+#setup{background-position:center center!important}
+#setup #managerStep{position:absolute!important;z-index:5!important;left:32.5%!important;top:25%!important;width:35%!important;max-width:none!important;margin:0!important;padding:1.5% 2%!important;color:#10182a!important;text-align:center}
+#setup #managerStep .welcome-box{padding:0!important}
+#setup #managerStep .lore-strip{border:0!important;padding:8px 0!important;color:#10182a!important}
+#setup #managerStep .headline{color:#9a7200!important}
+#setup #managerStep input{background:rgba(249,244,226,.70)!important;border:2px solid #172344!important;color:#172344!important}
+#setup #teamStep{position:absolute!important;z-index:5!important;left:24%!important;top:20%!important;width:52%!important;max-width:none!important;margin:0!important;padding:1.5% 2%!important;color:#10182a!important}
+#setup .team-stage{min-height:330px!important;align-items:center!important}
+#setup .team-emblem{background:transparent!important;border:0!important;box-shadow:none!important}
+
+/* HUB STAGIONE — griglia e righe restano visibili */
+#season{padding:0!important}
+#season>.grid{position:absolute!important;z-index:5!important;left:22.8%!important;top:20.5%!important;width:54.5%!important;height:31%!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:2%!important;margin:0!important}
+#season>.grid>.panel{padding:1.2% 2%!important;overflow:auto!important;color:#111a2c!important}
+#season>#seasonContent{position:absolute!important;z-index:5!important;left:22.8%!important;top:54%!important;width:54.5%!important;height:34%!important;margin:0!important;padding:1.3% 2%!important;overflow:auto!important;color:#111a2c!important}
+#season .toolbar{gap:5px!important}
+#season button{font-size:12px!important;padding:8px 10px!important;background:rgba(241,234,211,.78)!important;color:#111a2c!important;border:2px solid #172344!important}
+#season button.active,#season button.primary{background:rgba(13,49,104,.90)!important;color:#fff!important}
+#season table{background:rgba(247,241,222,.22)!important}
+#season th,#season td{background:rgba(247,241,222,.18)!important;color:#111a2c!important}
+
+/* PRE-PARTITA — due colonne disegnate nello spogliatoio */
+#prematch>.grid{position:absolute!important;z-index:5!important;left:25.2%!important;top:17%!important;width:60%!important;height:67%!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:2.2%!important;margin:0!important}
+#prematch>.grid>.panel{padding:1.4% 2%!important;overflow:auto!important;color:#111a2c!important}
+#prematch>.panel:last-of-type{position:absolute!important;z-index:6!important;left:25.2%!important;bottom:2.5%!important;width:60%!important;margin:0!important;padding:0!important}
+#prematch #lineupPreview>div{background:rgba(247,241,222,.30)!important}
+#prematch button{background:rgba(242,235,214,.72)!important;color:#111a2c!important;border:2px solid #172344!important}
+#prematch button.active,#prematch button.primary{background:rgba(13,49,104,.91)!important;color:#fff!important}
+
+/* DIVISE — le due teche sono già nello sfondo */
+#kits>.panel{position:absolute!important;z-index:5!important;left:17%!important;top:14%!important;width:66%!important;height:76%!important;margin:0!important;padding:1.5% 2%!important;color:#f5edd6!important}
+#kits .kit-card{background:transparent!important;border:0!important;box-shadow:none!important}
+#kits .kit-imgbox{background:transparent!important;border:0!important}
+#kits .contrast-ok{background:rgba(4,20,45,.58)!important}
+
+/* MATCH — il broadcast frame è lo sfondo; nessun pannello gigante */
+#match .v51-page-logo{top:1.5%!important;width:min(235px,22vw)!important}
+#match .match-shell{position:absolute!important;z-index:5!important;left:25.5%!important;top:18%!important;width:60%!important;height:76%!important;margin:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+#match .match-topbar,#match .match-tabs,#match .match-controls{box-shadow:none!important}
+#match .match-main{background:transparent!important}
+#match .action-banner{background:rgba(246,239,217,.90)!important}
+#match .pitch-wrap{background:transparent!important}
+
+/* INTERVALLO / POST MATCH — testo appoggiato sul tabellone */
+#halftime>.v51-page-logo,#postmatch>.v51-page-logo{top:4%!important}
+#halftime>.panel,#postmatch>.panel{position:absolute!important;z-index:5!important;left:26%!important;top:35%!important;width:58%!important;margin:0!important;padding:2%!important;color:#111a2c!important}
+
+/* Coppe: qui le card sono contenuto vero, ma alleggeriamo il contenitore */
+#cupsMenu .cups-shell{background:rgba(2,12,35,.42)!important;backdrop-filter:none!important}
+
+/* Niente doppio 'foglio' nelle viste informative */
+#simpleMessage .main-menu-shell{position:absolute!important;z-index:5!important;left:27%!important;top:28%!important;width:46%!important;color:#f5edd6!important}
+
+/* Responsive: artboard e overlay scalano insieme, poi diventano leggibili in verticale */
+@media(max-width:760px){
+ header{min-height:64px!important}
+ .screen{min-height:calc(100svh - 64px)!important;background-position:center top!important;overflow:auto!important}
+ .screen>.v51-page-logo{width:44vw!important;top:1.5%!important}
+ #season>.grid,#prematch>.grid{left:5%!important;top:15%!important;width:90%!important;height:auto!important;grid-template-columns:1fr!important;gap:10px!important;position:relative!important;margin:0!important}
+ #season>#seasonContent{position:relative!important;left:5%!important;top:auto!important;width:90%!important;height:auto!important;margin:12px 0 30px!important;background:rgba(245,238,216,.82)!important}
+ #season>.grid>.panel,#prematch>.grid>.panel{background:rgba(245,238,216,.82)!important;min-height:0!important}
+ #prematch>.panel:last-of-type{position:relative!important;left:5%!important;bottom:auto!important;width:90%!important;margin:12px 0 30px!important;background:rgba(245,238,216,.82)!important;padding:8px!important}
+ #setup #managerStep,#setup #teamStep{position:relative!important;left:5%!important;top:auto!important;width:90%!important;margin:18vh 0 20px!important;background:rgba(245,238,216,.88)!important}
+ #kits>.panel{position:relative!important;left:5%!important;top:auto!important;width:90%!important;height:auto!important;margin:16vh 0 20px!important;background:rgba(3,16,42,.76)!important}
+ #match .match-shell{position:relative!important;left:2%!important;top:auto!important;width:96%!important;height:auto!important;margin:12vh 0 20px!important}
+ #halftime>.panel,#postmatch>.panel{position:relative!important;left:5%!important;top:auto!important;width:90%!important;margin:28vh 0 20px!important;background:rgba(245,238,216,.86)!important}
+}
