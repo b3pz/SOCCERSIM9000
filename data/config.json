@@ -1,0 +1,18 @@
+{
+  "careerStartYear": 1998,
+  "italianTeams": 32,
+  "groupSize": 16,
+  "europe": {
+    "cdcTotal": 16,
+    "cdcItalian": 4,
+    "cdcForeign": 12,
+    "uefaTotal": 16,
+    "uefaItalian": 4,
+    "uefaForeign": 12
+  },
+  "saveSystem": {
+    "local": "IndexedDB",
+    "cloud": "Supabase-ready",
+    "backups": 3
+  }
+}

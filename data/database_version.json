@@ -1,0 +1,10 @@
+{
+  "gameVersion": "0.6.0",
+  "databaseVersion": "0.6-placeholder",
+  "saveVersion": 1,
+  "clubDatabaseLocked": true,
+  "historicalPlayersComplete": false,
+  "italianTeams": 32,
+  "foreignTeams": 32,
+  "playerRecords": 1536
+}

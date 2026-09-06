@@ -1,0 +1,9 @@
+{
+  "teams": 32,
+  "round32": "single_penalties",
+  "round16": "single_penalties",
+  "quarterfinal": "single_penalties",
+  "semifinal": "two_legs_extra_time_penalties",
+  "final": "single_extra_time_penalties",
+  "awayGoals": false
+}

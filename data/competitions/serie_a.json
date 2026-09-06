@@ -1,0 +1,11 @@
+{
+  "groups": 2,
+  "teamsPerGroup": 16,
+  "roundRobin": "double",
+  "points": {
+    "win": 3,
+    "draw": 1,
+    "loss": 0
+  },
+  "playoffPlacesPerGroup": 4
+}
