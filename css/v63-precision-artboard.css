@@ -1,0 +1,117 @@
+/* SerieA 9000 SIM — V6.3 PRECISION ARTBOARD
+   Obiettivo: allineare il layer dinamico alle aree stampate nelle immagini 1672x941.
+   Nessuna modifica a carriera, salvataggi, calendario o match engine. */
+:root{--v63-paper:rgba(244,238,218,.20);--v63-paper-solid:rgba(244,238,218,.86);--v63-navy:rgba(7,29,70,.92);--v63-gold:#d8b958;--v63-ink:#11192a}
+
+/* Desktop: la schermata usa ESATTAMENTE il rapporto dell'artwork. In questo modo
+   percentuali e sfondo condividono lo stesso sistema di coordinate. */
+@media (min-width:901px){
+  main{overflow:visible!important}
+  .screen{
+    width:100%!important;
+    aspect-ratio:1672 / 941!important;
+    min-height:0!important;
+    height:auto!important;
+    background-size:100% 100%!important;
+    background-position:0 0!important;
+    overflow:hidden!important;
+  }
+  .screen>.v51-page-logo{top:2.1%!important;width:17.5%!important;max-width:none!important}
+
+  /* HUB STAGIONE: coordinate del giornale, non una griglia web generica. */
+  #season>.grid{
+    left:19.1%!important;top:15.6%!important;width:61.2%!important;height:30.5%!important;
+    grid-template-columns:43% 31%!important;justify-content:space-between!important;gap:0!important
+  }
+  #season>.grid>.panel{padding:.5% .8%!important;overflow:visible!important;background:transparent!important}
+  #season>.grid>.panel:first-child{width:100%!important}
+  #season>.grid>.panel:nth-child(2){width:100%!important}
+  #season>.grid h2{font-size:clamp(16px,1.35vw,23px)!important;margin:0 0 8px!important;color:var(--v63-ink)!important}
+  #season #managerSummary,#season #seasonStatus{font-size:clamp(10px,.82vw,14px)!important;line-height:1.28!important;color:var(--v63-ink)!important}
+  #season .toolbar{display:flex!important;flex-wrap:wrap!important;gap:4px!important;margin-top:8px!important;max-width:100%!important}
+  #season .toolbar button{font-size:clamp(8px,.58vw,10px)!important;min-height:31px!important;padding:4px 7px!important;background:rgba(242,235,214,.84)!important}
+  #season>#seasonContent{
+    left:20.0%!important;top:46.9%!important;width:38.2%!important;height:26.6%!important;
+    padding:.7% 1%!important;overflow:auto!important;background:rgba(246,240,220,.10)!important;color:var(--v63-ink)!important
+  }
+  #season>#seasonContent h2{font-size:clamp(16px,1.3vw,22px)!important;margin:0 0 10px!important}
+  #season>#seasonContent .matchhead{font-size:clamp(13px,1.05vw,18px)!important}
+  #season>#seasonContent p{font-size:clamp(10px,.75vw,13px)!important}
+  #season>#seasonContent button{font-size:clamp(9px,.65vw,11px)!important}
+  #season.v51-calendar-bg>#seasonContent,#season.v51-europe-bg>#seasonContent{left:16%!important;top:18%!important;width:68%!important;height:67%!important;background:rgba(246,240,220,.80)!important}
+
+  /* PREPARTITA: tre zone reali: sinistra / lavagna / distinta destra. */
+  #prematch>.grid{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important;margin:0!important}
+  #prematch>.grid>.panel:first-child{
+    position:absolute!important;left:25.55%!important;top:16.8%!important;width:28.2%!important;height:48.5%!important;
+    padding:.5% .7%!important;overflow:visible!important;background:transparent!important;color:var(--v63-ink)!important
+  }
+  #prematch>.grid>.panel:nth-child(2){
+    position:absolute!important;left:68.0%!important;top:16.7%!important;width:16.5%!important;height:61.0%!important;
+    padding:.4% .55%!important;overflow:hidden!important;background:rgba(246,240,220,.13)!important;color:var(--v63-ink)!important
+  }
+  #prematch>.grid>.panel h2{font-size:clamp(15px,1.2vw,21px)!important;margin:0 0 6px!important}
+  #prematch>.grid>.panel h3{font-size:clamp(11px,.82vw,14px)!important;margin:7px 0 4px!important}
+  #prematch #prematchInfo{font-size:clamp(9px,.72vw,12px)!important;line-height:1.22!important}
+  #prematch #formationChoices{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:4px!important}
+  #prematch #formationChoices button,#prematch [data-ment]{min-width:0!important;padding:5px 3px!important;font-size:clamp(8px,.58vw,10px)!important}
+  #prematch .toolbar{gap:4px!important;flex-wrap:nowrap!important}
+  #prematch #lineupPreview{display:flex!important;flex-direction:column!important;gap:1px!important}
+  #prematch #lineupPreview>div{min-height:0!important;padding:3px 3px!important;font-size:clamp(7.5px,.57vw,10px)!important;line-height:1.05!important;background:rgba(244,238,218,.23)!important;grid-template-columns:minmax(0,1fr) 45px!important}
+  #prematch .morale-badge{font-size:clamp(7px,.52vw,9px)!important;padding:3px 4px!important;min-width:35px!important}
+  #prematch #prematchLineup{font-size:clamp(8px,.58vw,10px)!important;padding:5px!important;margin-top:4px!important;width:100%!important}
+  #prematch .setpiece-toggle{font-size:clamp(8px,.58vw,10px)!important;width:100%!important;padding:5px!important}
+  #prematch>.panel:last-of-type{left:25.55%!important;bottom:2.4%!important;width:42%!important;background:transparent!important}
+  #prematch>.panel:last-of-type .toolbar{justify-content:flex-start!important}
+  #prematch>.panel:last-of-type button{font-size:clamp(8px,.58vw,10px)!important;padding:6px 10px!important}
+
+  /* XI grafico sulla lavagna centrale */
+  #v63TacticalXI{position:absolute;z-index:5;left:36.3%;top:25.3%;width:29.0%;height:39.5%;pointer-events:none}
+  #v63TacticalXI .v63-player{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;max-width:78px}
+  #v63TacticalXI .v63-dot{width:18px;height:18px;border-radius:50%;background:#122c62;border:2px solid #f3e6b4;box-shadow:0 1px 4px #000;display:grid;place-items:center;color:white;font:700 8px/1 Arial}
+  #v63TacticalXI .v63-name{background:rgba(6,20,48,.78);color:#fff;border:1px solid rgba(216,185,88,.75);padding:2px 4px;font:700 clamp(6px,.46vw,8px)/1 Arial;text-align:center;white-space:nowrap;max-width:72px;overflow:hidden;text-overflow:ellipsis}
+
+  /* DIVISE: il contenuto resta nelle due teche senza cartoncino esterno. */
+  #kits>.panel{left:12.2%!important;top:13.3%!important;width:75.6%!important;height:75.5%!important;padding:.6% 2.2%!important;background:transparent!important}
+  #kits>.panel>h2{font-size:clamp(16px,1.4vw,24px)!important;text-align:center!important;margin:0!important}
+  #kits>.panel>.muted{text-align:center!important;font-size:clamp(9px,.67vw,12px)!important}
+  #kits .kit-stage{margin-top:1%!important;grid-template-columns:1fr 8% 1fr!important}
+  #kits .kit-card h3{font-size:clamp(12px,1vw,17px)!important}
+  #kits .kit-imgbox{height:43vh!important;max-height:430px!important}
+  #kits .kit-imgbox img{max-height:100%!important;object-fit:contain!important}
+  #kits .kit-choice button{font-size:clamp(8px,.65vw,11px)!important;padding:7px 9px!important}
+
+  /* MATCH: rapporto fisso e più spazio al vero broadcast. */
+  #match .match-shell{left:24.7%!important;top:17.5%!important;width:62.8%!important;height:77.0%!important}
+  #match .match-main-grid{height:calc(100% - 116px)!important;grid-template-columns:minmax(0,3.2fr) minmax(190px,1fr)!important}
+  #match .pitch-wrap90{max-height:none!important}
+  #match #pitch{height:auto!important;aspect-ratio:1.76/1!important}
+}
+
+/* MOBILE: non comprimere l'artboard desktop. Layout verticale dedicato. */
+@media (max-width:900px){
+  .screen{aspect-ratio:auto!important;min-height:calc(100svh - 64px)!important;height:auto!important;background-size:cover!important;background-position:center top!important;overflow-x:hidden!important;overflow-y:auto!important}
+  .screen>.v51-page-logo{position:relative!important;left:auto!important;top:auto!important;transform:none!important;display:block!important;width:min(44vw,230px)!important;margin:14px auto 12px!important}
+
+  #season{padding:0 10px 28px!important}
+  #season>.grid{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;position:relative!important;left:auto!important;top:auto!important;width:100%!important;height:auto!important;margin:0!important}
+  #season>.grid>.panel{background:rgba(245,239,220,.86)!important;border:1px solid rgba(216,185,88,.72)!important;padding:12px!important;color:var(--v63-ink)!important}
+  #season .toolbar{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
+  #season>#seasonContent{position:relative!important;left:auto!important;top:auto!important;width:100%!important;height:auto!important;min-height:190px!important;margin:8px 0 0!important;padding:12px!important;background:rgba(245,239,220,.88)!important;border:1px solid rgba(216,185,88,.72)!important;box-sizing:border-box!important}
+
+  #prematch{padding:0 10px 28px!important}
+  #prematch>.grid{position:relative!important;inset:auto!important;width:100%!important;height:auto!important;display:flex!important;flex-direction:column!important;gap:8px!important}
+  #prematch>.grid>.panel:first-child,#prematch>.grid>.panel:nth-child(2){position:relative!important;left:auto!important;top:auto!important;width:100%!important;height:auto!important;padding:12px!important;box-sizing:border-box!important;background:rgba(245,239,220,.86)!important;border:1px solid rgba(216,185,88,.72)!important;overflow:visible!important;color:var(--v63-ink)!important}
+  #prematch #lineupPreview>div{background:rgba(255,255,255,.42)!important}
+  #v63TacticalXI{display:none!important}
+  #prematch>.panel:last-of-type{position:relative!important;left:auto!important;bottom:auto!important;width:100%!important;margin:8px 0 0!important;padding:8px!important;background:rgba(5,18,47,.86)!important;border:1px solid rgba(216,185,88,.72)!important;box-sizing:border-box!important}
+  #prematch>.panel:last-of-type .toolbar{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important}
+
+  #kits{padding:0 8px 28px!important}
+  #kits>.panel{position:relative!important;left:auto!important;top:auto!important;width:100%!important;height:auto!important;margin:0!important;padding:10px!important;box-sizing:border-box!important;background:rgba(3,16,42,.52)!important}
+  #kits .kit-stage{grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr)!important;gap:5px!important}
+  #kits .kit-imgbox{height:auto!important;aspect-ratio:3/4!important}
+
+  #match{padding:0 5px 24px!important}
+  #match .match-shell{position:relative!important;left:auto!important;top:auto!important;width:100%!important;height:auto!important;margin:0!important}
+}
