@@ -1,0 +1,132 @@
+/* SerieA 9000 SIM — V6.4 UI REBUILD
+   Obiettivo: usare l'artwork come interfaccia, non come semplice sfondo.
+   La logica di gioco non viene modificata. */
+:root{--v64-navy:#061634;--v64-gold:#d3b45a;--v64-paper:#eee5c9;--v64-ink:#101828;--v64-glass:rgba(4,17,43,.72)}
+
+/* Baseline comune: nessun pannello generico deve ridisegnare l'artwork. */
+#setup .panel,#season .panel,#prematch .panel,#kits .panel{box-shadow:none!important}
+#setup .panel,#season .panel,#prematch .panel,#kits .panel{border:0!important}
+
+@media (min-width:901px){
+  /* SETUP / INTRO — contenuto nel medaglione centrale, leggibile. */
+  #setup #managerStep.setup90{
+    position:absolute!important;left:50%!important;top:22.5%!important;transform:translateX(-50%)!important;
+    width:31.5%!important;height:56%!important;margin:0!important;padding:1.4% 2%!important;
+    background:rgba(238,229,201,.72)!important;border:1px solid rgba(211,180,90,.48)!important;
+    border-radius:48% 48% 34% 34%/38% 38% 28% 28%!important;overflow:hidden!important;color:var(--v64-ink)!important;
+  }
+  #setup #managerStep .welcome-box{height:100%!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:8px!important}
+  #setup #managerStep .welcome-badge{font-size:clamp(9px,.72vw,13px)!important;padding:5px 10px!important;background:var(--v64-navy)!important;color:#fff!important;border:2px solid #f5efda!important;box-shadow:0 0 0 1px var(--v64-navy)!important}
+  #setup #managerStep h2{font-size:clamp(16px,1.35vw,24px)!important;line-height:1.05!important;text-align:center!important;margin:5px 0!important;max-width:95%!important}
+  #setup #managerStep .lore-strip{background:rgba(246,239,216,.48)!important;border:1px solid rgba(77,61,31,.28)!important;padding:10px 12px!important;margin:2px 0!important;width:94%!important;box-sizing:border-box!important}
+  #setup #managerStep .lore-strip .headline{font-size:clamp(9px,.72vw,13px)!important;line-height:1.15!important;color:#8c6900!important}
+  #setup #managerStep .lore-strip p{font-size:clamp(8px,.63vw,11px)!important;line-height:1.27!important;margin:5px 0!important}
+  #setup #managerStep h3{font-size:clamp(10px,.78vw,14px)!important;margin:4px 0 0!important;text-align:center!important}
+  #setup #managerStep input{width:82%!important;max-width:none!important;font-size:clamp(13px,1.05vw,19px)!important;padding:9px 10px!important;background:rgba(248,242,222,.82)!important;border:2px solid rgba(6,22,52,.85)!important;color:#111!important}
+  #setup #managerStep br{display:none!important}
+  #setup #managerStep button{font-size:clamp(9px,.67vw,12px)!important;min-height:36px!important;padding:7px 14px!important;margin-top:4px!important}
+
+  /* SETUP / SQUADRA — informazioni nelle due tavole laterali, club al centro. */
+  #setup #teamStep.team-selector{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;margin:0!important;padding:0!important;background:transparent!important;overflow:hidden!important}
+  #setup #teamStep>h2{position:absolute!important;left:50%!important;top:21.7%!important;transform:translateX(-50%)!important;margin:0!important;width:28%!important;font-size:clamp(14px,1.25vw,22px)!important;z-index:6!important}
+  #setup #teamStep .team-stage{position:absolute!important;inset:0!important;display:block!important;margin:0!important}
+  #setup #teamStep .team-main{position:absolute!important;left:36.7%!important;top:28.5%!important;width:26.6%!important;height:45%!important;display:flex!important;align-items:center!important;justify-content:center!important}
+  #setup #teamStep .team-main>div{width:100%!important;gap:14px!important}
+  #setup #teamStep .team-emblem{width:clamp(155px,13vw,235px)!important;height:clamp(155px,13vw,235px)!important;border:0!important;background:transparent!important;box-shadow:none!important}
+  #setup #teamStep .team-emblem img{max-width:100%!important;max-height:100%!important;object-fit:contain!important}
+  #setup #teamStep .team-name-big{font-size:clamp(20px,1.85vw,32px)!important;margin-top:2px!important;text-shadow:0 1px 0 rgba(255,255,255,.5)!important}
+  #setup #teamStep .team-season-big{font-size:clamp(14px,1.15vw,21px)!important}
+  #setup #teamStep .arrow90{width:54px!important;height:62px!important;font-size:28px!important;padding:0!important;flex:0 0 auto!important}
+  #setup #teamStep .team-side{position:absolute!important;top:27.5%!important;width:18%!important;height:44%!important;padding:10px 14px!important;box-sizing:border-box!important;background:rgba(238,229,201,.18)!important;color:#111!important;font-size:clamp(10px,.82vw,15px)!important;line-height:1.4!important;overflow:hidden!important}
+  #setup #teamStep #teamLeftInfo{left:12.0%!important}
+  #setup #teamStep #teamRightInfo{right:12.0%!important}
+  #setup #teamStep .team-side b,#setup #teamStep .team-side strong{font-size:1.03em!important}
+  #setup #teamStep>div:last-of-type{position:absolute!important;left:50%!important;bottom:7.6%!important;transform:translateX(-50%)!important;z-index:8!important;white-space:nowrap!important}
+  #setup #teamStep>div:last-of-type button{font-size:clamp(9px,.68vw,12px)!important;padding:7px 12px!important;min-height:36px!important}
+
+  /* HUB — testi più grandi e distribuiti sulle aree reali dell'artwork. */
+  #season>.grid{left:18.7%!important;top:15.8%!important;width:63.6%!important;height:29.2%!important;display:block!important}
+  #season>.grid>.panel:first-child{position:absolute!important;left:0!important;top:0!important;width:31.2%!important;height:100%!important;padding:.8% 1.0%!important;background:rgba(238,229,201,.12)!important;color:#111!important;overflow:hidden!important}
+  #season>.grid>.panel:nth-child(2){position:absolute!important;left:48.5%!important;top:0!important;width:30.5%!important;height:37%!important;padding:.8% 1%!important;background:rgba(238,229,201,.10)!important;color:#111!important;overflow:hidden!important}
+  #season>.grid h2{font-size:clamp(17px,1.35vw,24px)!important;margin:0 0 8px!important}
+  #season #managerSummary,#season #seasonStatus{font-size:clamp(10px,.78vw,14px)!important;line-height:1.35!important}
+  #season .toolbar{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:4px!important;margin-top:10px!important;width:100%!important}
+  #season .toolbar button{font-size:clamp(7px,.52vw,9px)!important;min-height:30px!important;padding:4px!important;background:rgba(238,229,201,.72)!important;border:1px solid #12244a!important}
+  #season>#seasonContent{left:19.7%!important;top:48.3%!important;width:29.8%!important;height:26.8%!important;padding:.6% .9%!important;background:rgba(238,229,201,.16)!important;color:#111!important;overflow:auto!important}
+  #season>#seasonContent h2{font-size:clamp(17px,1.35vw,24px)!important;margin:0 0 7px!important}
+  #season>#seasonContent .matchhead{font-size:clamp(13px,1vw,18px)!important;margin:0 0 8px!important}
+  #season>#seasonContent p{font-size:clamp(9px,.68vw,12px)!important;line-height:1.35!important}
+  #season>#seasonContent button{font-size:clamp(8px,.6vw,10px)!important;min-height:34px!important}
+
+  /* PREMATCH — nessuna lista deve invadere la lavagna. */
+  #prematch>.grid>.panel:first-child{left:15.9%!important;top:17.6%!important;width:17.8%!important;height:49.0%!important;padding:.7% .8%!important;background:rgba(238,229,201,.20)!important;overflow:hidden!important}
+  #prematch>.grid>.panel:nth-child(2){left:auto!important;right:12.4%!important;top:17.2%!important;width:20.0%!important;height:56.8%!important;padding:.6% .7%!important;background:rgba(238,229,201,.18)!important;overflow:hidden!important;transform:none!important;margin:0!important;box-sizing:border-box!important}
+  #prematch>.grid>.panel h2{font-size:clamp(15px,1.18vw,21px)!important;margin:0 0 6px!important}
+  #prematch #prematchInfo{font-size:clamp(8px,.61vw,11px)!important;line-height:1.3!important}
+  #prematch #formationChoices{grid-template-columns:1fr!important;gap:4px!important}
+  #prematch #formationChoices button{font-size:clamp(8px,.57vw,10px)!important;min-height:29px!important}
+  #prematch>.grid>.panel:first-child .toolbar{display:grid!important;grid-template-columns:1fr!important;gap:4px!important}
+  #prematch>.grid>.panel:first-child .toolbar button{font-size:clamp(8px,.57vw,10px)!important;min-height:29px!important}
+  #prematch #lineupPreview{height:68%!important;overflow:hidden!important;display:grid!important;grid-template-rows:repeat(11,minmax(0,1fr))!important;gap:1px!important}
+  #prematch #lineupPreview>div{display:grid!important;grid-template-columns:minmax(0,1fr) 42px!important;align-items:center!important;padding:1px 2px!important;font-size:clamp(6.8px,.49vw,8.7px)!important;line-height:1!important;background:rgba(238,229,201,.10)!important;overflow:hidden!important}
+  #prematch #lineupPreview>div>div:first-child{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  #prematch .morale-badge{min-width:32px!important;font-size:clamp(6.5px,.46vw,8px)!important;padding:2px 3px!important}
+  #prematch #prematchLineup{font-size:clamp(7px,.5vw,9px)!important;min-height:30px!important;padding:4px!important;margin-top:5px!important;width:100%!important}
+  #prematch #setPieces{font-size:clamp(7px,.5vw,9px)!important}
+  #prematch .setpiece-toggle{min-height:30px!important;font-size:clamp(7px,.5vw,9px)!important;padding:4px!important}
+  #v63TacticalXI{left:35.4%!important;top:29.0%!important;width:29.0%!important;height:31.5%!important;z-index:12!important}
+  #v63TacticalXI .v63-dot{width:17px!important;height:17px!important}
+  #v63TacticalXI .v63-name{max-width:64px!important;font-size:clamp(5.8px,.42vw,7.5px)!important;background:rgba(4,17,43,.90)!important}
+  #prematch>.panel:last-of-type{left:22.2%!important;bottom:4.3%!important;width:37.5%!important;padding:0!important;background:transparent!important}
+  #prematch>.panel:last-of-type .toolbar{display:flex!important;gap:6px!important;justify-content:flex-start!important}
+
+  /* DIVISE — sfruttare le due teche; eliminare l'effetto foglio bianco visivo. */
+  #kits>.panel{left:13.8%!important;top:12.2%!important;width:72.4%!important;height:73.5%!important;padding:0!important;background:transparent!important}
+  #kits>.panel>h2{font-size:clamp(18px,1.45vw,26px)!important;margin:0!important;color:#f6efdc!important;text-shadow:0 2px 5px #000!important}
+  #kits>.panel>.muted{color:rgba(246,239,220,.82)!important;text-shadow:0 1px 3px #000!important}
+  #kits .kit-stage{position:absolute!important;left:0!important;top:11%!important;width:100%!important;height:66%!important;display:grid!important;grid-template-columns:45% 10% 45%!important;align-items:center!important;margin:0!important}
+  #kits .kit-card{height:100%!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;display:flex!important;flex-direction:column!important;align-items:center!important}
+  #kits .kit-card h3{color:#f5efdc!important;text-shadow:0 2px 4px #000!important;margin:0 0 4px!important;font-size:clamp(13px,1vw,18px)!important}
+  #kits .kit-imgbox{height:82%!important;width:70%!important;background:rgba(255,255,255,.05)!important;border:0!important}
+  #kits .kit-imgbox img{width:100%!important;height:100%!important;object-fit:contain!important;mix-blend-mode:multiply!important}
+  #kits .kit-vs{font-size:clamp(24px,2vw,38px)!important;color:#d3b45a!important;text-shadow:0 2px 4px #000!important}
+  #kits .kit-choice{margin-top:4px!important}
+  #kits .contrast-ok{position:absolute!important;left:25%!important;bottom:10.5%!important;width:50%!important;margin:0!important;box-sizing:border-box!important;background:rgba(2,25,32,.72)!important;color:#fff!important}
+  #kits>.panel>.toolbar{position:absolute!important;left:50%!important;bottom:2.5%!important;transform:translateX(-50%)!important;width:max-content!important;margin:0!important}
+
+  /* MATCH — conserviamo la schermata che già funziona, migliorando solo centratura e scala. */
+  #match .match-shell{left:23.3%!important;top:16.9%!important;width:64.9%!important;height:77.8%!important;max-width:none!important}
+  #match .match-main-grid{grid-template-columns:minmax(0,3.35fr) minmax(190px,.95fr)!important}
+}
+
+/* MOBILE portrait: layout leggibile, senza tentare di ricalcare le coordinate desktop. */
+@media (max-width:900px){
+  #setup #managerStep.setup90,#setup #teamStep.team-selector{position:relative!important;left:auto!important;top:auto!important;transform:none!important;width:calc(100% - 18px)!important;height:auto!important;margin:0 auto 24px!important;border-radius:0!important;overflow:visible!important}
+  #setup #managerStep.setup90{background:rgba(238,229,201,.88)!important;padding:14px!important}
+  #setup #teamStep.team-selector{padding:12px!important;background:rgba(4,17,43,.58)!important;border:1px solid rgba(211,180,90,.65)!important}
+  #setup #teamStep>h2{position:relative!important;left:auto!important;top:auto!important;transform:none!important;width:100%!important;color:#fff!important;text-shadow:0 2px 4px #000!important}
+  #setup #teamStep .team-stage{position:relative!important;display:flex!important;flex-direction:column!important;gap:8px!important}
+  #setup #teamStep .team-main,#setup #teamStep .team-side,#setup #teamStep>div:last-of-type{position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;width:100%!important;height:auto!important}
+  #setup #teamStep .team-side{background:rgba(238,229,201,.84)!important;padding:10px!important;color:#111!important}
+  #setup #teamStep .team-main{order:-1!important}
+  #setup #teamStep .team-emblem{width:150px!important;height:150px!important}
+  #setup #teamStep>div:last-of-type{text-align:center!important;margin-top:10px!important}
+
+  #season>.grid>.panel,#season>#seasonContent,#prematch>.grid>.panel:first-child,#prematch>.grid>.panel:nth-child(2){backdrop-filter:blur(2px)!important;-webkit-backdrop-filter:blur(2px)!important}
+  #season .toolbar{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #season .toolbar button{min-height:42px!important;font-size:11px!important}
+
+  #prematch #formationChoices{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  #prematch>.grid>.panel:first-child .toolbar{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  #prematch #lineupPreview{height:auto!important;display:flex!important;flex-direction:column!important;gap:3px!important}
+  #prematch #lineupPreview>div{font-size:11px!important;min-height:34px!important;grid-template-columns:minmax(0,1fr) 48px!important}
+  #prematch>.panel:last-of-type .toolbar{display:grid!important;grid-template-columns:1fr 1fr!important}
+
+  #kits .kit-imgbox img{mix-blend-mode:normal!important}
+  #kits>.panel{background:rgba(4,17,43,.48)!important;padding:10px!important}
+  #kits .kit-stage{position:relative!important;left:auto!important;top:auto!important;width:100%!important;height:auto!important;grid-template-columns:1fr 34px 1fr!important;margin-top:8px!important}
+  #kits .kit-card{height:auto!important}
+  #kits .kit-imgbox{width:100%!important;height:auto!important;aspect-ratio:3/4!important;background:rgba(255,255,255,.84)!important}
+  #kits .contrast-ok,#kits>.panel>.toolbar{position:relative!important;left:auto!important;bottom:auto!important;transform:none!important;width:100%!important;margin:8px 0 0!important}
+  #kits>.panel>.toolbar{display:grid!important;grid-template-columns:1fr!important;gap:6px!important}
+}
