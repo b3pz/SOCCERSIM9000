@@ -623,6 +623,78 @@ function startSerieA9000(){
 #mainMenu .main-menu-shell{background:rgba(232,225,205,.94);backdrop-filter:blur(2px)}
 @media(max-width:760px){.title-logo-img{width:94vw}.title-screen.ready .title-logo-img{transform:translateY(-2vh) scale(.96)}#mainMenu{background-position:center top}}
 </style>
+
+<style id="v51-full-ui-skin">
+:root{--ui-cream:rgba(239,232,213,.94);--ui-navy:rgba(5,15,43,.92);--ui-gold:#c5a44c}
+body{background:#050d22!important;background-attachment:fixed!important}
+main{max-width:none!important;padding:0!important}
+.screen{min-height:calc(100vh - 74px);padding:28px 18px!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important;background-attachment:fixed!important;position:relative}
+.screen:before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(3,9,25,.23),rgba(3,9,25,.38));pointer-events:none;z-index:0}
+.screen>*{position:relative;z-index:1}
+#mainMenu{background-image:url('assets/screens/02_main_menu.png')!important}
+#setup{background-image:url('assets/screens/03_team_selection.png')!important}
+#season{background-image:url('assets/screens/04_season_hub.png')!important}
+#season.v51-calendar-bg{background-image:url('assets/screens/09_calendar.png')!important}
+#season.v51-europe-bg{background-image:url('assets/screens/10_europe.png')!important}
+#prematch,#halftime{background-image:url('assets/screens/05_tactics.png')!important}
+#kits{background-image:url('assets/screens/06_kits.png')!important}
+#match{background-image:url('assets/screens/07_match.png')!important}
+#cupsMenu{background-image:url('assets/screens/08_cups.png')!important}
+#postmatch,#simpleMessage{background-image:url('assets/screens/04_season_hub.png')!important}
+
+/* rende l'HTML parte della scenografia invece che una pagina bianca */
+.panel,.main-menu-shell,.cups-shell,.setup90,.team-selector,.match-shell{
+ backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px)
+}
+.main-menu-shell{max-width:760px!important;margin:10vh auto!important;background:rgba(6,18,48,.76)!important;border:2px solid var(--ui-gold)!important;color:#fff!important;box-shadow:0 18px 50px #000!important}
+.main-menu-shell .menu-kicker{color:#f3d76a!important}
+.main-menu-shell .menu-title{background:rgba(8,29,78,.88)!important;border-color:#d4bd73!important}
+.main-menu-shell .big-menu-btn{min-height:120px!important;background:rgba(9,31,80,.82)!important;border-color:#d4bd73!important}
+.main-menu-shell .prototype-note{color:#e6dcc3!important;border-color:#85734d!important}
+.menu-secondary button{background:rgba(235,227,204,.94)!important}
+
+#setup .setup90,#setup .team-selector{background:rgba(236,228,205,.92)!important;border:2px solid #cfb56a;padding:18px!important;box-shadow:0 15px 45px #000!important}
+#setup .setup90{max-width:680px;margin:7vh auto 24px!important}
+#setup .team-selector{max-width:940px;margin:3vh auto!important}
+
+#season .panel,#prematch .panel,#halftime .panel,#postmatch .panel{background:rgba(238,231,210,.91)!important;border-color:#c5a44c!important;box-shadow:0 12px 35px rgba(0,0,0,.55)!important}
+#season>div,#prematch>div,#halftime>div,#postmatch>div{max-width:1180px;margin-left:auto;margin-right:auto}
+
+#kits .panel{max-width:1120px;margin:5vh auto!important;background:rgba(234,226,205,.88)!important;border-color:#c5a44c!important;box-shadow:0 15px 45px #000!important}
+#kits .kit-card{background:rgba(4,12,34,.88)!important;border-color:#c5a44c!important}
+
+#match{padding-top:18px!important}
+#match .match-shell{max-width:1180px!important;background:rgba(5,15,43,.86)!important;border-color:#c5a44c!important;box-shadow:0 18px 50px #000!important}
+#match .match-main-grid{background:rgba(5,15,43,.78)!important}
+#match #pitch{box-shadow:0 0 0 2px #c5a44c,0 10px 30px #000!important}
+
+#cupsMenu .cups-shell{max-width:1040px!important;margin:4vh auto!important;background:rgba(5,15,43,.74)!important;border-color:#c5a44c!important;color:#fff!important;box-shadow:0 18px 50px #000!important}
+#cupsMenu .cups-title{background:rgba(8,29,78,.9)!important;border-color:#d4bd73!important}
+#cupsMenu .cup-card{border-color:#d4bd73!important;background:rgba(6,20,56,.86)!important}
+
+/* logo permanente piccolo nelle pagine interne */
+.v51-page-logo{display:block;width:min(360px,56vw);margin:0 auto 18px;filter:drop-shadow(0 7px 12px rgba(0,0,0,.55))}
+#match .v51-page-logo{width:min(250px,42vw);margin-bottom:8px}
+
+@media(max-width:760px){
+ .screen{padding:14px 8px!important;background-attachment:scroll!important;background-position:center top!important}
+ .main-menu-shell{margin:4vh auto!important;padding:12px!important}
+ .main-menu-grid{grid-template-columns:1fr!important}
+ .main-menu-shell .big-menu-btn{min-height:92px!important}
+ #setup .setup90,#setup .team-selector{margin:2vh auto!important;padding:12px!important}
+ .v51-page-logo{width:min(300px,72vw)}
+}
+</style>
+
+
+<style id="v51-title-fix">
+#titleScreen{background-image:linear-gradient(rgba(2,8,22,.12),rgba(2,8,22,.30)),url('assets/screens/01_title_screen.png')!important;background-size:cover!important;background-position:center!important}
+#titleScreen .title-logo{font-size:0!important;text-shadow:none!important;transform:none!important;width:min(980px,88vw);height:min(360px,42vh);background:url('assets/logo/seriea9000_logo.png') center/contain no-repeat!important}
+#titleScreen .title-sub{display:none!important}
+#titleScreen .press-start{background:rgba(4,15,43,.72)!important;border:2px solid #d5bc70!important;color:#fff!important;padding:14px 28px!important;box-shadow:0 7px 18px #000!important}
+</style>
+
+<link rel="stylesheet" href="css/save-system.css">
 </head>
 <body>
 <header><div><h1>SERIEA 9000 SIM</h1><small id="headerSub">IL CAMPIONATO DEI CAMPIONI</small></div><div id="headerRight">—</div></header>
@@ -634,6 +706,7 @@ function startSerieA9000(){
 <main>
 
 <section id="mainMenu" class="screen active">
+<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
   <div class="main-menu-shell">
     <div class="menu-kicker">SERIEA 9000 SIM</div>
     <div class="menu-title">MENU PRINCIPALE</div>
@@ -656,12 +729,13 @@ function startSerieA9000(){
     </div>
 
     <div class="prototype-note">
-      PROTOTIPO UI · DATABASE STORICO NON ANCORA COLLEGATO · DATI LOCALI TEMPORANEI
+      V6 FOUNDATION · 64 TEAM-SEASON · SALVATAGGI MULTIPLI LOCALI · DATABASE ROSE PLACEHOLDER
     </div>
   </div>
 </section>
 
 <section id="cupsMenu" class="screen">
+<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
   <div class="cups-shell">
     <div class="cups-title">MODALITÀ COPPE</div>
 
@@ -714,6 +788,7 @@ function startSerieA9000(){
 
 
 <section id="setup" class="screen">
+<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
 <div id="managerStep" class="panel setup90">
 <div class="welcome-box">
 <div class="welcome-badge">ULTIM'ORA — SERIE A</div>
@@ -753,6 +828,7 @@ function startSerieA9000(){
 </section>
 
 <section id="season" class="screen">
+<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
 <div class="grid">
 <div class="panel">
 <h2>RIEPILOGO STAGIONE</h2>
@@ -776,6 +852,7 @@ function startSerieA9000(){
 </section>
 
 <section id="prematch" class="screen">
+<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
 <div class="grid">
 <div class="panel">
 <h2>PRE-PARTITA</h2>
@@ -802,6 +879,7 @@ function startSerieA9000(){
 
 
 <section id="kits" class="screen">
+<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
   <div class="panel">
     <h2>SCELTA DIVISE</h2>
     <div class="muted">Scegli CASA o TRASFERTA. La scelta imposta anche i colori dei pallini nel campo 2D.</div>
@@ -833,6 +911,7 @@ function startSerieA9000(){
 </section>
 
 <section id="match" class="screen">
+<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
 <div class="match-shell">
   <div class="match-topbar">
     <div class="clock-box"><div id="halfLabel">1° TEMPO</div><div id="matchMinute">00'</div></div>
@@ -881,6 +960,7 @@ function startSerieA9000(){
 </section>
 
 <section id="halftime" class="screen">
+<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
 <div class="panel hero">
 <h2>INTERVALLO</h2>
 <div id="halftimeScore"></div>
@@ -894,6 +974,7 @@ function startSerieA9000(){
 </section>
 
 <section id="postmatch" class="screen">
+<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
 <div class="panel">
 <h2>ANALISI POST-PARTITA</h2>
 <div id="postScore"></div>
@@ -1113,6 +1194,8 @@ function renderSeason(){
 }
 document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-view]").forEach(x=>x.classList.remove("active"));b.classList.add("active");renderSeasonView(b.dataset.view)})
 function renderSeasonView(v){
+ const seasonEl=document.getElementById("season");
+ if(seasonEl){seasonEl.classList.toggle("v51-calendar-bg",v==="calendar");seasonEl.classList.toggle("v51-europe-bg",v==="europe");}
  let c=$("#seasonContent");
  if(v==="next"){
   let g=nextUserGame();
@@ -2004,5 +2087,7 @@ renderTeamPicker=function(){
 renderTeamPicker();
 </script>
 
+<script src="js/save-manager.js"></script>
+<script src="js/save-integration.js"></script>
 </body>
 </html>
