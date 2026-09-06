@@ -1,0 +1,10 @@
+01_title_screen.png   -> intro / PRESS START
+02_main_menu.png      -> menu principale
+03_team_selection.png -> scelta squadra
+04_season_hub.png     -> hub stagione / riepilogo
+05_tactics.png        -> tattica / formazione / cambi
+06_kits.png           -> scelta divise
+07_match.png          -> partita 2D / cronaca
+08_cups.png           -> modalità coppe
+09_calendar.png       -> calendario
+10_europe.png         -> osservatorio Europa
