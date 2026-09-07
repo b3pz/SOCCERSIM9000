@@ -1,0 +1,180 @@
+/* SerieA 9000 SIM — V7 RELEASE CANDIDATE
+   Final readability / viewport / alignment pass.
+   No visible SaaS-style cards: information floats on scenography with soft readability fields. */
+:root{
+  --v7-head:66px;
+  --v7-ivory:#f7f0dc;
+  --v7-gold:#d9bd63;
+  --v7-navy:#071631;
+  --v7-shadow:0 2px 3px rgba(0,0,0,.95),0 0 12px rgba(0,0,0,.45);
+  --v7-soft:rgba(3,12,31,.68);
+}
+html,body{min-width:0;background:#020817}
+body{font-family:Arial,Helvetica,sans-serif!important}
+header{font-family:Arial,Helvetica,sans-serif!important}
+header h1{font-family:Arial Black,Arial,Helvetica,sans-serif!important;letter-spacing:1.5px!important;text-shadow:0 2px 2px #000}
+button,input,select{font-family:Arial,Helvetica,sans-serif!important}
+button{min-height:42px;font-weight:800;letter-spacing:.15px}
+.screen h1,.screen h2,.screen h3{font-family:Arial Black,Arial,Helvetica,sans-serif!important;text-shadow:var(--v7-shadow)}
+.screen p,.screen div,.screen span,.screen td,.screen th{font-family:Arial,Helvetica,sans-serif}
+.v51-page-logo{pointer-events:none!important}
+
+/* remove the old visible-card feeling */
+#setup .panel,#season .panel,#prematch .panel,#halftime .panel,#postmatch .panel,#kits>.panel{
+  border:0!important;box-shadow:none!important;border-radius:0!important;
+}
+
+@media (min-width:901px){
+  html,body{width:100%;height:100%;overflow:hidden!important}
+  header{height:var(--v7-head)!important;min-height:var(--v7-head)!important;padding:8px 16px!important;align-items:center!important}
+  main{position:relative!important;width:100%!important;height:calc(100dvh - var(--v7-head))!important;max-width:none!important;margin:0!important;padding:0!important;overflow:hidden!important}
+  .screen.active{position:relative!important;width:100%!important;height:100%!important;min-height:0!important;overflow:hidden!important;margin:0!important;padding:0!important;background-position:center!important;background-size:cover!important}
+
+  /* 1. MANAGER STORY — large, calm, human-readable typography */
+  #setup #managerStep{
+    position:absolute!important;left:50%!important;top:49%!important;transform:translate(-50%,-50%)!important;
+    width:min(760px,62vw)!important;max-width:none!important;max-height:78%!important;padding:28px 40px!important;
+    background:radial-gradient(ellipse at center,rgba(247,240,220,.96) 0%,rgba(247,240,220,.90) 58%,rgba(247,240,220,.08) 88%,transparent 100%)!important;
+    color:#10192a!important;overflow:visible!important;
+  }
+  #setup #managerStep .welcome-box{padding:20px 34px!important;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;text-align:center!important}
+  #setup #managerStep .welcome-badge{display:inline-block!important;padding:7px 12px!important;background:#0b2350!important;color:#fff!important;border:1px solid var(--v7-gold)!important;font-size:12px!important;font-weight:900!important;letter-spacing:.8px!important}
+  #setup #managerStep h2{color:#0c2450!important;font-family:Trebuchet MS,Arial,sans-serif!important;font-size:clamp(28px,2.4vw,40px)!important;line-height:1.08!important;letter-spacing:-.4px!important;margin:18px auto 14px!important;max-width:680px!important}
+  #setup #managerStep .lore-strip{max-width:650px!important;margin:0 auto!important;padding:4px 18px!important;background:transparent!important;border:0!important;color:#172031!important;font-family:Trebuchet MS,Arial,sans-serif!important;font-size:clamp(16px,1.2vw,19px)!important;line-height:1.55!important;text-align:left!important;text-shadow:0 1px 0 rgba(255,255,255,.8)!important}
+  #setup #managerStep .headline{font-family:Trebuchet MS,Arial,sans-serif!important;color:#9b7417!important;font-size:clamp(15px,1.15vw,18px)!important;letter-spacing:.9px!important;text-align:center!important;margin-bottom:8px!important}
+  #setup #managerStep .lore-strip p{margin:8px 0!important}
+  #setup #managerStep h3{font-family:Trebuchet MS,Arial,sans-serif!important;color:#0d2859!important;font-size:clamp(15px,1.05vw,18px)!important;margin:18px 0 9px!important;text-shadow:none!important}
+  #setup #managerName{display:block!important;width:min(540px,88%)!important;height:50px!important;margin:0 auto!important;text-align:center!important;font-size:20px!important;font-weight:700!important;border:2px solid #17335e!important;background:rgba(255,255,255,.88)!important;color:#0c1730!important;outline:none!important}
+  #setup #managerName:focus{box-shadow:0 0 0 3px rgba(216,189,99,.45)!important}
+  #setup #managerNext{display:block!important;margin:14px auto 0!important;padding:10px 24px!important}
+
+  /* 2. TEAM SELECTOR — exact 3-column visual grid, no drifting boxes */
+  #setup #teamStep{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;padding:0!important;background:transparent!important;overflow:hidden!important}
+  #setup #teamStep>h2{position:absolute!important;top:4.5%!important;left:50%!important;transform:translateX(-50%)!important;width:auto!important;margin:0!important;color:#fff!important;font-size:clamp(25px,2.2vw,36px)!important;white-space:nowrap!important}
+  #setup .team-stage{position:absolute!important;left:6%!important;right:6%!important;top:13%!important;bottom:13%!important;display:grid!important;grid-template-columns:minmax(220px,26%) minmax(350px,1fr) minmax(220px,26%)!important;gap:4%!important;align-items:center!important}
+  #setup .team-side{position:relative!important;inset:auto!important;width:100%!important;height:auto!important;min-height:50%!important;max-height:72%!important;padding:24px 22px!important;margin:0!important;background:linear-gradient(90deg,rgba(3,12,31,.72),rgba(3,12,31,.38),rgba(3,12,31,0))!important;border:0!important;box-shadow:none!important;color:#fff!important;font-size:clamp(15px,1.15vw,19px)!important;line-height:1.45!important;text-shadow:var(--v7-shadow)!important;display:flex!important;flex-direction:column!important;justify-content:center!important;overflow:hidden!important}
+  #setup #teamRightInfo{background:linear-gradient(270deg,rgba(3,12,31,.72),rgba(3,12,31,.38),rgba(3,12,31,0))!important;text-align:center!important;align-items:center!important}
+  #setup .team-side b{color:var(--v7-gold)!important;letter-spacing:.8px!important;font-size:.84em!important}
+  #setup #teamRightInfo .overall90{font-size:clamp(56px,5.4vw,86px)!important;line-height:.95!important;margin:6px 0 14px!important;color:#fff!important;text-shadow:0 4px 12px #000!important}
+  #setup .team-main{position:relative!important;inset:auto!important;transform:none!important;width:100%!important;height:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important}
+  #setup .team-main>div{width:100%!important;display:grid!important;grid-template-columns:64px minmax(0,1fr) 64px!important;gap:18px!important;align-items:center!important;justify-items:center!important}
+  #setup #teamEmblem{width:100%!important;height:clamp(210px,36vh,360px)!important;display:flex!important;align-items:center!important;justify-content:center!important;background:transparent!important}
+  #setup #teamEmblem img{display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;margin:auto!important;filter:drop-shadow(0 8px 9px rgba(0,0,0,.65))}
+  #setup .team-name-big{font-size:clamp(27px,2.6vw,42px)!important;line-height:1!important;margin-top:8px!important;color:#fff!important;text-shadow:var(--v7-shadow)!important;white-space:normal!important}
+  #setup .team-season-big{font-size:clamp(18px,1.5vw,25px)!important;color:var(--v7-ivory)!important;text-shadow:var(--v7-shadow)!important;margin-top:4px!important}
+  #setup .arrow90{width:58px!important;height:58px!important;min-width:58px!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:0!important;font-size:26px!important}
+  #setup #teamStep>div[style*="text-align:center"]{position:absolute!important;left:50%!important;bottom:4%!important;transform:translateX(-50%)!important;width:auto!important;display:flex!important;gap:10px!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important}
+
+  /* 3. SEASON HUB — viewport locked, readable without opaque cards */
+  #season>.grid{position:absolute!important;left:5%!important;right:5%!important;top:7%!important;height:29%!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:3%!important;margin:0!important}
+  #season>.grid>.panel{position:relative!important;inset:auto!important;width:100%!important;height:100%!important;padding:18px 20px!important;background:linear-gradient(180deg,rgba(3,12,31,.76),rgba(3,12,31,.30),transparent)!important;color:#fff!important;overflow:hidden!important}
+  #season #managerSummary,#season #seasonStatus{font-size:clamp(14px,1vw,17px)!important;line-height:1.45!important;text-shadow:var(--v7-shadow)!important}
+  #season .toolbar{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:6px!important;margin-top:12px!important}
+  #season .toolbar button{min-width:0!important;min-height:38px!important;padding:7px 5px!important;font-size:clamp(10px,.76vw,12px)!important;white-space:normal!important}
+  #season>#seasonContent{position:absolute!important;left:5%!important;right:5%!important;top:39%!important;bottom:5%!important;width:auto!important;height:auto!important;min-height:0!important;padding:20px 22px!important;margin:0!important;background:linear-gradient(180deg,rgba(4,16,43,.82),rgba(4,16,43,.50),rgba(4,16,43,.18))!important;color:#fff!important;overflow:auto!important;text-shadow:0 1px 2px #000!important}
+  #season>#seasonContent h2,#season>#seasonContent h3{color:#fff!important}
+  #season>#seasonContent .muted{color:#e8dfc8!important}
+  #season>#seasonContent table{font-size:clamp(11px,.82vw,14px)!important;background:rgba(0,0,0,.15)!important}
+  #season>#seasonContent th{color:var(--v7-gold)!important}
+  #season>#seasonContent td,#season>#seasonContent th{border-bottom:1px solid rgba(255,255,255,.18)!important}
+  #season>#seasonContent .card{background:rgba(1,8,23,.42)!important;color:#fff!important;border:0!important;margin:5px 0!important}
+
+  /* 4. PREMATCH — horizontal board is the visual center */
+  #prematch>.grid{position:static!important;display:block!important;margin:0!important}
+  #prematch>.grid>.panel:first-child{position:absolute!important;left:3.5%!important;top:12%!important;bottom:12%!important;width:20.5%!important;height:auto!important;padding:18px!important;background:linear-gradient(90deg,rgba(3,12,31,.82),rgba(3,12,31,.45),transparent)!important;color:#fff!important;overflow:hidden!important}
+  #prematch>.grid>.panel:nth-child(2){position:absolute!important;right:3.5%!important;top:12%!important;bottom:12%!important;width:22.5%!important;height:auto!important;padding:18px!important;background:linear-gradient(270deg,rgba(3,12,31,.82),rgba(3,12,31,.45),transparent)!important;color:#fff!important;overflow:hidden!important}
+  #prematch #v63TacticalXI{position:absolute!important;left:27%!important;top:17%!important;width:46%!important;height:58%!important;z-index:3!important;pointer-events:none!important}
+  #prematch #v63TacticalXI .v63-player{transform:translate(-50%,-50%)!important}
+  #prematch #v63TacticalXI .v63-dot{width:30px!important;height:30px!important;line-height:28px!important;font-size:12px!important;box-shadow:0 2px 5px #000!important}
+  #prematch #v63TacticalXI .v63-name{font-size:clamp(9px,.72vw,12px)!important;max-width:105px!important;padding:2px 4px!important;background:rgba(1,7,20,.88)!important;color:#fff!important;text-align:center!important;white-space:normal!important;line-height:1.1!important}
+  #prematch #lineupPreview{height:calc(100% - 150px)!important;overflow:auto!important;padding-right:4px!important}
+  #prematch .lineup-row-v33{font-size:clamp(10px,.72vw,12px)!important;min-height:26px!important;color:#fff!important;text-shadow:0 1px 2px #000!important}
+  #prematch>.panel:last-of-type{position:absolute!important;left:50%!important;bottom:3%!important;transform:translateX(-50%)!important;width:auto!important;height:auto!important;padding:0!important;margin:0!important;background:transparent!important}
+  #prematch>.panel:last-of-type .toolbar{justify-content:center!important;gap:10px!important}
+  #prematch .choicegrid button,#prematch [data-ment]{min-height:40px!important}
+
+  /* 5. KITS — no white cards; exact symmetric tunnel placement */
+  #kits>.panel{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;padding:0!important;margin:0!important;background:transparent!important;color:#fff!important;overflow:hidden!important}
+  #kits>.panel>h2{position:absolute!important;top:7%!important;left:50%!important;transform:translateX(-50%)!important;margin:0!important;color:#fff!important;font-size:clamp(26px,2.3vw,38px)!important}
+  #kits>.panel>.muted{position:absolute!important;top:12%!important;left:50%!important;transform:translateX(-50%)!important;width:min(760px,80%)!important;text-align:center!important;color:#f2ead0!important;text-shadow:var(--v7-shadow)!important;font-size:14px!important}
+  #kits .kit-stage{position:absolute!important;left:13%!important;right:13%!important;top:18%!important;bottom:17%!important;width:auto!important;margin:0!important;display:grid!important;grid-template-columns:minmax(0,1fr) 90px minmax(0,1fr)!important;gap:5%!important;align-items:center!important}
+  #kits .kit-card{width:100%!important;height:100%!important;padding:0!important;margin:0!important;background:transparent!important;border:0!important;display:grid!important;grid-template-rows:auto minmax(0,1fr) auto!important;align-items:center!important;justify-items:center!important;overflow:visible!important}
+  #kits .kit-card h3{margin:0 0 5px!important;color:#fff!important;font-size:clamp(17px,1.25vw,21px)!important;text-align:center!important;text-shadow:var(--v7-shadow)!important}
+  #kits .kit-imgbox{width:100%!important;height:100%!important;min-height:0!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;overflow:visible!important;display:flex!important;align-items:center!important;justify-content:center!important}
+  #kits .kit-imgbox img{display:block!important;width:100%!important;height:100%!important;max-width:360px!important;max-height:100%!important;object-fit:contain!important;object-position:50% 50%!important;margin:auto!important;background:transparent!important;transform:none!important;filter:drop-shadow(0 8px 8px rgba(0,0,0,.45))}
+  #kits .kit-choice{display:flex!important;justify-content:center!important;gap:8px!important;margin-top:7px!important}
+  #kits .kit-vs{margin:0!important;align-self:center!important;justify-self:center!important;color:var(--v7-gold)!important;font-size:clamp(28px,2.6vw,42px)!important;text-shadow:var(--v7-shadow)!important}
+  #kits .contrast-ok{position:absolute!important;left:50%!important;bottom:10%!important;transform:translateX(-50%)!important;margin:0!important;min-width:320px!important;text-align:center!important}
+  #kits>.panel>.toolbar{position:absolute!important;left:50%!important;bottom:3.5%!important;transform:translateX(-50%)!important;margin:0!important;justify-content:center!important;white-space:nowrap!important}
+
+  /* 6. MATCH — maximum useful area, no page scroll */
+  #match .match-shell{position:absolute!important;left:7%!important;right:7%!important;top:6%!important;bottom:4%!important;width:auto!important;height:auto!important;max-width:none!important;margin:0!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
+  #match .match-main-grid{min-height:0!important;flex:1 1 auto!important;overflow:hidden!important}
+  #match .match-stage{min-height:0!important;overflow:hidden!important}
+  #match #pitchWrap90{height:calc(100% - 104px)!important;min-height:0!important}
+  #match #pitch{height:100%!important;max-height:100%!important;aspect-ratio:auto!important}
+  #match .history90{height:100%!important;min-height:0!important;overflow:auto!important}
+  #match .action-banner{min-height:82px!important;max-height:98px!important}
+  #match .action-text{font-size:clamp(19px,1.8vw,28px)!important}
+
+  /* 7. HALFTIME / POSTMATCH — readable floating summaries */
+  #halftime .hero{position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;width:min(720px,70vw)!important;margin:0!important;padding:30px 36px!important;background:radial-gradient(ellipse,rgba(3,12,31,.88) 0%,rgba(3,12,31,.62) 62%,transparent 100%)!important;color:#fff!important;text-align:center!important}
+  #halftime #halftimeScore{font-size:clamp(20px,2vw,30px)!important}
+  #halftime #halftimeStats{font-size:clamp(16px,1.2vw,20px)!important;line-height:1.6!important;text-shadow:var(--v7-shadow)!important}
+  #halftime .toolbar{justify-content:center!important}
+  #postmatch>.panel{position:absolute!important;left:8%!important;right:8%!important;top:8%!important;bottom:6%!important;width:auto!important;height:auto!important;margin:0!important;padding:24px 28px!important;background:linear-gradient(180deg,rgba(3,12,31,.82),rgba(3,12,31,.42),rgba(3,12,31,.18))!important;color:#fff!important;overflow:auto!important;text-shadow:0 1px 2px #000!important}
+  #postmatch>.panel>.grid{display:grid!important;grid-template-columns:1fr 1.35fr!important;gap:4%!important}
+  #postmatch .card{background:rgba(1,8,23,.48)!important;color:#fff!important;border:0!important;margin:5px 0!important}
+
+  /* short windows: compact, never push content below viewport */
+  @media (max-height:780px){
+    :root{--v7-head:58px}
+    header h1{font-size:18px!important}
+    header small,#headerRight{font-size:10px!important}
+    #setup #managerStep{width:min(720px,66vw)!important;max-height:86%!important;padding:14px 30px!important}
+    #setup #managerStep .welcome-box{padding:8px 24px!important}
+    #setup #managerStep h2{font-size:clamp(23px,2vw,31px)!important;margin:10px auto!important}
+    #setup #managerStep .lore-strip{font-size:clamp(13px,1vw,16px)!important;line-height:1.35!important}
+    #setup #managerStep h3{margin:10px 0 6px!important}
+    #setup #managerName{height:44px!important;font-size:17px!important}
+    #setup .team-stage{top:11%!important;bottom:11%!important}
+    #setup #teamEmblem{height:clamp(160px,31vh,260px)!important}
+    #prematch>.grid>.panel:first-child,#prematch>.grid>.panel:nth-child(2){top:8%!important;bottom:9%!important}
+    #prematch #v63TacticalXI{top:12%!important;height:66%!important}
+    #kits .kit-stage{top:15%!important;bottom:15%!important}
+    #kits>.panel>h2{top:3%!important}
+    #kits>.panel>.muted{top:8%!important}
+    #kits .contrast-ok{bottom:8%!important}
+    #kits>.panel>.toolbar{bottom:1.5%!important}
+    #match .match-shell{top:3%!important;bottom:2%!important}
+  }
+}
+
+/* Tablet / phone: preserve readability; vertical scroll only where physically necessary. */
+@media (max-width:900px){
+  html,body{overflow-x:hidden!important;background:#020817!important}
+  main{max-width:100%!important;padding:0!important}
+  .screen.active{width:100%!important;max-width:100%!important;padding:12px!important;overflow-x:hidden!important}
+  #setup #managerStep,#setup #teamStep,#season>.grid,#season>#seasonContent,#prematch>.grid>.panel,#kits>.panel,#halftime .hero,#postmatch>.panel{width:100%!important;max-width:100%!important;margin:0 auto 12px!important;background:rgba(3,12,31,.78)!important;color:#fff!important;border:0!important;box-shadow:none!important}
+  #setup #managerStep .lore-strip{font-size:17px!important;line-height:1.5!important;background:rgba(247,240,220,.94)!important;color:#10192a!important;padding:14px!important}
+  #setup #managerName{width:100%!important;font-size:18px!important;text-align:center!important}
+  #setup .team-stage{display:grid!important;grid-template-columns:1fr!important;gap:12px!important}
+  #setup .team-side{background:rgba(3,12,31,.70)!important;color:#fff!important;text-align:center!important;padding:14px!important}
+  #setup .team-main>div{display:grid!important;grid-template-columns:52px 1fr 52px!important;gap:8px!important;align-items:center!important}
+  #setup #teamEmblem{height:230px!important}
+  #kits .kit-stage{display:grid!important;grid-template-columns:1fr!important;gap:8px!important}
+  #kits .kit-vs{margin:0!important}
+  #kits .kit-imgbox{height:380px!important;background:transparent!important}
+  #kits .kit-imgbox img{object-fit:contain!important;object-position:center!important;background:transparent!important}
+  #prematch #v63TacticalXI{display:none!important}
+  #match .match-main-grid{grid-template-columns:1fr!important}
+  #match .match-history-panel{max-height:220px!important}
+}
+
+/* event visual toast */
+#v7EventToast{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%) scale(.92);z-index:80;display:flex;align-items:center;gap:16px;min-width:min(520px,72%);max-width:760px;padding:14px 22px;background:rgba(2,10,28,.92);border-top:2px solid var(--v7-gold);border-bottom:2px solid var(--v7-gold);color:#fff;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;box-shadow:0 12px 35px rgba(0,0,0,.55)}
+#v7EventToast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#v7EventToast img{width:86px;height:86px;object-fit:contain;flex:0 0 86px}
+#v7EventToast .v7-event-title{font-family:Arial Black,Arial,sans-serif;font-size:clamp(22px,2vw,34px);line-height:1;text-shadow:0 2px 2px #000}
+#v7EventToast .v7-event-sub{margin-top:5px;font-size:clamp(13px,1vw,17px);line-height:1.25;color:#f3ead2}
+@media(max-width:700px){#v7EventToast{min-width:calc(100% - 22px);padding:10px 12px;gap:10px}#v7EventToast img{width:64px;height:64px;flex-basis:64px}}

@@ -1,0 +1,48 @@
+{
+  "name": "SerieA 9000 SIM V7 RELEASE CANDIDATE",
+  "credit": "Sviluppato ed ideato da b3pZ",
+  "entry": "index.html",
+  "qa": {
+    "v7_js_syntax": "ok",
+    "duplicate_html_ids": 0,
+    "missing_static_refs": 0
+  },
+  "files": {
+    "index.html": {
+      "bytes": 14584897,
+      "sha256": "185b983336263cb3f2ed2e626891a9350c28361e0c418301f38a1dc98d3768b7"
+    },
+    "css/v7-release.css": {
+      "bytes": 21908,
+      "sha256": "38d4f83748ae193218fa218c91f83c4f9ed96d6e2fd5dab6cfc58ce6c62a5f5c"
+    },
+    "js/v7-release.js": {
+      "bytes": 8022,
+      "sha256": "99e00a0f674e8f48f44cacc4fa07222631dbcab5a4e5bfb78488a219d2e67f85"
+    },
+    "assets/events/goal.png": {
+      "bytes": 1422393,
+      "sha256": "a8ac859307240d62357b74994033f1c65bdb4a00407876b90f127fd1ebfb0dcc"
+    },
+    "assets/events/offside.png": {
+      "bytes": 767476,
+      "sha256": "c34ed90f007607423208ba1b2c4ef8160810a6488f36683467d7fec76502c341"
+    },
+    "assets/events/foul.png": {
+      "bytes": 828796,
+      "sha256": "081dab11c2e1066c476528aede21949ac77991529dcadabadec9c011a8cbf5f4"
+    },
+    "assets/events/yellow.png": {
+      "bytes": 641775,
+      "sha256": "5f0af2e07d1bc57bfd0b6f9373f209d775f3144cc2d4ca4a463dc01346b33c9f"
+    },
+    "assets/events/red.png": {
+      "bytes": 603530,
+      "sha256": "0af70454b81d37bd3090a4c53143e1f1f54558261bcb72e83d92852342f0a3d8"
+    },
+    "assets/events/substitution.png": {
+      "bytes": 1130330,
+      "sha256": "163dbb23b89229f1a017d7b0fc99e944afc47db56307697986271b9d801b823b"
+    }
+  }
+}

@@ -702,6 +702,7 @@ main{max-width:none!important;padding:0!important}
 <link rel="stylesheet" href="css/v651-background-master.css?v=651">
 <link rel="stylesheet" href="css/v66-ui-integration.css?v=660">
 <link rel="stylesheet" href="css/v67-layout-freeze.css?v=670">
+<link rel="stylesheet" href="css/v7-release.css?v=700">
 </head>
 <body>
 <header><div><h1>SERIEA 9000 SIM</h1><small id="headerSub">IL CAMPIONATO DEI CAMPIONI</small></div><div id="headerRight">—</div></header>
@@ -736,7 +737,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V6.7 LAYOUT FREEZE · ROSTER BATCH 1 · 64 TEAM-SEASON · SALVATAGGI MULTIPLI LOCALI · DATABASE ROSE PLACEHOLDER
+      V7 RELEASE CANDIDATE · UI FINAL PASS · EVENTI VISIVI · CAMBI CPU · SALVATAGGI MULTIPLI
     </div>
   </div>
 </section>
@@ -1739,7 +1740,7 @@ $("#closeTactics").onclick=()=>{let st=career.teamStates[career.user];st.formati
 <script>
 document.addEventListener("DOMContentLoaded",()=>{ collapseSetPieceMenus();
   const introTitle=document.getElementById("titleScreen");
-  if(introTitle){ setTimeout(()=>{ introTitle.classList.remove("intro-wait"); introTitle.classList.add("ready"); },5000); }
+  if(introTitle){ setTimeout(()=>{ introTitle.classList.remove("intro-wait"); introTitle.classList.add("ready"); },2000); }
   const qs=(s)=>document.querySelector(s);
   const start=qs("#pressStart");
   const title=qs("#titleScreen");
@@ -1823,7 +1824,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   );
   if($m("#optionsBtn")) $m("#optionsBtn").onclick=()=>message(
     "OPZIONI",
-    "<div class='headline'>PROTOTIPO V3.1</div><p>Questa copia utilizza ancora dati locali temporanei. Il database storico definitivo verrà collegato in una fase successiva.</p><p>Interfaccia, menu, scelta squadra, pre-partita, divise e motore partita sono utilizzabili in un unico file HTML.</p>"
+    "<div class='headline'>SERIEA 9000 SIM · V7</div><p>Carriere locali multiple con backup automatici, interfaccia responsive, match 2D ed eventi arbitrali visuali.</p><p>Il database rose viene mantenuto separato dalla logica di gioco per consentire la progressiva verifica storica squadra per squadra.</p>"
   );
 
   const cupNames={
@@ -2122,5 +2123,6 @@ renderTeamPicker();
 
 <script src="js/save-manager.js"></script>
 <script src="js/save-integration.js"></script>
+<script src="js/v7-release.js?v=700"></script>
 </body>
 </html>
