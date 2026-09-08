@@ -1,0 +1,208 @@
+/* SerieA 9000 SIM — V9.1 final touches
+   Remaining fixes:
+   1) next match centered on season hub
+   2) standings/calendar color polish
+   3) kit selection alignment on desktop
+   4) hide fouls/free-kicks in halftime/postmatch compact stats */
+
+/* --- 1) Season hub: center the next match block better --- */
+#season .season-next-wrap{
+  justify-items:center!important;
+}
+#season .season-next-match{
+  width:min(980px,100%)!important;
+  margin:0 auto!important;
+  align-content:center!important;
+}
+#season .season-next-meta,
+#season .season-next-action{
+  width:100%!important;
+  text-align:center!important;
+}
+
+/* --- 2) Season hub: chromatic rebalance for standings + calendar --- */
+#season #seasonContent .zone-legend{
+  background:rgba(8,20,49,.86)!important;
+  color:#f3ead3!important;
+  border:1px solid rgba(197,164,76,.58)!important;
+  box-shadow:none!important;
+}
+#season #seasonContent .standing-box{
+  background:rgba(239,232,213,.92)!important;
+  border:1px solid rgba(197,164,76,.55)!important;
+  box-shadow:inset 0 0 0 1px rgba(8,20,49,.08)!important;
+}
+#season #seasonContent .standing-box h3{
+  background:linear-gradient(180deg,#173c7f,#0d245d)!important;
+  color:#fff7df!important;
+}
+#season #seasonContent .standing-box table{
+  background:transparent!important;
+}
+#season #seasonContent .standing-box th{
+  background:#6d685f!important;
+  color:#f6dd73!important;
+}
+#season #seasonContent .standing-box td,
+#season #seasonContent .standing-box th{
+  border-bottom:1px solid rgba(16,38,95,.14)!important;
+}
+#season #seasonContent .standing-box tr{
+  background:rgba(246,241,229,.82)!important;
+}
+#season #seasonContent .standing-box tr:nth-child(even){
+  background:rgba(235,227,206,.90)!important;
+}
+#season #seasonContent .standing-box tr.qualify{
+  background:rgba(217,231,197,.92)!important;
+}
+#season #seasonContent .standing-box tr.user-row{
+  outline:2px solid #173c7f!important;
+  background:rgba(227,233,204,.96)!important;
+}
+#season #seasonContent .standing-box td{
+  color:#1b2437!important;
+}
+#season #seasonContent .calendar-list{
+  gap:8px!important;
+}
+#season #seasonContent .cal-row{
+  background:rgba(242,236,220,.94)!important;
+  border:1px solid rgba(197,164,76,.56)!important;
+  box-shadow:inset 0 0 0 1px rgba(10,22,52,.06)!important;
+}
+#season #seasonContent .cal-row > div{
+  color:#20293c!important;
+}
+#season #seasonContent .cal-date,
+#season #seasonContent .world-date{
+  color:#173c7f!important;
+}
+#season #seasonContent .cal-row.todayish{
+  border-left:0!important;
+  background:linear-gradient(90deg,rgba(17,59,124,.96) 0 96px, rgba(244,239,224,.96) 96px)!important;
+}
+#season #seasonContent .cal-row.todayish .cal-date{
+  color:#fff7df!important;
+}
+#season #seasonContent .cal-row.todayish > div:nth-child(2),
+#season #seasonContent .cal-row.todayish > div:nth-child(3){
+  color:#20293c!important;
+  font-weight:900!important;
+}
+
+/* --- 3) Kit selection: proper desktop centering --- */
+@media (min-width:1201px) and (min-height:601px){
+  #kits{overflow:hidden!important}
+  #kits>.panel{
+    position:absolute!important;
+    left:6.5%!important;
+    right:6.5%!important;
+    top:4.5%!important;
+    bottom:4%!important;
+    width:auto!important;
+    height:auto!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+    background:transparent!important;
+  }
+  #kits>.panel>h2{
+    position:absolute!important;
+    left:0!important;right:0!important;top:0!important;
+    transform:none!important;
+    width:100%!important;
+    margin:0!important;
+    text-align:center!important;
+  }
+  #kits>.panel>.muted{
+    position:absolute!important;
+    left:50%!important;right:auto!important;top:5.5%!important;
+    transform:translateX(-50%)!important;
+    width:min(780px,84%)!important;
+    margin:0!important;
+    text-align:center!important;
+  }
+  #kits .kit-stage{
+    position:absolute!important;
+    left:6%!important;right:6%!important;top:12.5%!important;bottom:18%!important;
+    width:auto!important;height:auto!important;
+    margin:0!important;
+    display:grid!important;
+    grid-template-columns:minmax(300px,1fr) 90px minmax(300px,1fr)!important;
+    gap:3.5%!important;
+    align-items:center!important;
+    justify-items:center!important;
+    transform:none!important;
+  }
+  #kits .kit-card{
+    width:100%!important;height:100%!important;min-height:0!important;
+    display:grid!important;
+    grid-template-rows:auto minmax(0,1fr) auto!important;
+    justify-items:center!important;
+    align-items:center!important;
+    text-align:center!important;
+    overflow:visible!important;
+  }
+  #kits .kit-card:first-child{justify-self:end!important}
+  #kits .kit-card:last-child{justify-self:start!important}
+  #kits .kit-card h3{
+    width:100%!important;
+    margin:0 0 6px!important;
+    text-align:center!important;
+    font-size:clamp(18px,1.45vw,25px)!important;
+    color:#fff!important;
+  }
+  #kits .kit-imgbox{
+    width:100%!important;height:100%!important;min-height:0!important;
+    display:flex!important;align-items:center!important;justify-content:center!important;
+    overflow:visible!important;
+  }
+  #kits .kit-imgbox img{
+    display:block!important;
+    width:auto!important;height:auto!important;
+    max-width:78%!important;max-height:92%!important;
+    object-fit:contain!important;object-position:50% 50%!important;
+    margin:0 auto!important;transform:none!important;
+  }
+  #kits .kit-choice{
+    display:flex!important;justify-content:center!important;align-items:center!important;
+    gap:10px!important;margin:10px 0 0!important;
+  }
+  #kits .kit-vs{
+    position:relative!important;
+    left:auto!important;top:auto!important;transform:none!important;
+    align-self:center!important;justify-self:center!important;
+    margin:0!important;
+    font-size:clamp(36px,3vw,52px)!important;
+  }
+  #kits #kitContrast{
+    position:absolute!important;
+    left:50%!important;right:auto!important;top:auto!important;bottom:10.2%!important;
+    transform:translateX(-50%)!important;
+    width:min(460px,52%)!important;
+    margin:0!important;text-align:center!important;
+  }
+  #kits>.panel>.toolbar{
+    position:absolute!important;
+    left:50%!important;right:auto!important;top:auto!important;bottom:2%!important;
+    transform:translateX(-50%)!important;
+    width:min(860px,92%)!important;
+    margin:0!important;
+    display:flex!important;
+    justify-content:center!important;
+    align-items:center!important;
+    gap:12px!important;
+    flex-wrap:nowrap!important;
+  }
+  #kits>.panel>.toolbar button{min-height:48px!important}
+  #kits #kitBack{min-width:min(280px,32vw)!important}
+  #kits #confirmKits{min-width:min(430px,48vw)!important}
+}
+
+/* --- 4) Half-time / post-match: remove fouls and free-kicks rows --- */
+#halftime .v73-stats-grid > :nth-last-child(-n+6),
+#postmatch .v73-stats-grid > :nth-last-child(-n+6){
+  display:none!important;
+}
