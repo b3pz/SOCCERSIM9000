@@ -1,0 +1,267 @@
+{
+  "summary": {
+    "totalItalianTeamsInGame": 32,
+    "teamsWithNamedPlayers": 16,
+    "teamsWithGenericPlaceholderRoster": 16,
+    "fullyHistoricallyVerifiedTeams": 1,
+    "note": "Named prototype rosters are not automatically historically verified. Inter 1997/98 is the only roster explicitly marked as names verified; its ratings remain provisional."
+  },
+  "teams": [
+    {
+      "id": "inter_9798",
+      "name": "Inter",
+      "season": "1997/98",
+      "players": 28,
+      "genericPlayers": 0,
+      "status": "verified_names_provisional_ratings"
+    },
+    {
+      "id": "milan_0607",
+      "name": "Milan",
+      "season": "2006/07",
+      "players": 16,
+      "genericPlayers": 0,
+      "status": "named_prototype_unverified"
+    },
+    {
+      "id": "fiorentina_9596",
+      "name": "Fiorentina",
+      "season": "1995/96",
+      "players": 16,
+      "genericPlayers": 0,
+      "status": "named_prototype_unverified"
+    },
+    {
+      "id": "roma_0001",
+      "name": "Roma",
+      "season": "2000/01",
+      "players": 16,
+      "genericPlayers": 0,
+      "status": "named_prototype_unverified"
+    },
+    {
+      "id": "juve_9798",
+      "name": "Juventus",
+      "season": "1997/98",
+      "players": 16,
+      "genericPlayers": 0,
+      "status": "named_prototype_unverified"
+    },
+    {
+      "id": "reggina_0203",
+      "name": "Reggina",
+      "season": "2002/03",
+      "players": 16,
+      "genericPlayers": 0,
+      "status": "named_prototype_unverified"
+    },
+    {
+      "id": "parma_9899",
+      "name": "Parma",
+      "season": "1998/99",
+      "players": 16,
+      "genericPlayers": 0,
+      "status": "named_prototype_unverified"
+    },
+    {
+      "id": "samp_9091",
+      "name": "Sampdoria",
+      "season": "1990/91",
+      "players": 16,
+      "genericPlayers": 0,
+      "status": "named_prototype_unverified"
+    },
+    {
+      "id": "lazio_9798",
+      "name": "Lazio",
+      "season": "1997/98",
+      "players": 16,
+      "genericPlayers": 0,
+      "status": "named_prototype_unverified"
+    },
+    {
+      "id": "udinese_9798",
+      "name": "Udinese",
+      "season": "1997/98",
+      "players": 16,
+      "genericPlayers": 0,
+      "status": "named_prototype_unverified"
+    },
+    {
+      "id": "brescia_0001",
+      "name": "Brescia",
+      "season": "2000/01",
+      "players": 16,
+      "genericPlayers": 0,
+      "status": "named_prototype_unverified"
+    },
+    {
+      "id": "chievo_0102",
+      "name": "Chievo",
+      "season": "2001/02",
+      "players": 16,
+      "genericPlayers": 0,
+      "status": "named_prototype_unverified"
+    },
+    {
+      "id": "perugia_9900",
+      "name": "Perugia",
+      "season": "1999/00",
+      "players": 16,
+      "genericPlayers": 0,
+      "status": "named_prototype_unverified"
+    },
+    {
+      "id": "venezia_9899",
+      "name": "Venezia",
+      "season": "1998/99",
+      "players": 16,
+      "genericPlayers": 0,
+      "status": "named_prototype_unverified"
+    },
+    {
+      "id": "vicenza_9697",
+      "name": "Vicenza",
+      "season": "1996/97",
+      "players": 16,
+      "genericPlayers": 0,
+      "status": "named_prototype_unverified"
+    },
+    {
+      "id": "foggia_9192",
+      "name": "Foggia",
+      "season": "1991/92",
+      "players": 16,
+      "genericPlayers": 0,
+      "status": "named_prototype_unverified"
+    },
+    {
+      "id": "juve_baggio_9091",
+      "name": "Juventus",
+      "season": "1990/91",
+      "players": 16,
+      "genericPlayers": 16,
+      "status": "generic_placeholder"
+    },
+    {
+      "id": "genoa_9091",
+      "name": "Genoa",
+      "season": "1990/91",
+      "players": 16,
+      "genericPlayers": 16,
+      "status": "generic_placeholder"
+    },
+    {
+      "id": "parma_9293",
+      "name": "Parma",
+      "season": "1992/93",
+      "players": 16,
+      "genericPlayers": 16,
+      "status": "generic_placeholder"
+    },
+    {
+      "id": "torino_9293",
+      "name": "Torino",
+      "season": "1992/93",
+      "players": 16,
+      "genericPlayers": 16,
+      "status": "generic_placeholder"
+    },
+    {
+      "id": "juve_9596",
+      "name": "Juventus",
+      "season": "1995/96",
+      "players": 16,
+      "genericPlayers": 16,
+      "status": "generic_placeholder"
+    },
+    {
+      "id": "fiorentina_9899",
+      "name": "Fiorentina",
+      "season": "1998/99",
+      "players": 16,
+      "genericPlayers": 16,
+      "status": "generic_placeholder"
+    },
+    {
+      "id": "inter_9900",
+      "name": "Inter",
+      "season": "1999/00",
+      "players": 16,
+      "genericPlayers": 16,
+      "status": "generic_placeholder"
+    },
+    {
+      "id": "bari_9900",
+      "name": "Bari",
+      "season": "1999/00",
+      "players": 16,
+      "genericPlayers": 16,
+      "status": "generic_placeholder"
+    },
+    {
+      "id": "reggina_9900",
+      "name": "Reggina",
+      "season": "1999/00",
+      "players": 16,
+      "genericPlayers": 16,
+      "status": "generic_placeholder"
+    },
+    {
+      "id": "juve_0203",
+      "name": "Juventus",
+      "season": "2002/03",
+      "players": 16,
+      "genericPlayers": 16,
+      "status": "generic_placeholder"
+    },
+    {
+      "id": "empoli_0607",
+      "name": "Empoli",
+      "season": "2006/07",
+      "players": 16,
+      "genericPlayers": 16,
+      "status": "generic_placeholder"
+    },
+    {
+      "id": "palermo_0708",
+      "name": "Palermo",
+      "season": "2007/08",
+      "players": 16,
+      "genericPlayers": 16,
+      "status": "generic_placeholder"
+    },
+    {
+      "id": "milan_0809",
+      "name": "Milan",
+      "season": "2008/09",
+      "players": 16,
+      "genericPlayers": 16,
+      "status": "generic_placeholder"
+    },
+    {
+      "id": "udinese_0910",
+      "name": "Udinese",
+      "season": "2009/10",
+      "players": 16,
+      "genericPlayers": 16,
+      "status": "generic_placeholder"
+    },
+    {
+      "id": "inter_0910",
+      "name": "Inter",
+      "season": "2009/10",
+      "players": 16,
+      "genericPlayers": 16,
+      "status": "generic_placeholder"
+    },
+    {
+      "id": "milan_9091",
+      "name": "Milan",
+      "season": "1990/91",
+      "players": 16,
+      "genericPlayers": 16,
+      "status": "generic_placeholder"
+    }
+  ]
+}

@@ -1,10 +1,10 @@
 {
-  "gameVersion": "0.6.0",
-  "databaseVersion": "0.6-placeholder",
-  "saveVersion": 1,
-  "clubDatabaseLocked": true,
-  "historicalPlayersComplete": false,
+  "version": "7.4-italian-rosters-v1",
+  "date": "2026-09-08",
   "italianTeams": 32,
-  "foreignTeams": 32,
-  "playerRecords": 1536
+  "italianPlayers": 676,
+  "italianRosters": "nominal historical names integrated; ratings provisional",
+  "foreignRosters": "placeholder / later phase",
+  "frontend": "GitHub Pages",
+  "saveSystem": "IndexedDB multi-career preserved"
 }

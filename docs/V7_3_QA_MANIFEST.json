@@ -1,0 +1,20 @@
+{
+  "version": "V7.3.1 ALIGNMENT + KIT MAPPING FIX",
+  "checks": {
+    "seasonHubSingleAlignmentGrid": true,
+    "italianHomeKitsPresent": 32,
+    "italianAwayKitFilesPresent": 32,
+    "awayMappingSheetsVerified": {
+      "sheet1": "4A571C54-1E8C-4304-8255-A01619B74550.jpeg",
+      "sheet2": "A9C5CA43-5C27-4C54-804A-25D64C62A72D.jpeg / duplicate CEE1626F...",
+      "sheet3": "original AWAY source not present in available asset set; team-safe fallback uses matching HOME sprite for 8 teams",
+      "sheet4": "E6E85755-32BA-4AD4-8790-DC6650DF059A.jpeg"
+    },
+    "wrongTeamSpriteFallbackEliminated": true,
+    "rosterAuditWritten": "docs/V7_3_ROSTER_AUDIT.json"
+  },
+  "knownLimitations": [
+    "The eight teams inter_9900, bari_9900, reggina_9900, perugia_9900, roma_0001, brescia_0001, chievo_0102, reggina_0203 currently use the matching HOME sprite as AWAY fallback because the correct third AWAY source sheet is not available among the supplied assets.",
+    "Historical rosters are not complete: 16 of 32 Italian teams still use generic player placeholders; most named prototype rosters also require historical verification."
+  ]
+}

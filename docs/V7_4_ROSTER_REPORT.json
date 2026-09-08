@@ -1,0 +1,393 @@
+{
+  "version": "7.4",
+  "generated": "2026-09-08",
+  "teams": [
+    {
+      "id": "inter_9798",
+      "name": "Inter",
+      "season": "1997/98",
+      "coach": "Luigi Simoni",
+      "players": 28,
+      "rosterStatus": "NOMI_VERIFICATI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa 1997/98 verificata su archivio ufficiale Inter; rating aggiunti/prototipali da calibrare.",
+      "sources": []
+    },
+    {
+      "id": "milan_0607",
+      "name": "Milan",
+      "season": "2006/07",
+      "coach": "Carlo Ancelotti",
+      "players": 16,
+      "rosterStatus": "NOMI_STORICI_PROTOTIPO_DA_VERIFICARE",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa nominale già presente nel prototipo; da rifinire/espandere se necessario.",
+      "sources": []
+    },
+    {
+      "id": "fiorentina_9596",
+      "name": "Fiorentina",
+      "season": "1995/96",
+      "coach": "Claudio Ranieri",
+      "players": 16,
+      "rosterStatus": "NOMI_STORICI_PROTOTIPO_DA_VERIFICARE",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa nominale già presente nel prototipo; da rifinire/espandere se necessario.",
+      "sources": []
+    },
+    {
+      "id": "roma_0001",
+      "name": "Roma",
+      "season": "2000/01",
+      "coach": "Fabio Capello",
+      "players": 16,
+      "rosterStatus": "NOMI_STORICI_PROTOTIPO_DA_VERIFICARE",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa nominale già presente nel prototipo; da rifinire/espandere se necessario.",
+      "sources": []
+    },
+    {
+      "id": "juve_9798",
+      "name": "Juventus",
+      "season": "1997/98",
+      "coach": "Marcello Lippi",
+      "players": 16,
+      "rosterStatus": "NOMI_STORICI_PROTOTIPO_DA_VERIFICARE",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa nominale già presente nel prototipo; da rifinire/espandere se necessario.",
+      "sources": []
+    },
+    {
+      "id": "reggina_0203",
+      "name": "Reggina",
+      "season": "2002/03",
+      "coach": "Luigi De Canio",
+      "players": 16,
+      "rosterStatus": "NOMI_STORICI_PROTOTIPO_DA_VERIFICARE",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa nominale già presente nel prototipo; da rifinire/espandere se necessario.",
+      "sources": []
+    },
+    {
+      "id": "parma_9899",
+      "name": "Parma",
+      "season": "1998/99",
+      "coach": "Alberto Malesani",
+      "players": 16,
+      "rosterStatus": "NOMI_STORICI_PROTOTIPO_DA_VERIFICARE",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa nominale già presente nel prototipo; da rifinire/espandere se necessario.",
+      "sources": []
+    },
+    {
+      "id": "samp_9091",
+      "name": "Sampdoria",
+      "season": "1990/91",
+      "coach": "Vujadin Boškov",
+      "players": 16,
+      "rosterStatus": "NOMI_STORICI_PROTOTIPO_DA_VERIFICARE",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa nominale già presente nel prototipo; da rifinire/espandere se necessario.",
+      "sources": []
+    },
+    {
+      "id": "lazio_9798",
+      "name": "Lazio",
+      "season": "1997/98",
+      "coach": "Sven-Göran Eriksson",
+      "players": 16,
+      "rosterStatus": "NOMI_STORICI_PROTOTIPO_DA_VERIFICARE",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa nominale già presente nel prototipo; da rifinire/espandere se necessario.",
+      "sources": []
+    },
+    {
+      "id": "udinese_9798",
+      "name": "Udinese",
+      "season": "1997/98",
+      "coach": "Alberto Zaccheroni",
+      "players": 16,
+      "rosterStatus": "NOMI_STORICI_PROTOTIPO_DA_VERIFICARE",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa nominale già presente nel prototipo; da rifinire/espandere se necessario.",
+      "sources": []
+    },
+    {
+      "id": "brescia_0001",
+      "name": "Brescia",
+      "season": "2000/01",
+      "coach": "Carlo Mazzone",
+      "players": 16,
+      "rosterStatus": "NOMI_STORICI_PROTOTIPO_DA_VERIFICARE",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa nominale già presente nel prototipo; da rifinire/espandere se necessario.",
+      "sources": []
+    },
+    {
+      "id": "chievo_0102",
+      "name": "Chievo",
+      "season": "2001/02",
+      "coach": "Luigi Delneri",
+      "players": 16,
+      "rosterStatus": "NOMI_STORICI_PROTOTIPO_DA_VERIFICARE",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa nominale già presente nel prototipo; da rifinire/espandere se necessario.",
+      "sources": []
+    },
+    {
+      "id": "perugia_9900",
+      "name": "Perugia",
+      "season": "1999/00",
+      "coach": "Carlo Mazzone",
+      "players": 16,
+      "rosterStatus": "NOMI_STORICI_PROTOTIPO_DA_VERIFICARE",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa nominale già presente nel prototipo; da rifinire/espandere se necessario.",
+      "sources": []
+    },
+    {
+      "id": "venezia_9899",
+      "name": "Venezia",
+      "season": "1998/99",
+      "coach": "Walter Novellino",
+      "players": 16,
+      "rosterStatus": "NOMI_STORICI_PROTOTIPO_DA_VERIFICARE",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa nominale già presente nel prototipo; da rifinire/espandere se necessario.",
+      "sources": []
+    },
+    {
+      "id": "vicenza_9697",
+      "name": "Vicenza",
+      "season": "1996/97",
+      "coach": "Francesco Guidolin",
+      "players": 16,
+      "rosterStatus": "NOMI_STORICI_PROTOTIPO_DA_VERIFICARE",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa nominale già presente nel prototipo; da rifinire/espandere se necessario.",
+      "sources": []
+    },
+    {
+      "id": "foggia_9192",
+      "name": "Foggia",
+      "season": "1991/92",
+      "coach": "Zdeněk Zeman",
+      "players": 16,
+      "rosterStatus": "NOMI_STORICI_PROTOTIPO_DA_VERIFICARE",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa nominale già presente nel prototipo; da rifinire/espandere se necessario.",
+      "sources": []
+    },
+    {
+      "id": "juve_baggio_9091",
+      "name": "Juventus",
+      "season": "1990/91",
+      "coach": "Luigi Maifredi",
+      "players": 22,
+      "rosterStatus": "NOMI_STORICI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa storica nominale V7.4; valori 1-100 calibrati per il gioco e da rifinire.",
+      "sources": [
+        "https://www.statscrew.com/worldfootball/roster/t-JUVUS783/y-1990",
+        "https://www.transfermarkt.com/juventus-fc/kader/verein/506/saison_id/1990"
+      ]
+    },
+    {
+      "id": "genoa_9091",
+      "name": "Genoa",
+      "season": "1990/91",
+      "coach": "Osvaldo Bagnoli",
+      "players": 21,
+      "rosterStatus": "NOMI_STORICI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa storica nominale V7.4; valori 1-100 calibrati per il gioco e da rifinire.",
+      "sources": [
+        "https://www.worldfootball.net/teams/te626/genoa-cfc/vs1990-1991/squad/"
+      ]
+    },
+    {
+      "id": "parma_9293",
+      "name": "Parma",
+      "season": "1992/93",
+      "coach": "Nevio Scala",
+      "players": 25,
+      "rosterStatus": "NOMI_STORICI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa storica nominale V7.4; valori 1-100 calibrati per il gioco e da rifinire.",
+      "sources": [
+        "https://www.statscrew.com/worldfootball/roster/t-PAR19134/y-1992",
+        "https://fbref.com/en/squads/eab4234c/1992-1993/roster/Parma-Roster-Details"
+      ]
+    },
+    {
+      "id": "torino_9293",
+      "name": "Torino",
+      "season": "1992/93",
+      "coach": "Emiliano Mondonico",
+      "players": 26,
+      "rosterStatus": "NOMI_STORICI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa storica nominale V7.4; valori 1-100 calibrati per il gioco e da rifinire.",
+      "sources": [
+        "https://www.statscrew.com/worldfootball/stats/t-TORFC252/y-1992"
+      ]
+    },
+    {
+      "id": "juve_9596",
+      "name": "Juventus",
+      "season": "1995/96",
+      "coach": "Marcello Lippi",
+      "players": 22,
+      "rosterStatus": "NOMI_STORICI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa storica nominale V7.4; valori 1-100 calibrati per il gioco e da rifinire.",
+      "sources": [
+        "https://en.wikipedia.org/wiki/1995%E2%80%9396_Juventus_FC_season",
+        "https://www.juventus.com/"
+      ]
+    },
+    {
+      "id": "fiorentina_9899",
+      "name": "Fiorentina",
+      "season": "1998/99",
+      "coach": "Giovanni Trapattoni",
+      "players": 23,
+      "rosterStatus": "NOMI_STORICI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa storica nominale V7.4; valori 1-100 calibrati per il gioco e da rifinire.",
+      "sources": [
+        "https://www.statscrew.com/worldfootball/roster/t-ACFFI248/y-1998"
+      ]
+    },
+    {
+      "id": "inter_9900",
+      "name": "Inter",
+      "season": "1999/00",
+      "coach": "Marcello Lippi",
+      "players": 29,
+      "rosterStatus": "NOMI_STORICI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa storica nominale V7.4; valori 1-100 calibrati per il gioco e da rifinire.",
+      "sources": [
+        "https://www.statmuse.com/fc/club/1999-00-inter-264/roster/2000"
+      ]
+    },
+    {
+      "id": "bari_9900",
+      "name": "Bari",
+      "season": "1999/00",
+      "coach": "Eugenio Fascetti",
+      "players": 27,
+      "rosterStatus": "NOMI_STORICI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa storica nominale V7.4; valori 1-100 calibrati per il gioco e da rifinire.",
+      "sources": [
+        "https://www.statscrew.com/worldfootball/"
+      ]
+    },
+    {
+      "id": "reggina_9900",
+      "name": "Reggina",
+      "season": "1999/00",
+      "coach": "Franco Colomba",
+      "players": 28,
+      "rosterStatus": "NOMI_STORICI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa storica nominale V7.4; valori 1-100 calibrati per il gioco e da rifinire.",
+      "sources": [
+        "https://en.wikipedia.org/wiki/1999%E2%80%932000_Reggina_Calcio_season"
+      ]
+    },
+    {
+      "id": "juve_0203",
+      "name": "Juventus",
+      "season": "2002/03",
+      "coach": "Marcello Lippi",
+      "players": 28,
+      "rosterStatus": "NOMI_STORICI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa storica nominale V7.4; valori 1-100 calibrati per il gioco e da rifinire.",
+      "sources": [
+        "https://www.statscrew.com/worldfootball/roster/t-JUVUS783/y-2002"
+      ]
+    },
+    {
+      "id": "empoli_0607",
+      "name": "Empoli",
+      "season": "2006/07",
+      "coach": "Luigi Cagni",
+      "players": 27,
+      "rosterStatus": "NOMI_STORICI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa storica nominale V7.4; valori 1-100 calibrati per il gioco e da rifinire.",
+      "sources": [
+        "https://www.statscrew.com/worldfootball/roster/t-EMPFC634/y-2006"
+      ]
+    },
+    {
+      "id": "palermo_0708",
+      "name": "Palermo",
+      "season": "2007/08",
+      "coach": "Francesco Guidolin",
+      "players": 26,
+      "rosterStatus": "NOMI_STORICI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa storica nominale V7.4; valori 1-100 calibrati per il gioco e da rifinire.",
+      "sources": [
+        "https://www.statscrew.com/worldfootball/roster/t-PALFC097/y-2007"
+      ]
+    },
+    {
+      "id": "milan_0809",
+      "name": "Milan",
+      "season": "2008/09",
+      "coach": "Carlo Ancelotti",
+      "players": 29,
+      "rosterStatus": "NOMI_STORICI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa storica nominale V7.4; valori 1-100 calibrati per il gioco e da rifinire.",
+      "sources": [
+        "https://www.acmilan.com/en/roster-archive/men-first-team-archive/acmilan-2008-roster"
+      ]
+    },
+    {
+      "id": "udinese_0910",
+      "name": "Udinese",
+      "season": "2009/10",
+      "coach": "Pasquale Marino",
+      "players": 26,
+      "rosterStatus": "NOMI_STORICI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa storica nominale V7.4; valori 1-100 calibrati per il gioco e da rifinire.",
+      "sources": [
+        "https://en.wikipedia.org/wiki/2009%E2%80%9310_Udinese_Calcio_season"
+      ]
+    },
+    {
+      "id": "inter_0910",
+      "name": "Inter",
+      "season": "2009/10",
+      "coach": "José Mourinho",
+      "players": 25,
+      "rosterStatus": "NOMI_STORICI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa storica nominale V7.4; valori 1-100 calibrati per il gioco e da rifinire.",
+      "sources": [
+        "https://www.inter.it/en/news/2020-05-20-inter-squad-2009-10-season"
+      ]
+    },
+    {
+      "id": "milan_9091",
+      "name": "Milan",
+      "season": "1990/91",
+      "coach": "Arrigo Sacchi",
+      "players": 24,
+      "rosterStatus": "NOMI_STORICI_RATING_PROVVISORI",
+      "genericPlaceholderNames": 0,
+      "sourceNote": "Rosa storica nominale V7.4; valori 1-100 calibrati per il gioco e da rifinire.",
+      "sources": [
+        "https://www.acmilan.com/en/roster-archive/men-first-team-archive/acmilan-1990-roster"
+      ]
+    }
+  ]
+}
