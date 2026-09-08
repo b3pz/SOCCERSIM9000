@@ -708,6 +708,7 @@ main{max-width:none!important;padding:0!important}
 <link rel="stylesheet" href="css/v73-alignment-fix.css?v=731">
 <link rel="stylesheet" href="css/v75-browser-compat.css?v=750">
 <link rel="stylesheet" href="css/v76-match-ui.css?v=760">
+<link rel="stylesheet" href="css/v77-iphone-landscape.css?v=770">
 </head>
 <body>
 <header><div><h1>SERIEA 9000 SIM</h1><small id="headerSub">IL CAMPIONATO DEI CAMPIONI</small></div><div id="headerRight">—</div></header>
@@ -1301,8 +1302,9 @@ function renderPrematchLineup(){
  let ps=st.players.filter(p=>st.lineup.includes(p.id));
  $("#lineupPreview").innerHTML=ps.map(p=>`
    <div class="lineup-row-v33 player-click" data-player-card="${p.id}">
-     <div><b>${p.name}</b> · ${p.pos} · OVR ${p.overall}</div>
+     <div class="lineup-player-main"><b>${p.name}</b> · ${p.pos}</div>
      ${moraleBadge(p.morale)}
+     <span class="lineup-ovr">OVR ${p.overall}</span>
    </div>`).join("");
  document.querySelectorAll("[data-player-card]").forEach(x=>x.onclick=()=>showPlayerProfile(x.dataset.playerCard));
  renderV63TacticalXI();
