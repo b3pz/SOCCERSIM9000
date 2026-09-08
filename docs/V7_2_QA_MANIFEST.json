@@ -1,0 +1,29 @@
+{
+  "build": "SerieA 9000 SIM V7.2 PUBLICATION UI",
+  "date": "2026-09-08",
+  "credit": "Sviluppato ed ideato da b3pZ",
+  "targets": {
+    "manager_hiring_story": "implemented",
+    "team_selection_readability": "implemented",
+    "season_dashboard_readability": "implemented",
+    "italian_kit_leg_gap_cleanup": "implemented",
+    "responsive_desktop_no_page_scroll": "implemented",
+    "core_match_logic": "preserved from V7.1",
+    "multiple_local_saves": "preserved"
+  },
+  "asset_counts": {
+    "italian_crests": 32,
+    "italian_home_kits": 32,
+    "italian_away_kits": 32,
+    "event_icons": 6
+  },
+  "qa": {
+    "duplicate_html_ids": 0,
+    "missing_local_html_refs": 0,
+    "external_javascript_syntax_errors": 0,
+    "inline_javascript_syntax_errors": 0,
+    "italian_home_kits_with_transparency": 32,
+    "italian_away_kits_with_transparency": 32,
+    "browser_headless_smoke_test": "not_available_in_build_environment"
+  }
+}

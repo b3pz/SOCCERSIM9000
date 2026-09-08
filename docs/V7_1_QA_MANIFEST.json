@@ -1,0 +1,71 @@
+{
+  "build": "SerieA 9000 SIM V7.1 FINAL POLISH",
+  "duplicate_ids": [],
+  "missing_html_refs": [],
+  "missing_css_refs": [],
+  "external_js_syntax": "PASS",
+  "inline_js": [
+    {
+      "index": 0,
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "index": 1,
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "index": 2,
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "index": 3,
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "index": 4,
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "index": 5,
+      "ok": true,
+      "stderr": ""
+    }
+  ],
+  "kits": {
+    "home": {
+      "count": 32,
+      "transparent_count": 32,
+      "dims_unique": [
+        [
+          420,
+          540
+        ]
+      ]
+    },
+    "away": {
+      "count": 32,
+      "transparent_count": 32,
+      "dims_unique": [
+        [
+          420,
+          540
+        ]
+      ]
+    }
+  },
+  "event_assets": {
+    "goal.png": true,
+    "offside.png": true,
+    "foul.png": true,
+    "yellow.png": true,
+    "red.png": true,
+    "substitution.png": true
+  },
+  "intro_2_seconds": true,
+  "required_credit_present": true
+}
