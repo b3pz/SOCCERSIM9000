@@ -1,0 +1,403 @@
+/* SerieA 9000 SIM — V7.7 IPHONE LANDSCAPE
+   Dedicated horizontal layout for iPhone / short touch viewports.
+   Goals: no page scroll, all primary controls inside the visual viewport,
+   readable club names, horizontal pre-match/tactics, OVR aligned right. */
+:root{
+  --v77-safe-l: env(safe-area-inset-left, 0px);
+  --v77-safe-r: env(safe-area-inset-right, 0px);
+  --v77-safe-t: env(safe-area-inset-top, 0px);
+  --v77-safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+@media (orientation:landscape) and (max-height:520px) and (max-width:1000px){
+  html,body{
+    width:100%!important;height:100%!important;min-height:0!important;
+    overflow:hidden!important;background:#020817!important;
+    -webkit-text-size-adjust:100%!important;text-size-adjust:100%!important;
+  }
+  body{overscroll-behavior:none!important}
+  header{display:none!important}
+  main{
+    position:fixed!important;inset:0!important;
+    width:var(--v75-vw,100vw)!important;height:var(--v75-vh,100dvh)!important;
+    min-height:0!important;max-width:none!important;margin:0!important;padding:0!important;
+    overflow:hidden!important;background:#020817!important;
+  }
+  .screen.active{
+    position:absolute!important;inset:0!important;left:0!important;top:0!important;
+    transform:none!important;width:100%!important;height:100%!important;min-height:0!important;
+    max-width:none!important;margin:0!important;padding:0!important;
+    overflow:hidden!important;background-size:100% 100%!important;background-position:center!important;
+    background-repeat:no-repeat!important;background-attachment:scroll!important;
+  }
+  .screen>.v51-page-logo{
+    position:absolute!important;z-index:30!important;left:50%!important;top:1.2%!important;
+    transform:translateX(-50%)!important;width:min(124px,15vw)!important;height:auto!important;
+    margin:0!important;pointer-events:none!important;
+  }
+  button{touch-action:manipulation!important}
+
+  /* ===== TITLE / MAIN MENU ===== */
+  #titleScreen{height:var(--v75-vh,100dvh)!important;min-height:0!important;overflow:hidden!important}
+  #mainMenu .main-menu-shell{
+    width:min(560px,66vw)!important;max-height:88%!important;margin:6vh auto 0!important;
+    padding:12px 18px!important;overflow:hidden!important;
+  }
+  #mainMenu .menu-kicker{font-size:10px!important}
+  #mainMenu .menu-title{font-size:clamp(20px,5.2vh,28px)!important;margin-bottom:8px!important}
+  #mainMenu .main-menu-grid{gap:7px!important}
+  #mainMenu .big-menu-btn{min-height:54px!important;padding:7px 12px!important}
+  #mainMenu .big-menu-btn .big{font-size:clamp(14px,3.6vh,18px)!important}
+  #mainMenu .big-menu-btn .small{font-size:9px!important}
+  #mainMenu .menu-secondary{margin-top:7px!important;gap:7px!important}
+  #mainMenu .menu-secondary button{min-height:32px!important;font-size:10px!important}
+
+  /* ===== MANAGER ===== */
+  #setup #managerStep{
+    position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;
+    width:min(620px,72vw)!important;max-width:none!important;max-height:94%!important;
+    margin:0!important;padding:10px 22px!important;overflow:hidden!important;
+    background:rgba(244,237,217,.95)!important;color:#101a2d!important;border-radius:12px!important;
+  }
+  #setup #managerStep .welcome-box{width:100%!important;max-width:none!important}
+  #setup #managerStep .welcome-badge{min-height:20px!important;margin-bottom:4px!important;padding:3px 10px!important;font-size:8px!important}
+  #setup #managerStep h2{font-size:clamp(20px,5.6vh,27px)!important;line-height:1!important;margin:0 auto 5px!important}
+  #setup #managerStep .lore-strip{font-size:clamp(9px,2.55vh,12px)!important;line-height:1.22!important;padding:0!important}
+  #setup #managerStep .lore-strip p{margin:3px 0!important}
+  #setup #managerStep .lore-strip .headline{font-size:inherit!important;margin-bottom:3px!important}
+  #setup #managerStep h3{font-size:10px!important;margin:6px 0 3px!important}
+  #setup #managerName{width:min(460px,90%)!important;height:30px!important;min-height:30px!important;padding:3px 8px!important;font-size:13px!important}
+  #setup #managerNext{min-height:30px!important;margin-top:4px!important;padding:3px 15px!important;font-size:10px!important}
+  #setup #managerStep br{display:none!important}
+
+  /* ===== TEAM PICKER ===== */
+  #setup #teamStep{
+    display:block;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+    min-height:0!important;margin:0!important;padding:0!important;background:transparent!important;overflow:hidden!important;
+  }
+  #setup #teamStep>h2{
+    position:absolute!important;left:50%!important;top:2.5%!important;transform:translateX(-50%)!important;
+    margin:0!important;font-size:clamp(17px,5vh,24px)!important;white-space:nowrap!important;color:#fff!important;text-shadow:0 2px 3px #000!important;
+  }
+  #setup .team-stage{
+    position:absolute!important;left:max(5.5%,calc(var(--v77-safe-l) + 8px))!important;
+    right:max(5.5%,calc(var(--v77-safe-r) + 8px))!important;top:16%!important;bottom:14%!important;
+    width:auto!important;height:auto!important;margin:0!important;padding:0!important;
+    display:grid!important;grid-template-columns:minmax(150px,24%) minmax(280px,1fr) minmax(150px,24%)!important;
+    gap:2.2%!important;align-items:center!important;
+  }
+  #setup .team-side{
+    display:flex!important;min-width:0!important;min-height:0!important;max-height:82%!important;
+    padding:9px 11px!important;font-size:clamp(9px,2.55vh,12px)!important;line-height:1.2!important;overflow:hidden!important;
+    background:rgba(3,12,31,.58)!important;color:#fff!important;text-align:left!important;
+  }
+  #setup .team-main{min-width:0!important}
+  #setup .team-main>div{display:grid!important;grid-template-columns:42px minmax(0,1fr) 42px!important;gap:9px!important;align-items:center!important}
+  #setup #teamEmblem{height:clamp(118px,35vh,158px)!important;width:auto!important;max-width:100%!important;margin:auto!important}
+  #setup .team-name-big{font-size:clamp(21px,6.4vh,31px)!important;line-height:.98!important;white-space:normal!important;overflow-wrap:anywhere!important}
+  #setup .team-season-big{font-size:clamp(12px,3.4vh,16px)!important;margin-top:2px!important}
+  #setup .arrow90{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;padding:0!important;font-size:19px!important}
+  #setup #teamRightInfo .overall90{font-size:clamp(38px,11vh,58px)!important;line-height:.9!important;text-align:right!important}
+  #setup #teamStep>div[style*="text-align:center"]{
+    position:absolute!important;left:50%!important;bottom:2%!important;transform:translateX(-50%)!important;
+    margin:0!important;display:flex!important;gap:7px!important;flex-wrap:nowrap!important;
+  }
+  #setup #teamBack,#setup #createCareer{min-height:31px!important;padding:4px 12px!important;font-size:10px!important;white-space:nowrap!important}
+
+  /* ===== SEASON HUB ===== */
+  #season{--v77-edge:max(4.5%,calc(var(--v77-safe-l) + 7px))!important}
+  #season>.grid{
+    position:absolute!important;left:max(4.5%,calc(var(--v77-safe-l) + 7px))!important;
+    right:max(4.5%,calc(var(--v77-safe-r) + 7px))!important;top:3.2%!important;height:26%!important;
+    width:auto!important;margin:0!important;display:grid!important;grid-template-columns:minmax(0,1.55fr) minmax(165px,.65fr)!important;gap:1.5%!important;
+  }
+  #season>.grid>.panel{min-height:0!important;padding:8px 12px!important;overflow:hidden!important}
+  #season>.grid>.panel h2{font-size:clamp(14px,4vh,19px)!important;margin:0 0 3px!important;padding:0 0 3px!important}
+  #season #managerSummary,#season #seasonStatus{font-size:clamp(8.5px,2.3vh,11px)!important;line-height:1.2!important}
+  #season .toolbar,#season .season-nav{
+    display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:3px!important;
+  }
+  #season .toolbar{margin-top:5px!important}
+  #season .toolbar button,#season .season-nav button{min-width:0!important;min-height:27px!important;height:auto!important;padding:3px 2px!important;font-size:clamp(7px,1.9vh,9px)!important;white-space:normal!important}
+  #season>#seasonContent{
+    position:absolute!important;left:max(4.5%,calc(var(--v77-safe-l) + 7px))!important;
+    right:max(4.5%,calc(var(--v77-safe-r) + 7px))!important;top:31%!important;bottom:2.4%!important;
+    width:auto!important;height:auto!important;min-height:0!important;margin:0!important;padding:8px 12px!important;overflow:auto!important;
+  }
+  #season>#seasonContent h2,#season>#seasonContent h3{font-size:clamp(14px,4vh,19px)!important;margin:0 0 4px!important}
+  #season>#seasonContent{font-size:clamp(8px,2.2vh,11px)!important}
+  #season table{font-size:clamp(7px,1.9vh,9px)!important;min-width:0!important}
+  #season th,#season td{padding:2px 4px!important}
+  #season .season-next-title{font-size:clamp(16px,4.4vh,21px)!important}
+  #season .season-club img{width:clamp(38px,11vh,52px)!important;height:clamp(38px,11vh,52px)!important}
+  #season .season-club-name{font-size:clamp(13px,3.8vh,18px)!important;white-space:normal!important}
+  #season .season-next-action #goPrematch{min-height:28px!important;font-size:9px!important;padding:4px 10px!important}
+
+  /* ===== PRE-MATCH / FORMATION ===== */
+  #prematch{overflow:hidden!important}
+  #prematch>.grid{
+    position:absolute!important;left:max(2.8%,calc(var(--v77-safe-l) + 6px))!important;
+    right:max(2.8%,calc(var(--v77-safe-r) + 6px))!important;top:8.5%!important;bottom:12%!important;
+    width:auto!important;height:auto!important;margin:0!important;padding:0!important;
+    display:grid!important;grid-template-columns:22.5% 24.5%!important;justify-content:space-between!important;gap:0!important;
+  }
+  #prematch>.grid>.panel{
+    position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+    width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;margin:0!important;
+    padding:7px 8px!important;overflow:hidden!important;background:rgba(3,12,31,.62)!important;color:#fff!important;
+  }
+  #prematch>.grid>.panel h2{font-size:clamp(13px,3.8vh,18px)!important;line-height:1!important;margin:0 0 3px!important}
+  #prematch>.grid>.panel h3{font-size:clamp(9px,2.55vh,11px)!important;line-height:1!important;margin:5px 0 3px!important}
+  #prematch #prematchInfo{font-size:clamp(8px,2.25vh,10px)!important;line-height:1.18!important}
+  #prematch #formationChoices{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:3px!important}
+  #prematch #formationChoices button,#prematch [data-ment]{min-width:0!important;min-height:25px!important;padding:2px 2px!important;font-size:clamp(7px,1.95vh,9px)!important;white-space:normal!important}
+  #prematch .toolbar{display:flex!important;gap:3px!important;flex-wrap:nowrap!important}
+  #prematch .toolbar button{min-width:0!important}
+
+  #prematch #v63TacticalXI{
+    display:block!important;position:absolute!important;z-index:5!important;
+    left:27.2%!important;top:12%!important;width:45.6%!important;height:64%!important;pointer-events:none!important;
+  }
+  #prematch #v63TacticalXI .v63-player{transform:translate(-50%,-50%)!important;gap:1px!important;max-width:58px!important}
+  #prematch #v63TacticalXI .v63-dot{width:19px!important;height:19px!important;min-width:19px!important;line-height:17px!important;font-size:8px!important;border-width:1px!important}
+  #prematch #v63TacticalXI .v63-name{
+    max-width:58px!important;padding:1px 3px!important;font-size:clamp(7px,1.85vh,8.5px)!important;line-height:1!important;
+    white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  }
+
+  #prematch #lineupPreview{
+    display:flex!important;flex-direction:column!important;gap:0!important;height:calc(100% - 92px)!important;
+    max-height:none!important;min-height:0!important;overflow:hidden!important;padding:0!important;
+  }
+  #prematch .lineup-row-v33{
+    display:grid!important;grid-template-columns:minmax(0,1fr) 31px 43px!important;gap:3px!important;align-items:center!important;
+    min-height:0!important;height:calc(100% / 11)!important;padding:0 1px!important;margin:0!important;
+    font-size:clamp(7px,1.95vh,9px)!important;line-height:1!important;background:transparent!important;
+    border-bottom:1px solid rgba(255,255,255,.12)!important;color:#fff!important;
+  }
+  #prematch .lineup-player-main{min-width:0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  #prematch .lineup-player-main b{font-size:inherit!important}
+  #prematch .lineup-ovr{font-weight:1000!important;text-align:right!important;white-space:nowrap!important;font-size:clamp(7px,1.95vh,9px)!important;color:#ffe06b!important}
+  #prematch .morale-badge{
+    width:31px!important;min-width:31px!important;height:15px!important;padding:0 2px!important;border-width:1px!important;
+    box-shadow:none!important;font-size:7px!important;line-height:1!important;
+  }
+  #prematch #prematchLineup,#prematch .setpiece-toggle{min-height:24px!important;padding:2px 4px!important;font-size:7.5px!important;margin-top:3px!important}
+  #prematch #setPieces{font-size:7px!important}
+  #prematch>.panel:last-of-type{
+    position:absolute!important;left:50%!important;bottom:2%!important;transform:translateX(-50%)!important;
+    width:auto!important;height:auto!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;
+  }
+  #prematch>.panel:last-of-type .toolbar{display:flex!important;justify-content:center!important;gap:6px!important;flex-wrap:nowrap!important}
+  #prematch>.panel:last-of-type button{min-height:29px!important;padding:3px 10px!important;font-size:9px!important;white-space:nowrap!important}
+
+  /* ===== KITS ===== */
+  #kits>.panel{
+    position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;
+    margin:0!important;padding:0!important;overflow:hidden!important;background:transparent!important;
+  }
+  #kits>.panel>h2{top:2.5%!important;font-size:clamp(16px,4.6vh,22px)!important}
+  #kits>.panel>.muted{top:8%!important;font-size:clamp(8px,2.2vh,10px)!important;width:72%!important}
+  #kits .kit-stage{
+    position:absolute!important;left:max(8%,calc(var(--v77-safe-l) + 12px))!important;right:max(8%,calc(var(--v77-safe-r) + 12px))!important;
+    top:13%!important;bottom:15%!important;width:auto!important;height:auto!important;margin:0!important;
+    display:grid!important;grid-template-columns:minmax(0,1fr) 48px minmax(0,1fr)!important;gap:3%!important;align-items:center!important;
+  }
+  #kits .kit-card{width:100%!important;height:100%!important;min-height:0!important;grid-template-rows:18px minmax(0,1fr) 30px!important;overflow:hidden!important}
+  #kits .kit-card h3{font-size:clamp(11px,3vh,14px)!important;margin:0!important}
+  #kits .kit-imgbox{height:100%!important;min-height:0!important;aspect-ratio:auto!important}
+  #kits .kit-imgbox img{width:auto!important;height:auto!important;max-width:92%!important;max-height:100%!important;object-fit:contain!important}
+  #kits .kit-vs{font-size:clamp(18px,5vh,24px)!important}
+  #kits .kit-choice{display:flex!important;gap:3px!important;margin:2px 0 0!important}
+  #kits .kit-choice button{min-height:26px!important;min-width:54px!important;padding:2px 5px!important;font-size:8px!important}
+  #kits #kitContrast{bottom:7.2%!important;width:min(430px,48%)!important;padding:4px!important;font-size:8px!important}
+  #kits>.panel>.toolbar{bottom:1%!important;gap:6px!important}
+  #kits>.panel>.toolbar button{min-height:29px!important;padding:3px 10px!important;font-size:8.5px!important}
+
+  /* ===== MATCH ===== */
+  #match>.v51-page-logo{display:none!important}
+  #match .match-shell{
+    position:absolute!important;left:max(2.2%,calc(var(--v77-safe-l) + 5px))!important;
+    right:max(2.2%,calc(var(--v77-safe-r) + 5px))!important;top:2%!important;bottom:2%!important;
+    width:auto!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;overflow:hidden!important;
+  }
+  #match .match-topbar{height:13%!important;min-height:0!important;grid-template-columns:58px minmax(0,1fr) 12px minmax(0,1fr)!important}
+  #match .clock-box{min-width:0!important;padding:2px!important}
+  #match .clock-box>div:first-child{font-size:7px!important}
+  #match .clock-box #matchMinute{font-size:clamp(16px,5.2vh,22px)!important;line-height:1!important}
+  #match .score-side{min-width:0!important;padding:2px 5px!important;gap:4px!important}
+  #match .score-team{font-size:clamp(10px,2.8vh,13px)!important;line-height:1!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  #match .score-num{flex:0 0 31px!important;width:31px!important;height:31px!important;font-size:19px!important;border-width:1px!important}
+  #match .match-tabs{height:7%!important;min-height:0!important;display:grid!important;grid-template-columns:repeat(4,1fr)!important}
+  #match .match-tabs span{padding:2px!important;font-size:6.5px!important;display:grid!important;place-items:center!important}
+  #match .match-controls{height:9%!important;min-height:0!important;padding:2px!important;display:grid!important;grid-template-columns:1.15fr 1.65fr .55fr .55fr .55fr!important;gap:2px!important}
+  #match .match-controls button{min-height:0!important;height:100%!important;padding:1px 3px!important;font-size:7.5px!important;white-space:nowrap!important}
+  #match .match-main-grid{
+    height:71%!important;min-height:0!important;padding:3px!important;gap:5px!important;
+    display:grid!important;grid-template-columns:minmax(0,1fr) minmax(155px,25%)!important;overflow:hidden!important;
+  }
+  #match .match-stage{display:grid!important;grid-template-rows:19% minmax(0,1fr) 9%!important;min-height:0!important;height:100%!important;overflow:hidden!important}
+  #match .action-banner{min-height:0!important;height:100%!important;padding:3px 6px!important;grid-template-columns:38px minmax(0,1fr)!important;gap:5px!important}
+  #match .action-minute{font-size:clamp(11px,3.2vh,14px)!important}
+  #match .action-text{font-size:clamp(10px,2.8vh,13px)!important;line-height:1.05!important}
+  #match #pitchWrap90{display:block;width:100%!important;height:100%!important;min-height:0!important;margin:0!important;overflow:hidden!important}
+  #match #pitch{width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;aspect-ratio:auto!important;border-width:2px!important;overflow:hidden!important}
+  #match .radio-strip{height:100%!important;min-height:0!important;padding:1px 4px!important;font-size:6px!important}
+  #match .match-history-panel{width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;overflow:hidden!important}
+  #match .history-title{padding:4px!important;font-size:8px!important}
+  #match .history90{height:calc(100% - 22px)!important;max-height:none!important;overflow:auto!important;font-size:7.5px!important}
+  #match .hist-item{padding:3px 4px!important}
+
+  /* ===== HALF / POST ===== */
+  #halftime,#postmatch{overflow:hidden!important}
+  #halftime>.panel.hero,#postmatch>.panel{
+    position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;
+    width:min(690px,78vw)!important;max-height:90%!important;margin:0!important;padding:10px 16px!important;overflow:auto!important;
+    background:rgba(4,16,44,.78)!important;color:#fff!important;
+  }
+  #halftime>.panel.hero h2,#postmatch>.panel h2{font-size:clamp(18px,5vh,24px)!important;margin:0 0 6px!important}
+  #halftime>.panel.hero,#postmatch>.panel{font-size:clamp(9px,2.45vh,11px)!important}
+  #halftime .toolbar,#postmatch .toolbar{display:flex!important;gap:6px!important;justify-content:center!important;flex-wrap:nowrap!important}
+  #halftime button,#postmatch button{min-height:30px!important;padding:3px 9px!important;font-size:9px!important}
+
+  /* ===== CUPS / SIMPLE MESSAGE ===== */
+  #cupsMenu .cups-shell{width:min(760px,86vw)!important;height:92%!important;max-height:92%!important;margin:2vh auto 0!important;padding:8px 14px!important;overflow:hidden!important}
+  #cupsMenu .cups-grid{gap:6px!important}
+  #cupsMenu .cup-card{min-height:0!important}
+  #cupsMenu .cup-label{font-size:9px!important;padding:3px 5px!important}
+  #cupsMenu .cups-bottom{margin-top:5px!important}
+  #cupsMenu .cups-bottom button{min-height:28px!important;font-size:8px!important}
+  #simpleMessage .main-menu-shell{width:min(620px,72vw)!important;max-height:86%!important;margin:7vh auto 0!important;padding:12px 18px!important;overflow:auto!important}
+
+  /* ===== MODALS ===== */
+  #tacticsModal,#playerModal,#s9CareerModal{padding:4px max(var(--v77-safe-r),4px) 4px max(var(--v77-safe-l),4px)!important;overflow:hidden!important}
+  #tacticsModal>div,#playerModal>div,#s9CareerModal .s9-save-panel{
+    width:min(900px,96vw)!important;max-width:96vw!important;max-height:94vh!important;margin:0!important;padding:8px 12px!important;overflow:auto!important;
+  }
+  #tacticsModal>div>.grid{grid-template-columns:1fr 1.35fr!important;gap:10px!important}
+  #tacticsModal h2{font-size:18px!important;margin:0 0 5px!important}
+  #tacticsModal h3{font-size:11px!important;margin:5px 0 3px!important}
+  #tacticsModal{font-size:9px!important}
+  #tacticsModal button,#tacticsModal select{min-height:27px!important;padding:2px 5px!important;font-size:8.5px!important}
+}
+
+/* Extra-tight devices (e.g. 844×390 with browser controls visible). */
+@media (orientation:landscape) and (max-height:400px) and (max-width:900px){
+  #prematch>.grid{top:7%!important;bottom:12%!important;grid-template-columns:23% 25%!important}
+  #prematch #v63TacticalXI{top:11%!important;height:65%!important}
+  #prematch>.grid>.panel{padding:5px 6px!important}
+  #prematch #lineupPreview{height:calc(100% - 82px)!important}
+  #prematch #prematchLineup,#prematch .setpiece-toggle{min-height:21px!important;margin-top:2px!important}
+  #prematch>.panel:last-of-type button{min-height:26px!important}
+  #kits .kit-stage{top:12%!important;bottom:14%!important}
+  #match .match-shell{top:1%!important;bottom:1%!important}
+}
+
+/* Specificity shields against legacy <=900px portrait rules. */
+@media (orientation:landscape) and (max-height:520px) and (max-width:900px){
+  #prematch>.grid>.panel:first-child,
+  #prematch>.grid>.panel:nth-child(2){
+    position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+    width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;
+    margin:0!important;padding:7px 8px!important;overflow:hidden!important;
+    background:rgba(3,12,31,.62)!important;color:#fff!important;border:0!important;box-shadow:none!important;
+  }
+  #prematch>div.panel:last-of-type{
+    position:absolute!important;left:50%!important;right:auto!important;top:auto!important;bottom:2%!important;
+    transform:translateX(-50%)!important;width:auto!important;height:auto!important;min-height:0!important;
+    margin:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;
+  }
+  #prematch>div.panel:last-of-type .toolbar{display:flex!important;grid-template-columns:none!important;justify-content:center!important;gap:6px!important;flex-wrap:nowrap!important}
+  #prematch #v63TacticalXI{display:block!important}
+}
+
+@media (orientation:landscape) and (max-height:520px) and (max-width:1000px){
+  #prematch #lineupPreview>div.lineup-row-v33{
+    display:grid!important;grid-template-columns:minmax(0,1fr) 31px 43px!important;gap:3px!important;align-items:center!important;
+    width:100%!important;max-width:none!important;min-width:0!important;
+    height:calc(100% / 11)!important;min-height:0!important;max-height:none!important;
+    padding:0 1px!important;margin:0!important;font-size:clamp(7px,1.95vh,9px)!important;line-height:1!important;
+    background:transparent!important;border-bottom:1px solid rgba(255,255,255,.12)!important;color:#fff!important;
+  }
+  #prematch #lineupPreview>div.lineup-row-v33>div.lineup-player-main{
+    min-width:0!important;max-width:none!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  }
+}
+
+@media (orientation:landscape) and (max-height:520px) and (max-width:1000px){
+  html body main #setup.screen.active #teamStep.panel.team-selector{
+    position:absolute!important;inset:0!important;left:0!important;right:0!important;top:0!important;bottom:0!important;
+    transform:none!important;width:100%!important;height:100%!important;min-height:0!important;max-width:none!important;
+    margin:0!important;padding:0!important;overflow:hidden!important;background:transparent!important;
+  }
+  html body main #setup.screen.active #teamStep.panel.team-selector .team-stage{
+    position:absolute!important;
+    left:max(5.5%,calc(var(--v77-safe-l) + 8px))!important;right:max(5.5%,calc(var(--v77-safe-r) + 8px))!important;
+    top:16%!important;bottom:14%!important;width:auto!important;height:auto!important;min-height:0!important;
+    margin:0!important;padding:0!important;display:grid!important;
+    grid-template-columns:minmax(150px,24%) minmax(280px,1fr) minmax(150px,24%)!important;
+    gap:2.2%!important;align-items:center!important;flex-direction:initial!important;
+  }
+  html body main #setup.screen.active #teamStep.panel.team-selector .team-main{
+    position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+    width:100%!important;height:100%!important;min-width:0!important;margin:0!important;display:flex!important;
+    align-items:center!important;justify-content:center!important;
+  }
+  html body main #setup.screen.active #teamStep.panel.team-selector #teamLeftInfo,
+  html body main #setup.screen.active #teamStep.panel.team-selector #teamRightInfo{
+    position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+    width:100%!important;height:auto!important;min-height:0!important;max-height:82%!important;margin:0!important;
+    display:flex!important;pointer-events:auto!important;
+  }
+  html body main #setup.screen.active #teamStep.panel.team-selector>div[style*="text-align:center"]{
+    position:absolute!important;left:50%!important;right:auto!important;top:auto!important;bottom:2%!important;
+    transform:translateX(-50%)!important;width:auto!important;height:auto!important;margin:0!important;
+    display:flex!important;justify-content:center!important;gap:7px!important;flex-wrap:nowrap!important;
+  }
+
+  #kits>.panel>.toolbar{
+    position:absolute!important;left:0!important;right:0!important;top:auto!important;bottom:1%!important;
+    transform:none!important;width:100%!important;height:auto!important;margin:0!important;
+    display:flex!important;justify-content:center!important;align-items:center!important;gap:6px!important;
+  }
+}
+
+@media (orientation:landscape) and (max-height:520px) and (max-width:1000px){
+  html body main #setup.screen.active #teamStep.panel.team-selector #teamLeftInfo{grid-column:1!important;order:0!important}
+  html body main #setup.screen.active #teamStep.panel.team-selector .team-main{grid-column:2!important;order:0!important}
+  html body main #setup.screen.active #teamStep.panel.team-selector #teamRightInfo{grid-column:3!important;order:0!important}
+
+  #kits #kitContrast{bottom:13%!important}
+
+  /* Preserve the original "pitch only during events" behaviour. */
+  #match #pitchWrap90{display:none!important}
+  #match #pitchWrap90.active{display:block!important}
+}
+
+@media (orientation:landscape) and (max-height:520px) and (max-width:1000px){
+  #season>.grid>.panel:first-child,
+  #season>.grid>.panel:nth-child(2){
+    width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;
+    margin:0!important;padding:8px 12px!important;overflow:hidden!important;
+  }
+
+  #kits>.panel>h2{
+    position:absolute!important;left:0!important;right:0!important;top:2.5%!important;bottom:auto!important;
+    transform:none!important;width:100%!important;margin:0!important;text-align:center!important;
+  }
+  #kits>.panel>.muted{
+    position:absolute!important;left:50%!important;right:auto!important;top:8%!important;bottom:auto!important;
+    transform:translateX(-50%)!important;width:72%!important;margin:0!important;text-align:center!important;
+  }
+  #kits #kitContrast{
+    position:absolute!important;left:50%!important;right:auto!important;top:auto!important;bottom:13%!important;
+    transform:translateX(-50%)!important;width:min(430px,48%)!important;height:auto!important;margin:0!important;
+  }
+}
+
+@media (orientation:landscape) and (max-height:520px) and (max-width:1000px){
+  #prematch #v63TacticalXI .v63-player{
+    position:absolute!important;display:flex!important;flex-direction:column!important;align-items:center!important;
+    justify-content:center!important;transform:translate(-50%,-50%)!important;gap:1px!important;max-width:58px!important;
+  }
+}
