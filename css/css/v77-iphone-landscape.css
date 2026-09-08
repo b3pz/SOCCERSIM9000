@@ -423,3 +423,97 @@ html.v75-phone-landscape body>main>.screen.active{
   margin:0!important;padding:0!important;overflow:hidden!important;background-size:100% 100%!important;background-position:center!important;
 }
 html.v75-phone-landscape body>main>.screen:not(.active){display:none!important;}
+
+/* ================================================================
+   V7.9 — DESKTOP CHROME / MAC ALIGNMENT FIX
+   Desktop-only. The legacy page layer capped direct season children,
+   so summary/content stopped early on wide Chrome windows. Keep one
+   common dashboard grid. Does not touch iPhone landscape rules above.
+   ================================================================ */
+@media (min-width:1201px) and (min-height:601px){
+  #season>.grid,
+  #season>.season-nav,
+  #season>#seasonContent{
+    box-sizing:border-box!important;
+    width:auto!important;
+    max-width:none!important;
+    min-width:0!important;
+    margin:0!important;
+    transform:none!important;
+  }
+
+  #season{--v79-season-edge:6.6%!important}
+
+  #season>.grid{
+    left:var(--v79-season-edge)!important;
+    right:var(--v79-season-edge)!important;
+    top:5%!important;
+    height:27%!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:1.5%!important;
+    align-items:stretch!important;
+  }
+  #season>.grid>.panel{
+    box-sizing:border-box!important;
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    height:100%!important;
+    margin:0!important;
+  }
+
+  #season>.season-nav{
+    left:var(--v79-season-edge)!important;
+    right:var(--v79-season-edge)!important;
+    top:33.6%!important;
+    height:8%!important;
+    display:grid!important;
+    grid-template-columns:repeat(7,minmax(0,1fr))!important;
+    gap:5px!important;
+  }
+  #season>.season-nav button{
+    min-width:0!important;
+    width:100%!important;
+    max-width:none!important;
+  }
+
+  #season>#seasonContent{
+    left:var(--v79-season-edge)!important;
+    right:var(--v79-season-edge)!important;
+    top:43.1%!important;
+    bottom:4.2%!important;
+    height:auto!important;
+    min-height:0!important;
+    padding:15px 20px!important;
+    overflow:auto!important;
+  }
+
+  #season .season-next-wrap,
+  #season .season-next-title,
+  #season .season-next-meta,
+  #season .season-next-action{
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+  #season .season-next-match{
+    width:100%!important;
+    max-width:none!important;
+    box-sizing:border-box!important;
+    grid-template-columns:minmax(0,1fr) 76px minmax(0,1fr)!important;
+    gap:22px!important;
+    padding:8px 8%!important;
+  }
+  #season .season-club,
+  #season .season-club.home,
+  #season .season-club.away{
+    width:100%!important;
+    max-width:430px!important;
+    min-width:0!important;
+  }
+  #season .season-club.home{justify-self:end!important}
+  #season .season-club.away{justify-self:start!important}
+  #season .season-vs{justify-self:center!important}
+}
