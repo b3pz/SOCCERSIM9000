@@ -8,11 +8,12 @@
   function measure(){
     raf=0;
     const vv=window.visualViewport;
-    const vw=Math.max(320, Math.round(vv ? vv.width : window.innerWidth));
-    const vh=Math.max(320, Math.round(vv ? vv.height : window.innerHeight));
+    const vw=Math.max(1, Math.round(vv ? vv.width : window.innerWidth));
+    const vh=Math.max(1, Math.round(vv ? vv.height : window.innerHeight));
+    const phoneLandscape=(vw>vh && vh<=600 && vw>=560 && vw<=1200);
     const header=document.querySelector('header');
-    const hh=Math.max(0, Math.round(header ? header.getBoundingClientRect().height : 58));
-    const mainH=Math.max(260, vh-hh);
+    const hh=phoneLandscape ? 0 : Math.max(0, Math.round(header ? header.getBoundingClientRect().height : 58));
+    const mainH=phoneLandscape ? vh : Math.max(260, vh-hh);
     let sw,sh;
     if(vw/mainH >= RATIO){ sh=mainH; sw=Math.round(sh*RATIO); }
     else { sw=vw; sh=Math.round(sw/RATIO); }
@@ -23,10 +24,13 @@
     root.style.setProperty('--v75-main-h',mainH+'px');
     root.style.setProperty('--v75-stage-w',sw+'px');
     root.style.setProperty('--v75-stage-h',sh+'px');
+    root.classList.toggle('v75-phone-landscape',phoneLandscape);
     root.classList.toggle('v75-short', sh<650);
     root.classList.toggle('v75-very-short', sh<560);
     root.dataset.v75Viewport=`${vw}x${vh}`;
     root.dataset.v75Stage=`${sw}x${sh}`;
+    root.dataset.v75PhoneLandscape=phoneLandscape?'1':'0';
+    if(phoneLandscape){ try{ window.scrollTo(0,0); }catch(_e){} }
 
     /* Remove stale inline drift left by older kit render passes. */
     document.querySelectorAll('#kits .kit-imgbox img').forEach(img=>{

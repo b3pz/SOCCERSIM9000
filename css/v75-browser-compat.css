@@ -189,10 +189,28 @@ main{
 
 /* Phone / narrow tablet: keep the existing vertical responsive flow, but base it
    on the real visual viewport so Safari address bars do not cut the last control. */
-@media (max-width:900px){
+@media (max-width:900px) and (orientation:portrait){
   html,body{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important}
   main{height:auto!important;min-height:var(--v75-main-h)!important;overflow:visible!important}
   .screen.active{position:relative!important;left:auto!important;top:auto!important;transform:none!important;width:100%!important;height:auto!important;min-height:var(--v75-main-h)!important;overflow-x:hidden!important;overflow-y:auto!important;background-size:cover!important;background-position:center top!important}
   #setup #managerStep{max-height:none!important;overflow:visible!important}
   #s9CareerModal{height:var(--v75-vh)!important}
+}
+
+/* JS-backed iPhone/short-landscape lock. This does not depend on CSS orientation detection. */
+html.v75-phone-landscape,
+html.v75-phone-landscape body{
+  width:var(--v75-vw)!important;height:var(--v75-vh)!important;min-height:0!important;max-height:var(--v75-vh)!important;
+  margin:0!important;padding:0!important;overflow:hidden!important;overscroll-behavior:none!important;background:#020817!important;
+}
+html.v75-phone-landscape body{position:fixed!important;inset:0!important;}
+html.v75-phone-landscape header{display:none!important}
+html.v75-phone-landscape main{
+  position:fixed!important;inset:0!important;width:var(--v75-vw)!important;height:var(--v75-vh)!important;min-height:0!important;max-height:var(--v75-vh)!important;
+  margin:0!important;padding:0!important;overflow:hidden!important;
+}
+html.v75-phone-landscape .screen.active{
+  position:absolute!important;inset:0!important;left:0!important;top:0!important;transform:none!important;
+  width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;margin:0!important;padding:0!important;
+  overflow:hidden!important;background-size:100% 100%!important;background-position:center!important;
 }

@@ -1,0 +1,203 @@
+/* SerieA 9000 SIM — V8.0 SAFARI iPHONE ORIENTATION GUARD
+   Portrait is intentionally not used for gameplay: show a clean rotate screen.
+   Landscape is hard-locked to Safari's live visual viewport. */
+
+:root{
+  --s9-vw:100vw;
+  --s9-vh:100dvh;
+  --s9-safe-l:env(safe-area-inset-left,0px);
+  --s9-safe-r:env(safe-area-inset-right,0px);
+  --s9-safe-t:env(safe-area-inset-top,0px);
+  --s9-safe-b:env(safe-area-inset-bottom,0px);
+}
+
+#s9RotateDevice{display:none}
+
+/* iPhone portrait: never render the management UI as a giant web page. */
+html.s9-phone-portrait,
+html.s9-phone-portrait body{
+  position:fixed!important;
+  inset:0!important;
+  width:var(--s9-vw,100vw)!important;
+  height:var(--s9-vh,100dvh)!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-width:none!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+  background:#020817!important;
+}
+
+html.s9-phone-portrait body > :not(#s9RotateDevice):not(script){
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+
+html.s9-phone-portrait #s9RotateDevice{
+  visibility:visible!important;
+  display:flex!important;
+  position:fixed!important;
+  inset:0!important;
+  z-index:2147483647!important;
+  width:var(--s9-vw,100vw)!important;
+  height:var(--s9-vh,100dvh)!important;
+  padding:
+    max(24px,calc(var(--s9-safe-t) + 18px))
+    max(24px,calc(var(--s9-safe-r) + 18px))
+    max(24px,calc(var(--s9-safe-b) + 18px))
+    max(24px,calc(var(--s9-safe-l) + 18px))!important;
+  box-sizing:border-box!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  color:#f6f1df!important;
+  background:
+    linear-gradient(rgba(2,8,23,.72),rgba(2,8,23,.88)),
+    url('../assets/screens/05_tactics.png') center/cover no-repeat!important;
+  font-family:Arial Narrow,Arial,Helvetica,sans-serif!important;
+  -webkit-text-size-adjust:100%!important;
+  text-size-adjust:100%!important;
+}
+
+#s9RotateDevice .s9-rotate-card{
+  width:min(350px,88vw)!important;
+  padding:24px 22px 20px!important;
+  border:2px solid #c5a44c!important;
+  background:rgba(4,15,43,.88)!important;
+  box-shadow:0 18px 55px rgba(0,0,0,.65)!important;
+  backdrop-filter:blur(3px)!important;
+  -webkit-backdrop-filter:blur(3px)!important;
+}
+#s9RotateDevice .s9-rotate-logo{
+  display:block!important;
+  width:min(255px,72vw)!important;
+  height:auto!important;
+  margin:0 auto 18px!important;
+  filter:drop-shadow(0 7px 13px rgba(0,0,0,.65))!important;
+}
+#s9RotateDevice .s9-rotate-icon{
+  display:block!important;
+  font-size:44px!important;
+  line-height:1!important;
+  margin:2px 0 10px!important;
+  transform:rotate(90deg)!important;
+}
+#s9RotateDevice .s9-rotate-title{
+  margin:0!important;
+  color:#fff!important;
+  font-size:25px!important;
+  line-height:1!important;
+  font-weight:900!important;
+  font-style:italic!important;
+  letter-spacing:.5px!important;
+  text-transform:uppercase!important;
+}
+#s9RotateDevice .s9-rotate-copy{
+  margin:10px auto 0!important;
+  max-width:290px!important;
+  color:#e8dfc6!important;
+  font-size:14px!important;
+  line-height:1.35!important;
+}
+#s9RotateDevice .s9-rotate-credit{
+  margin-top:18px!important;
+  color:#8fa5c8!important;
+  font-size:10px!important;
+  letter-spacing:.4px!important;
+}
+
+/* Final Safari landscape lock. Loaded after every legacy responsive sheet. */
+html.s9-phone-landscape,
+html.s9-phone-landscape body{
+  position:fixed!important;
+  inset:0!important;
+  box-sizing:border-box!important;
+  width:var(--s9-vw,100vw)!important;
+  height:var(--s9-vh,100dvh)!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-width:var(--s9-vw,100vw)!important;
+  max-height:var(--s9-vh,100dvh)!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+  background:#020817!important;
+  -webkit-text-size-adjust:100%!important;
+  text-size-adjust:100%!important;
+}
+html.s9-phone-landscape body>header{display:none!important}
+html.s9-phone-landscape body>main{
+  position:fixed!important;
+  inset:0!important;
+  box-sizing:border-box!important;
+  width:var(--s9-vw,100vw)!important;
+  height:var(--s9-vh,100dvh)!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-width:none!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+}
+html.s9-phone-landscape body>main>.screen.active{
+  position:absolute!important;
+  inset:0!important;
+  left:0!important;
+  right:0!important;
+  top:0!important;
+  bottom:0!important;
+  box-sizing:border-box!important;
+  transform:none!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-width:none!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  background-attachment:scroll!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:100% 100%!important;
+}
+html.s9-phone-landscape body>main>.screen:not(.active){display:none!important}
+html.s9-phone-landscape #s9RotateDevice{display:none!important}
+html.s9-phone-landscape .scanline{pointer-events:none!important}
+
+/* Safari's bars can leave stale scroll geometry after rotation. */
+html.s9-phone-landscape #season,
+html.s9-phone-landscape #prematch,
+html.s9-phone-landscape #kits,
+html.s9-phone-landscape #match,
+html.s9-phone-landscape #halftime,
+html.s9-phone-landscape #postmatch,
+html.s9-phone-landscape #setup,
+html.s9-phone-landscape #mainMenu,
+html.s9-phone-landscape #cupsMenu,
+html.s9-phone-landscape #simpleMessage{
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  max-height:100%!important;
+  overflow:hidden!important;
+}
+
+/* Do not let Safari re-enable the old <=900px document scrolling rule. */
+@media (orientation:landscape) and (max-height:600px) and (min-width:560px) and (max-width:1200px){
+  html.s9-phone-landscape,
+  html.s9-phone-landscape body,
+  html.s9-phone-landscape main,
+  html.s9-phone-landscape .screen.active{
+    overflow:hidden!important;
+    height:100%!important;
+    min-height:0!important;
+  }
+}
