@@ -27,8 +27,8 @@ function sample(a,n){return shuffle(a).slice(0,n)}
 function teamLabel(id){const t=T(id);return t?`${t.name} ${t.season}`:id}
 function isNational(id){return V10.nationalIds.includes(id)}
 function isForeign(id){return V10.foreignIds.includes(id)}
-function crestFor(id){return isNational(id)?`assets/crests/national/${id}.svg`:isForeign(id)?`assets/crests/foreign/${id}.png`:`assets/crests/italian/${id}.png`}
-function kitFor(id,kind){return isNational(id)?`assets/kits/national/${kind}/${id}.svg`:isForeign(id)?`assets/kits/foreign/${kind}/${id}.png`:`assets/kits/italian/${kind}/${id}.png`}
+function crestFor(id){return isNational(id)?`assets/crests/national/${id}.png`:isForeign(id)?`assets/crests/foreign/${id}.png`:`assets/crests/italian/${id}.png`}
+function kitFor(id,kind){return isNational(id)?`assets/kits/national/${kind}/${id}.png`:isForeign(id)?`assets/kits/foreign/${kind}/${id}.png`:`assets/kits/italian/${kind}/${id}.png`}
 function fmtScore(r){return `${r.hg}–${r.ag}`}
 
 /* National/foreign visual integration. */
