@@ -1,0 +1,56 @@
+/* SerieA 9000 SIM — V10 COMPLETE BETA */
+:root{--v10-navy:#06132f;--v10-blue:#173b72;--v10-gold:#d0b057;--v10-ivory:#f0e8d2;--v10-red:#9f2f32;--v10-ink:#11192b}
+.prototype-note{font-weight:800!important}
+#cupsMenu{background-image:url('../assets/backgrounds_v10/bg_cup_hub.svg')!important}
+#v10CupSetup{background-image:url('../assets/backgrounds_v10/bg_cup_draw.svg')!important}
+#v10Tournament{background-image:url('../assets/backgrounds_v10/bg_cup_groups.svg')!important}
+#v10FinalEight{background-image:url('../assets/backgrounds_v10/bg_final_eight.svg')!important}
+#v10Trophy{background-image:url('../assets/backgrounds_v10/bg_trophy.svg')!important}
+#v10CupSetup.v10-world{background-image:url('../assets/backgrounds_v10/bg_world_cup.svg')!important}
+#v10CupSetup.v10-euro-nations{background-image:url('../assets/backgrounds_v10/bg_euro_nations.svg')!important}
+
+.v10-shell{width:min(1220px,88vw);margin:5vh auto 0;background:rgba(5,15,42,.86);border:1px solid rgba(208,176,87,.62);box-shadow:0 12px 40px rgba(0,0,0,.38);padding:22px;color:#fff;backdrop-filter:blur(4px)}
+.v10-title{font-family:Impact,Arial Narrow,sans-serif;font-size:clamp(28px,3vw,48px);letter-spacing:.7px;color:#fff4cf;text-align:center;border-bottom:2px solid var(--v10-gold);padding-bottom:10px;margin-bottom:14px}
+.v10-subtitle{text-align:center;color:#e5dcc6;margin:-4px 0 14px;font-size:13px}
+.v10-cup-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.v10-cup-btn{min-height:160px;padding:14px 10px;background:linear-gradient(180deg,rgba(23,59,114,.88),rgba(6,19,47,.94));border:1px solid var(--v10-gold);color:#fff;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;text-align:center;gap:7px;cursor:pointer}
+.v10-cup-btn:hover,.v10-cup-btn.active{background:linear-gradient(180deg,rgba(45,80,138,.95),rgba(15,34,75,.98));outline:2px solid rgba(208,176,87,.35)}
+.v10-cup-icon{font-size:44px;line-height:1}.v10-cup-name{font:900 18px/1.05 Arial Narrow,Arial}.v10-cup-desc{font-size:10px;color:#d8cfb8;line-height:1.25}
+.v10-actions{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:14px;flex-wrap:wrap}
+.v10-actions button{min-height:44px}
+
+.v10-picker-layout{display:grid;grid-template-columns:280px minmax(0,1fr) 280px;gap:18px;align-items:stretch;min-height:520px}
+.v10-picker-side,.v10-picker-main{background:rgba(3,11,31,.73);border:1px solid rgba(208,176,87,.32);padding:14px;min-width:0}
+.v10-picker-main{display:grid;grid-template-rows:auto 1fr auto;place-items:center;text-align:center}
+.v10-team-art{display:grid;grid-template-columns:70px minmax(0,1fr) 70px;align-items:center;width:100%;gap:12px}
+.v10-team-art img{width:min(220px,70%);height:210px;object-fit:contain;filter:drop-shadow(0 8px 14px rgba(0,0,0,.55))}
+.v10-team-title{font:900 clamp(25px,3vw,42px)/1 Arial Narrow,Arial;color:#fff}.v10-team-season{font-size:18px;color:var(--v10-gold);margin-top:5px}.v10-overall{font:900 58px/1 Impact,Arial;color:#fff4cf}
+.v10-picker-arrow{width:58px;height:58px;padding:0;font-size:22px}
+.v10-kit-mini{display:flex;justify-content:center;gap:8px;margin-top:12px}.v10-kit-mini img{width:74px;height:96px;object-fit:contain}
+.v10-team-list{max-height:410px;overflow:auto;display:grid;gap:5px}.v10-team-list button{text-align:left;min-height:34px;font-size:11px;padding:5px 8px}.v10-team-list button.active{background:var(--v10-gold);color:#101526}
+
+.v10-tournament-shell{width:min(1320px,92vw);height:min(78vh,720px);margin:4.5vh auto 0;background:rgba(4,13,38,.88);border:1px solid rgba(208,176,87,.55);padding:14px 16px;color:#fff;overflow:hidden;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:8px}
+.v10-competition-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border-bottom:1px solid rgba(208,176,87,.55);padding-bottom:8px}.v10-competition-head .v10-title{margin:0;padding:0;border:0;font-size:clamp(24px,2.2vw,36px)}.v10-stage{justify-self:end;color:var(--v10-gold);font-weight:900}.v10-userclub{font-size:12px;color:#e8dfca}
+.v10-tabs{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}.v10-tabs button{min-height:32px;padding:4px 9px;font-size:10px}.v10-tabs button.active{background:var(--v10-gold);color:#11182a}
+#v10TournamentContent{min-height:0;overflow:auto;padding:5px}
+.v10-groups-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.v10-group{background:rgba(235,228,208,.95);color:#162039;border:1px solid rgba(208,176,87,.65);padding:8px}.v10-group h3{margin:0 0 5px;background:#10265f;color:#fff;padding:5px;text-align:center}.v10-group table{width:100%;font-size:11px;border-collapse:collapse}.v10-group th,.v10-group td{padding:3px 5px;border-bottom:1px solid rgba(16,38,95,.15)}.v10-group tr.user{outline:2px solid var(--v10-gold);font-weight:900}.v10-group tr.qual{background:#dce8c8}
+.v10-next-card{display:grid;grid-template-columns:minmax(0,1fr) 70px minmax(0,1fr);align-items:center;gap:18px;width:min(920px,100%);margin:12px auto;padding:20px;background:rgba(7,24,57,.82);border:1px solid var(--v10-gold);text-align:center}.v10-next-team{display:grid;grid-template-columns:80px minmax(0,1fr);align-items:center;gap:10px;font:900 20px/1 Arial Narrow,Arial}.v10-next-team.away{grid-template-columns:minmax(0,1fr) 80px}.v10-next-team.away img{grid-column:2}.v10-next-team.away span{grid-column:1;grid-row:1}.v10-next-team img{width:76px;height:76px;object-fit:contain}.v10-vs{font:900 30px/1 Impact,Arial;color:var(--v10-gold)}
+.v10-bracket{display:grid;grid-template-columns:repeat(4,minmax(190px,1fr));gap:12px;align-items:start}.v10-round h3{text-align:center;color:var(--v10-gold);margin:0 0 8px}.v10-tie{background:rgba(241,234,214,.94);color:#172139;border:1px solid #837446;padding:7px;margin-bottom:7px;font-size:11px}.v10-tie.user{outline:2px solid var(--v10-gold)}.v10-scoreline{display:flex;justify-content:space-between;gap:6px}.v10-win{font-weight:900;color:#0a5c36}
+.v10-log{display:grid;gap:5px}.v10-log-row{background:rgba(239,232,213,.94);color:#1b2437;border-left:5px solid #183d7a;padding:6px 9px;font-size:11px}.v10-pens{color:#d7b85d;font-size:11px;font-weight:900;text-align:center;margin-top:8px}
+.v10-empty{text-align:center;padding:34px;color:#ded4bd}.v10-champion{text-align:center;padding:20px}.v10-champion img{width:140px;height:140px;object-fit:contain}.v10-champion-name{font:900 clamp(30px,4vw,58px)/1 Impact,Arial;color:#fff4cf;margin:12px}.v10-ranking{width:min(800px,100%);margin:12px auto;border-collapse:collapse;background:rgba(239,232,213,.95);color:#1c2538}.v10-ranking td,.v10-ranking th{padding:7px 10px;border-bottom:1px solid rgba(20,40,80,.15)}
+
+/* Career V10 Final Eight */
+#v10FinalEight .v10-tournament-shell{background:rgba(13,10,31,.88)}
+
+@media(max-width:1000px){.v10-cup-grid{grid-template-columns:repeat(3,1fr)}.v10-picker-layout{grid-template-columns:220px 1fr 220px}.v10-groups-grid{grid-template-columns:1fr 1fr}.v10-bracket{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.v10-shell{width:94vw;margin-top:12px;padding:10px}.v10-cup-grid{grid-template-columns:1fr 1fr}.v10-picker-layout{grid-template-columns:1fr}.v10-picker-side:first-child{display:none}.v10-picker-side:last-child{max-height:170px}.v10-tournament-shell{width:96vw;height:auto;min-height:80vh;margin-top:8px;overflow:auto}.v10-groups-grid,.v10-bracket{grid-template-columns:1fr}.v10-next-card{grid-template-columns:1fr 40px 1fr;padding:10px}.v10-next-team,.v10-next-team.away{grid-template-columns:1fr;justify-items:center}.v10-next-team.away img{grid-column:auto}.v10-next-team.away span{grid-column:auto;grid-row:auto}}
+
+/* iPhone landscape: keep V10 screens inside the game viewport */
+@media (max-height:600px) and (min-width:560px) and (max-width:1200px){
+ #v10CupSetup,#v10Tournament,#v10FinalEight,#v10Trophy{overflow:hidden!important}
+ .v10-shell{position:absolute!important;left:max(3%,env(safe-area-inset-left));right:max(3%,env(safe-area-inset-right));top:2%!important;bottom:2%!important;width:auto!important;height:auto!important;margin:0!important;padding:7px 10px!important;overflow:hidden!important}
+ .v10-title{font-size:18px!important;padding-bottom:4px!important;margin-bottom:5px!important}.v10-subtitle{font-size:8px!important;margin:0 0 5px!important}
+ .v10-cup-grid{grid-template-columns:repeat(5,1fr)!important;gap:5px!important}.v10-cup-btn{min-height:0!important;height:calc(100vh - 105px)!important;max-height:260px!important;padding:5px!important}.v10-cup-icon{font-size:24px!important}.v10-cup-name{font-size:11px!important}.v10-cup-desc{font-size:7px!important}
+ .v10-picker-layout{grid-template-columns:20% 55% 25%!important;gap:5px!important;min-height:0!important;height:calc(100% - 52px)!important}.v10-picker-side,.v10-picker-main{padding:5px!important;overflow:hidden!important}.v10-team-art{grid-template-columns:35px 1fr 35px!important}.v10-picker-arrow{width:32px!important;height:32px!important;min-height:32px!important;font-size:13px!important}.v10-team-art img{height:120px!important}.v10-team-title{font-size:20px!important}.v10-team-season{font-size:10px!important}.v10-overall{font-size:34px!important}.v10-kit-mini img{width:38px!important;height:52px!important}.v10-team-list{max-height:100%!important}.v10-team-list button{min-height:24px!important;font-size:7px!important;padding:2px 4px!important}.v10-actions{margin-top:4px!important;gap:4px!important}.v10-actions button{min-height:26px!important;font-size:8px!important;padding:3px 7px!important}
+ .v10-tournament-shell{position:absolute!important;left:max(2%,env(safe-area-inset-left));right:max(2%,env(safe-area-inset-right));top:1%!important;bottom:1%!important;width:auto!important;height:auto!important;margin:0!important;padding:5px 7px!important;gap:3px!important}.v10-competition-head .v10-title{font-size:16px!important}.v10-stage,.v10-userclub{font-size:7px!important}.v10-tabs{gap:2px!important}.v10-tabs button{min-height:23px!important;padding:2px 4px!important;font-size:7px!important}.v10-groups-grid{grid-template-columns:repeat(4,1fr)!important;gap:4px!important}.v10-group{padding:3px!important}.v10-group h3{font-size:8px!important;padding:2px!important}.v10-group table{font-size:6px!important}.v10-group th,.v10-group td{padding:1px 2px!important}.v10-next-card{grid-template-columns:1fr 32px 1fr!important;gap:5px!important;margin:3px auto!important;padding:4px!important}.v10-next-team,.v10-next-team.away{grid-template-columns:30px 1fr!important;font-size:9px!important}.v10-next-team.away{grid-template-columns:1fr 30px!important}.v10-next-team img{width:28px!important;height:28px!important}.v10-vs{font-size:14px!important}.v10-bracket{grid-template-columns:repeat(4,1fr)!important;gap:4px!important}.v10-round h3{font-size:8px!important;margin-bottom:3px!important}.v10-tie{font-size:6.5px!important;padding:2px!important;margin-bottom:2px!important}.v10-log-row{font-size:7px!important;padding:2px 4px!important}.v10-champion img{width:62px!important;height:62px!important}.v10-champion-name{font-size:20px!important;margin:4px!important}.v10-ranking td,.v10-ranking th{font-size:7px!important;padding:2px 4px!important}
+}
