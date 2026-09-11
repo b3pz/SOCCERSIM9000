@@ -54,3 +54,33 @@
  .v10-picker-layout{grid-template-columns:20% 55% 25%!important;gap:5px!important;min-height:0!important;height:calc(100% - 52px)!important}.v10-picker-side,.v10-picker-main{padding:5px!important;overflow:hidden!important}.v10-team-art{grid-template-columns:35px 1fr 35px!important}.v10-picker-arrow{width:32px!important;height:32px!important;min-height:32px!important;font-size:13px!important}.v10-team-art img{height:120px!important}.v10-team-title{font-size:20px!important}.v10-team-season{font-size:10px!important}.v10-overall{font-size:34px!important}.v10-kit-mini img{width:38px!important;height:52px!important}.v10-team-list{max-height:100%!important}.v10-team-list button{min-height:24px!important;font-size:7px!important;padding:2px 4px!important}.v10-actions{margin-top:4px!important;gap:4px!important}.v10-actions button{min-height:26px!important;font-size:8px!important;padding:3px 7px!important}
  .v10-tournament-shell{position:absolute!important;left:max(2%,env(safe-area-inset-left));right:max(2%,env(safe-area-inset-right));top:1%!important;bottom:1%!important;width:auto!important;height:auto!important;margin:0!important;padding:5px 7px!important;gap:3px!important}.v10-competition-head .v10-title{font-size:16px!important}.v10-stage,.v10-userclub{font-size:7px!important}.v10-tabs{gap:2px!important}.v10-tabs button{min-height:23px!important;padding:2px 4px!important;font-size:7px!important}.v10-groups-grid{grid-template-columns:repeat(4,1fr)!important;gap:4px!important}.v10-group{padding:3px!important}.v10-group h3{font-size:8px!important;padding:2px!important}.v10-group table{font-size:6px!important}.v10-group th,.v10-group td{padding:1px 2px!important}.v10-next-card{grid-template-columns:1fr 32px 1fr!important;gap:5px!important;margin:3px auto!important;padding:4px!important}.v10-next-team,.v10-next-team.away{grid-template-columns:30px 1fr!important;font-size:9px!important}.v10-next-team.away{grid-template-columns:1fr 30px!important}.v10-next-team img{width:28px!important;height:28px!important}.v10-vs{font-size:14px!important}.v10-bracket{grid-template-columns:repeat(4,1fr)!important;gap:4px!important}.v10-round h3{font-size:8px!important;margin-bottom:3px!important}.v10-tie{font-size:6.5px!important;padding:2px!important;margin-bottom:2px!important}.v10-log-row{font-size:7px!important;padding:2px 4px!important}.v10-champion img{width:62px!important;height:62px!important}.v10-champion-name{font-size:20px!important;margin:4px!important}.v10-ranking td,.v10-ranking th{font-size:7px!important;padding:2px 4px!important}
 }
+
+/* ================================================================
+   V10.3 — PLAYER CONDITION / INJURIES / DISCIPLINE + HOTFIXES
+   ================================================================ */
+.v103-prematch-alert{margin-top:6px;padding:5px 7px;border-left:3px solid var(--v10-gold);background:rgba(4,16,43,.55);color:#f4ecd8;font-size:10px;line-height:1.3}
+.v103-line-state{display:flex;gap:4px;align-items:center;margin-top:2px;min-width:0;flex-wrap:wrap}
+.v103-fitness{display:inline-block;font-weight:900;font-size:.9em;white-space:nowrap}
+.v103-fit-good{color:#8fe39d!important}.v103-fit-mid{color:#f0d264!important}.v103-fit-low{color:#f3a45b!important}.v103-fit-critical{color:#ff6d6d!important}
+.v103-diffida,.v103-status{color:#f1d24f!important;font-weight:900}.v103-unavailable{opacity:.48!important;filter:grayscale(.45)}
+.v103-unavailable[data-in]{cursor:not-allowed!important}.v103-profile-state{margin-top:5px;padding:5px 7px;background:rgba(5,20,52,.08);font-size:12px;font-weight:800}
+.v103-live-average{float:right;font-size:9px;padding:2px 5px;border:1px solid currentColor;margin-left:6px;letter-spacing:.02em}
+.v103-post-summary{margin-bottom:8px;padding:8px 10px;background:rgba(5,20,52,.75);border:1px solid rgba(208,176,87,.55);color:#fff;display:grid;gap:4px}
+.v103-injury-overlay{text-align:center}.v103-injury-icon{font-size:56px;color:#d24d49;font-weight:1000;line-height:1}.v103-recovery{margin-top:8px;color:#f0d264;font-weight:1000;letter-spacing:.05em}
+
+/* V10.2 integrated hotfix: keep the tactical XI geometrically anchored even if legacy cascade changes. */
+#prematch #v63TacticalXI{position:absolute!important;z-index:5!important;pointer-events:none!important}
+#prematch #v63TacticalXI .v63-player{position:absolute!important;display:flex!important;flex-direction:column!important;align-items:center!important;transform:translate(-50%,-50%)!important}
+
+/* 2D PITCH tab must win over the old iPhone event-only display rule. */
+#match[data-match-view="pitch"] #pitchWrap90{display:block!important}
+#match[data-match-view="overview"] #pitchWrap90,
+#match[data-match-view="stats"] #pitchWrap90,
+#match[data-match-view="report"] #pitchWrap90{display:none!important}
+
+@media (max-height:600px) and (min-width:560px) and (max-width:1200px){
+ #match[data-match-view="pitch"] #pitchWrap90{display:block!important;width:100%!important;height:100%!important}
+ .v103-prematch-alert{font-size:7px!important;padding:2px 4px!important;margin-top:2px!important}
+ .v103-line-state{font-size:7px!important;margin-top:0!important}
+ .v103-live-average{font-size:6px!important;padding:1px 2px!important}
+}

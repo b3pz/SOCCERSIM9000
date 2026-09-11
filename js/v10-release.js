@@ -470,3 +470,367 @@ function init(){injectScreens();rebuildCupsMenu();installOverrides();bindV10();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 
 })();
+
+/* ==================================================================
+   SerieA 9000 SIM — V10.3 PLAYER CONDITION / DISCIPLINE
+   - persistent player fitness across career matches
+   - live fatigue display in tactics
+   - injuries with match-based recovery times
+   - red card => one-match suspension
+   - yellow card in 3 consecutive team matches => one-match suspension
+   - unavailable players automatically removed from the XI
+   ================================================================== */
+(function(){
+'use strict';
+
+const S9=window.S9V10||{};
+S9.version='10.3';
+window.S9V10=S9;
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const $c=s=>document.querySelector(s);
+const $$c=s=>Array.from(document.querySelectorAll(s));
+
+function ensurePlayerState(p){
+ if(!p)return p;
+ if(!Number.isFinite(p.fitness))p.fitness=100;
+ p.fitness=clamp(Math.round(p.fitness),20,100);
+ if(!Number.isFinite(p.injuryGames))p.injuryGames=0;
+ if(!Number.isFinite(p.suspensionGames))p.suspensionGames=0;
+ if(!Number.isFinite(p.yellowStreak))p.yellowStreak=0;
+ if(!Number.isFinite(p.matchesPlayedV103))p.matchesPlayedV103=0;
+ return p;
+}
+function ensureTeamStateV103(id){
+ const st=career?.teamStates?.[id];
+ if(!st)return null;
+ (st.players||[]).forEach(ensurePlayerState);
+ return st;
+}
+function ensureAllV103(){
+ if(!career?.teamStates)return;
+ Object.keys(career.teamStates).forEach(ensureTeamStateV103);
+}
+function unavailable(p){ensurePlayerState(p);return p.injuryGames>0||p.suspensionGames>0}
+function statusText(p){
+ ensurePlayerState(p);
+ if(p.injuryGames>0)return `INFORTUNATO · ${p.injuryGames} ${p.injuryGames===1?'gara':'gare'}`;
+ if(p.suspensionGames>0)return `SQUALIFICATO · ${p.suspensionGames} ${p.suspensionGames===1?'gara':'gare'}`;
+ if(p.yellowStreak===2)return 'DIFFIDA · 2 gialli consecutivi';
+ return 'DISPONIBILE';
+}
+function fitnessClass(v){return v<45?'v103-fit-critical':v<65?'v103-fit-low':v<80?'v103-fit-mid':'v103-fit-good'}
+function playerPhysical(p){return Number.isFinite(p?.stats?.physical)?p.stats.physical:75}
+
+function chooseReplacement(st,outPlayer,used){
+ const pool=(st.players||[]).filter(p=>!used.has(p.id)&&!unavailable(p));
+ if(!pool.length)return null;
+ const target=typeof roleGroup==='function'?roleGroup(outPlayer?.pos):outPlayer?.pos;
+ const same=pool.filter(p=>(typeof roleGroup==='function'?roleGroup(p.pos):p.pos)===target);
+ return (same.length?same:pool).sort((a,b)=>(b.overall||0)-(a.overall||0))[0]||null;
+}
+function ensureAvailableLineup(id){
+ const st=ensureTeamStateV103(id);if(!st)return [];
+ st.lineup=Array.isArray(st.lineup)?st.lineup.slice(0,11):[];
+ const used=new Set(st.lineup.filter(pid=>{const p=st.players.find(x=>x.id===pid);return p&&!unavailable(p)}));
+ const next=[];
+ for(const pid of st.lineup){
+   const p=st.players.find(x=>x.id===pid);
+   if(p&&!unavailable(p)&&!next.includes(pid)){next.push(pid);continue}
+   const rep=chooseReplacement(st,p,used);
+   if(rep){next.push(rep.id);used.add(rep.id)}
+ }
+ while(next.length<11){const rep=chooseReplacement(st,null,new Set(next));if(!rep)break;next.push(rep.id)}
+ st.lineup=next.slice(0,11);
+ if(st.setPieces){
+   const fallback=st.lineup[8]||st.lineup[0];
+   Object.keys(st.setPieces).forEach(k=>{if(!st.lineup.includes(st.setPieces[k]))st.setPieces[k]=fallback});
+ }
+ return st.lineup;
+}
+
+/* New careers / newly materialized foreign teams receive condition fields immediately. */
+try{
+ const oldInitTeamState=initTeamState;
+ initTeamState=function(t){const st=oldInitTeamState(t);(st.players||[]).forEach(ensurePlayerState);return st};
+}catch(e){console.warn('V10.3 initTeamState patch',e)}
+
+/* Fitness now has a real effect on the strength used by the match engine. */
+try{
+ const oldLineupPower=lineupPower;
+ lineupPower=function(id){
+   const st=ensureTeamStateV103(id);if(!st)return oldLineupPower(id);
+   const ids=st.lineup||[];
+   const ps=ids.map(pid=>st.players.find(p=>p.id===pid)).filter(Boolean);
+   const avgFit=ps.length?ps.reduce((s,p)=>s+(p.fitness||100),0)/ps.length:100;
+   const factor=.82+.18*(avgFit/100);
+   return oldLineupPower(id)*factor;
+ };
+}catch(e){console.warn('V10.3 lineupPower patch',e)}
+
+function weightedInjuryPlayer(id){
+ const st=ensureTeamStateV103(id);if(!st)return null;
+ const ps=(st.lineup||[]).map(pid=>st.players.find(p=>p.id===pid)).filter(p=>p&&!unavailable(p));
+ if(!ps.length)return null;
+ const weighted=[];
+ for(const p of ps){
+   const weight=1+Math.max(0,82-p.fitness)/8+Math.max(0,78-playerPhysical(p))/14;
+   const n=Math.max(1,Math.round(weight*2));for(let i=0;i<n;i++)weighted.push(p);
+ }
+ return weighted[Math.floor(Math.random()*weighted.length)]||ps[0];
+}
+function injuryProfile(){
+ const r=Math.random();
+ if(r<.38)return{games:1,label:'AFFATICAMENTO MUSCOLARE'};
+ if(r<.66)return{games:2,label:'CONTRATTURA'};
+ if(r<.84)return{games:3,label:'DISTORSIONE'};
+ if(r<.96)return{games:4,label:'STIRAMENTO'};
+ return{games:5+Math.floor(Math.random()*2),label:'LESIONE MUSCOLARE'};
+}
+function teamTrack(id){
+ const st=ensureTeamStateV103(id);if(!st)return null;
+ const initial=(st.lineup||[]).slice(0,11);
+ const enteredAt={},startFitness={},preInjury={},preSuspension={};
+ for(const p of st.players){
+   ensurePlayerState(p);startFitness[p.id]=p.fitness;preInjury[p.id]=p.injuryGames;preSuspension[p.id]=p.suspensionGames;
+ }
+ initial.forEach(pid=>enteredAt[pid]=0);
+ return{initialLineup:initial,enteredAt,exitedAt:{},startFitness,preInjury,preSuspension,yellows:{},reds:{},newInjuries:{}};
+}
+function avgTeamFitness(id){
+ const st=ensureTeamStateV103(id);if(!st)return 100;
+ const ps=(st.lineup||[]).map(pid=>st.players.find(p=>p.id===pid)).filter(Boolean);
+ return ps.length?ps.reduce((s,p)=>s+p.fitness,0)/ps.length:100;
+}
+
+/* Add injury events and keep cards/fouls on players who are actually on the pitch. */
+try{
+ const oldBuildMatchV103=buildMatch;
+ buildMatch=function(h,a){
+   ensureAvailableLineup(h);ensureAvailableLineup(a);
+   const m=oldBuildMatchV103(h,a);
+   m._v103={teams:{[h]:teamTrack(h),[a]:teamTrack(a)},finalized:false};
+   for(const e of m.events||[]){
+     if(!['yellow','red','foul'].includes(e.type))continue;
+     const id=e.side==='home'?h:a,st=ensureTeamStateV103(id);
+     if(!st)continue;
+     if(!e.player||!st.lineup.includes(e.player.id))e.player=st.players.find(p=>p.id===st.lineup[Math.floor(Math.random()*st.lineup.length)])||e.player;
+   }
+   for(const [id,side] of [[h,'home'],[a,'away']]){
+     const fit=avgTeamFitness(id);
+     const risk=clamp(.065+Math.max(0,76-fit)*.0045,.055,.20);
+     if(Math.random()<risk){
+       const p=weightedInjuryPlayer(id);if(p){const inf=injuryProfile();m.events.push({min:20+Math.floor(Math.random()*66),type:'injury',side,player:p,recovery:inf.games,injuryLabel:inf.label})}
+     }
+   }
+   m.events.sort((x,y)=>x.min-y.min);
+   return m;
+ };
+}catch(e){console.warn('V10.3 buildMatch patch',e)}
+
+function getTrackForPlayer(pid){
+ if(!current?._v103?.teams)return null;
+ for(const [tid,tr] of Object.entries(current._v103.teams))if(tr.startFitness&&Object.prototype.hasOwnProperty.call(tr.startFitness,pid))return{tid,tr};
+ return null;
+}
+function minutesPlayed(pid,atMinute){
+ const x=getTrackForPlayer(pid);if(!x)return 0;
+ const start=x.tr.enteredAt[pid];if(start==null)return 0;
+ const end=x.tr.exitedAt[pid]??atMinute??current?.minute??0;
+ return clamp(end-start,0,90);
+}
+function liveFitness(p){
+ ensurePlayerState(p);
+ if(!current?._v103)return p.fitness;
+ const x=getTrackForPlayer(p.id);if(!x)return p.fitness;
+ if(x.tr.newInjuries[p.id])return Math.min(12,p.fitness);
+ const mins=minutesPlayed(p.id,current.minute||0);
+ const drainPer90=20+Math.max(0,78-playerPhysical(p))*.12;
+ return clamp(Math.round((x.tr.startFitness[p.id]??p.fitness)-drainPer90*(mins/90)),8,100);
+}
+
+/* Track cards. Second yellow in the same match becomes a dismissal. */
+try{
+ const oldDoEventV103=doEvent;
+ doEvent=async function(e){
+   if(current?._v103&&e?.player){
+     const tid=e.side==='home'?current.h:current.a,tr=current._v103.teams?.[tid];
+     if(tr){
+       if(e.type==='yellow'){
+         if(tr.reds[e.player.id])return;
+         tr.yellows[e.player.id]=(tr.yellows[e.player.id]||0)+1;
+         if(tr.yellows[e.player.id]>=2){e={...e,type:'red',secondYellow:true};tr.reds[e.player.id]=true}
+       }else if(e.type==='red'){
+         if(tr.reds[e.player.id])return;
+         tr.reds[e.player.id]=true;
+       }
+       if(e.type==='injury'){
+         const st=ensureTeamStateV103(tid),p=st?.players?.find(x=>x.id===e.player.id);if(!p)return;
+         const games=Math.max(1,e.recovery||1),label=e.injuryLabel||'INFORTUNIO';
+         p.injuryGames=Math.max(p.injuryGames||0,games);tr.newInjuries[p.id]={games,label};
+         current.keyEvents.push(`${e.min}' INFORTUNIO ${p.name} · ${games} ${games===1?'gara':'gare'}`);
+         log(`${e.min}' INFORTUNIO - ${p.name}: ${label}. Recupero previsto ${games} ${games===1?'gara':'gare'}.`,e.side);
+         try{showPitchImportant();await ov(`<div class="v103-injury-overlay"><div class="v103-injury-icon">✚</div><h2>INFORTUNIO</h2><b>${p.name}</b><div>${label}</div><div class="v103-recovery">RECUPERO: ${games} ${games===1?'GARA':'GARE'}</div></div>`,1700);hidePitch()}catch(_e){}
+         return;
+       }
+     }
+   }
+   return oldDoEventV103(e);
+ };
+}catch(e){console.warn('V10.3 doEvent patch',e)}
+
+function processSilentEvents(m){
+ if(!m?._v103)return;
+ for(const e of m.events||[]){
+   if(!e.player)continue;
+   const tid=e.side==='home'?m.h:m.a,tr=m._v103.teams?.[tid],st=ensureTeamStateV103(tid);if(!tr||!st)continue;
+   const p=st.players.find(x=>x.id===e.player.id);if(!p)continue;
+   if(e.type==='injury'){
+     const games=Math.max(1,e.recovery||1);p.injuryGames=Math.max(p.injuryGames||0,games);tr.newInjuries[p.id]={games,label:e.injuryLabel||'INFORTUNIO'};
+   }else if(e.type==='yellow'){
+     tr.yellows[p.id]=(tr.yellows[p.id]||0)+1;if(tr.yellows[p.id]>=2)tr.reds[p.id]=true;
+   }else if(e.type==='red')tr.reds[p.id]=true;
+ }
+}
+
+function playedMinutesFrom(m,tr,pid){
+ const start=tr.enteredAt[pid];if(start==null)return 0;return clamp((tr.exitedAt[pid]??90)-start,0,90);
+}
+function finalizeTeamCondition(m,id,visible){
+ const st=ensureTeamStateV103(id),tr=m?._v103?.teams?.[id];if(!st||!tr)return[];
+ const notes=[];
+ /* Existing absences serve one match of their recovery/suspension here. */
+ for(const p of st.players){
+   ensurePlayerState(p);
+   if((tr.preInjury[p.id]||0)>0&&!tr.newInjuries[p.id])p.injuryGames=Math.max(0,p.injuryGames-1);
+   if((tr.preSuspension[p.id]||0)>0)p.suspensionGames=Math.max(0,p.suspensionGames-1);
+ }
+ /* Fatigue + partial recovery. Full 90 minutes repeatedly will progressively lower fitness. */
+ for(const p of st.players){
+   const mins=playedMinutesFrom(m,tr,p.id),start=tr.startFitness[p.id]??p.fitness;
+   const load=(20+Math.max(0,78-playerPhysical(p))*.12)*(mins/90);
+   p.fitness=clamp(Math.round(start+12-load),25,100);
+   if(mins>0)p.matchesPlayedV103=(p.matchesPlayedV103||0)+1;
+   if(tr.newInjuries[p.id])p.fitness=Math.min(p.fitness,55);
+ }
+ /* Three yellows in three consecutive team matches => one-match ban. A red always bans the next match. */
+ for(const p of st.players){
+   const mins=playedMinutesFrom(m,tr,p.id),red=!!tr.reds[p.id],yellow=(tr.yellows[p.id]||0)>0;
+   if(red){p.suspensionGames=Math.max(p.suspensionGames,1);p.yellowStreak=0;notes.push(`🟥 ${p.name}: squalificato per la prossima partita`);continue}
+   if(mins>0){
+     if(yellow){p.yellowStreak=(p.yellowStreak||0)+1;if(p.yellowStreak>=3){p.suspensionGames=Math.max(p.suspensionGames,1);p.yellowStreak=0;notes.push(`🟨 ${p.name}: 3 gialli consecutivi · squalificato per la prossima partita`)}}
+     else p.yellowStreak=0;
+   }else if(!yellow){p.yellowStreak=0}
+   if(tr.newInjuries[p.id]){const inf=tr.newInjuries[p.id];notes.push(`✚ ${p.name}: ${inf.label} · ${inf.games} ${inf.games===1?'gara':'gare'} di recupero`)}
+ }
+ return notes;
+}
+function finalizeMatchCondition(m=current,visible=true){
+ if(!m?._v103||m._v103.finalized)return [];
+ const notes=[...finalizeTeamCondition(m,m.h,visible),...finalizeTeamCondition(m,m.a,visible)];
+ m._v103.finalized=true;m._v103.summary=notes;
+ if(visible&&notes.length){
+   const box=$c('#postEvents');if(box)box.insertAdjacentHTML('afterbegin',`<div class="v103-post-summary">${notes.map(n=>`<div>${n}</div>`).join('')}</div>`);
+ }
+ try{if(career?.careerId&&window.S9Save)S9Save.putCareer(career,{careerId:career.careerId})}catch(_e){}
+ return notes;
+}
+
+/* CPU league matches use the same condition/discipline rules. */
+try{
+ simOther=function(h,a){
+   ensureAvailableLineup(h);ensureAvailableLineup(a);
+   const m=buildMatch(h,a);m.scoreH=m.events.filter(e=>e.type==='goal'&&e.side==='home').length;m.scoreA=m.events.filter(e=>e.type==='goal'&&e.side==='away').length;
+   m.events.filter(e=>e.type==='goal').forEach(e=>{
+     if(!career.pstats[e.player.id])career.pstats[e.player.id]={name:e.player.name,team:(e.side==='home'?m.h:m.a),goals:0,assists:0,apps:0};
+     career.pstats[e.player.id].goals++;
+     if(e.assist){if(!career.pstats[e.assist.id])career.pstats[e.assist.id]={name:e.assist.name,team:(e.side==='home'?m.h:m.a),goals:0,assists:0,apps:0};career.pstats[e.assist.id].assists++}
+   });
+   processSilentEvents(m);finalizeMatchCondition(m,false);updateLeague(m);
+ };
+}catch(e){console.warn('V10.3 simOther patch',e)}
+
+/* Prematch: recover migration, remove unavailable players and expose absences. */
+try{
+ const oldOpenPrematchV103=openPrematch;
+ openPrematch=function(g){
+   ensureAllV103();const ids=[g[0],g[1]];ids.forEach(ensureAvailableLineup);
+   const ust=ensureTeamStateV103(career.user);if(ust)ust.subs=0;
+   const out=oldOpenPrematchV103(g);
+   const info=$c('#prematchInfo');if(info&&ust){
+     const absent=ust.players.filter(unavailable);
+     const tired=ust.players.filter(p=>!unavailable(p)&&p.fitness<70).sort((a,b)=>a.fitness-b.fitness).slice(0,4);
+     const lines=[];
+     if(absent.length)lines.push(`<b>Assenti:</b> ${absent.map(p=>`${p.name} (${statusText(p)})`).join(' · ')}`);
+     if(tired.length)lines.push(`<b>Da gestire:</b> ${tired.map(p=>`${p.name} COND ${p.fitness}%`).join(' · ')}`);
+     if(lines.length)info.insertAdjacentHTML('beforeend',`<div class="v103-prematch-alert">${lines.join('<br>')}</div>`);
+   }
+   return out;
+ };
+}catch(e){console.warn('V10.3 openPrematch patch',e)}
+
+/* Prematch XI shows persistent fitness and disciplinary/medical status. */
+try{
+ const oldRenderPrematchV103=renderPrematchLineup;
+ renderPrematchLineup=function(){
+   const out=oldRenderPrematchV103();const st=ensureTeamStateV103(career.user);if(!st)return out;
+   $$c('#lineupPreview .lineup-row-v33').forEach(row=>{
+     const pid=row.dataset.playerCard,p=st.players.find(x=>x.id===pid),main=row.querySelector('.lineup-player-main');if(!p||!main)return;
+     main.insertAdjacentHTML('beforeend',`<div class="v103-line-state"><span class="v103-fitness ${fitnessClass(p.fitness)}">COND ${p.fitness}%</span>${p.yellowStreak===2?'<span class="v103-diffida">DIFFIDA</span>':''}</div>`);
+   });
+   return out;
+ };
+}catch(e){console.warn('V10.3 renderPrematchLineup patch',e)}
+
+/* Tactics/change tables show individual live fatigue. Unavailable bench players cannot enter. */
+try{
+ playerRow=function(p,kind){
+   const fit=liveFitness(p),blocked=unavailable(p),status=blocked?statusText(p):(p.yellowStreak===2?'DIFFIDA':'');
+   return `<tr class="selectable ${blocked?'v103-unavailable':''}" data-${kind}="${p.id}" data-v103-player="${p.id}">
+   <td><span class="rolebadge">${roleGroup(p.pos)}</span></td>
+   <td><b class="player-click" data-profile="${p.id}">${p.name}</b><div class="smallstat">${p.pos} · <span class="v103-fitness ${fitnessClass(fit)}">COND ${fit}%</span>${status?` · <span class="v103-status">${status}</span>`:''}</div></td>
+   <td>${p.overall}</td><td>${p.morale}</td><td>${p.stats?.speed??'—'}</td><td>${p.stats?.technique??'—'}</td><td>${p.stats?.passing??'—'}</td></tr>`;
+ };
+ const oldBindSubRowsV103=bindSubRows;
+ bindSubRows=function(){
+   oldBindSubRowsV103();
+   $$c('[data-in]').forEach(tr=>{const st=ensureTeamStateV103(career.user),p=st?.players.find(x=>x.id===tr.dataset.in);if(p&&unavailable(p)){tr.classList.add('v103-unavailable');tr.onclick=()=>{};tr.setAttribute('aria-disabled','true')}});
+ };
+}catch(e){console.warn('V10.3 tactics table patch',e)}
+
+/* Record the exact minute of substitutions so fatigue is proportional to minutes played. */
+function bindSubTracking(){
+ const b=$c('#doSub');if(!b||b.dataset.v103Track)return;b.dataset.v103Track='1';
+ b.addEventListener('click',()=>{
+   if(window._prematchEdit||!current?._v103||!selectedOut||!selectedIn)return;
+   const tid=career.user,tr=current._v103.teams?.[tid];if(!tr)return;
+   const min=clamp(current.minute||0,0,90);tr.exitedAt[selectedOut]=min;if(tr.enteredAt[selectedIn]==null)tr.enteredAt[selectedIn]=min;
+ },true);
+}
+
+/* Player profile includes condition, recovery and suspension information. */
+try{
+ const oldProfileV103=showPlayerProfile;
+ showPlayerProfile=function(id){
+   const out=oldProfileV103(id),p=findUserPlayer(id),meta=$c('#playerProfileMeta');if(p&&meta){const fit=liveFitness(p);meta.insertAdjacentHTML('beforeend',`<div class="v103-profile-state"><span class="v103-fitness ${fitnessClass(fit)}">CONDIZIONE ${fit}%</span> · ${statusText(p)}${p.yellowStreak?` · GIALLI CONSECUTIVI ${p.yellowStreak}/3`:''}</div>`)}return out;
+ };
+}catch(e){console.warn('V10.3 player profile patch',e)}
+
+/* Finalize condition exactly once when a played match reaches post-match. */
+try{
+ const oldShowV103=show;
+ show=function(id){const out=oldShowV103(id);if(id==='postmatch')finalizeMatchCondition(current,true);return out};
+}catch(e){console.warn('V10.3 show patch',e)}
+
+/* Small live indicator: individual values remain available in TATTICA/CAMBI. */
+function updateLiveConditionHeader(){
+ if(!current||!$c('#match.active'))return;
+ const st=ensureTeamStateV103(career?.user);if(!st)return;
+ const on=(st.lineup||[]).map(id=>st.players.find(p=>p.id===id)).filter(Boolean);if(!on.length)return;
+ const avg=Math.round(on.reduce((s,p)=>s+liveFitness(p),0)/on.length);
+ const title=$c('#match .history-title');if(title)title.innerHTML=`CRONACA PARTITA <span class="v103-live-average ${fitnessClass(avg)}">COND MEDIA ${avg}%</span>`;
+}
+setInterval(updateLiveConditionHeader,1200);
+
+function bootV103(){ensureAllV103();bindSubTracking();const proto=$c('.prototype-note');if(proto)proto.textContent='V10.3 COMPLETE BETA · STANCHEZZA · INFORTUNI · SQUALIFICHE · COPPE · NAZIONALI · b3pZ'}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootV103,{once:true});else bootV103();
+})();
