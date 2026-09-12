@@ -38,7 +38,7 @@
   #season>#seasonContent .matchhead{font-size:clamp(13px,1.05vw,18px)!important}
   #season>#seasonContent p{font-size:clamp(10px,.75vw,13px)!important}
   #season>#seasonContent button{font-size:clamp(9px,.65vw,11px)!important}
-  #season.v51-calendar-bg>#seasonContent,#season.v51-europe-bg>#seasonContent{left:16%!important;top:18%!important;width:68%!important;height:67%!important;background:rgba(246,240,220,.80)!important}
+  /* Background variants keep the shared season panel geometry. */
 
   /* PREPARTITA: tre zone reali: sinistra / lavagna / distinta destra. */
   #prematch>.grid{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important;margin:0!important}
