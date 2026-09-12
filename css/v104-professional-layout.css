@@ -764,3 +764,209 @@ body[data-v10-cup-theme="italia"] :is(#prematch,#kits,#match,#halftime,#postmatc
   #v10CupSetup[data-v10-competition] .s9-picker-kits figure{max-width:92px!important}
   #v10CupSetup[data-v10-competition] .s9-picker-kits img{max-height:90px!important}
 }
+
+/* ==================================================================
+   V10 FINAL graphic polish 05
+   - competition artwork remains visible
+   - page logo always above panels
+   - desktop/fullscreen uses the available viewport
+   - complete post-match protagonists report
+   ================================================================== */
+
+/* The SerieA 9000 logo must never disappear behind a panel/title. */
+.screen>.v51-page-logo{
+  position:absolute!important;
+  left:50%!important;
+  top:12px!important;
+  transform:translateX(-50%)!important;
+  z-index:500!important;
+  width:min(270px,25vw)!important;
+  height:auto!important;
+  margin:0!important;
+  pointer-events:none!important;
+  isolation:isolate!important;
+  filter:drop-shadow(0 8px 12px rgba(0,0,0,.72))!important;
+}
+#match>.v51-page-logo{width:min(230px,22vw)!important}
+
+/* Let the dedicated artwork breathe. The image, not a navy rectangle, is the stage. */
+#v10CupSetup[data-v10-competition]::before,
+#v10Tournament[data-v10-competition]::before{
+  background:linear-gradient(180deg,rgba(2,7,19,.07),rgba(2,7,19,.18))!important;
+}
+#v10CupSetup[data-v10-competition] .s9-team-picker{
+  background:linear-gradient(180deg,rgba(3,13,37,.46),rgba(3,13,37,.34))!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  border-color:rgba(238,213,131,.88)!important;
+}
+#v10CupSetup[data-v10-competition] .s9-picker-side{
+  background:rgba(3,13,38,.48)!important;
+  backdrop-filter:blur(1px)!important;
+  -webkit-backdrop-filter:blur(1px)!important;
+}
+#v10CupSetup[data-v10-competition] .s9-picker-center{
+  background:radial-gradient(circle at 50% 46%,rgba(3,13,38,.22),transparent 66%)!important;
+}
+#v10Tournament[data-v10-competition] .v10-tournament-shell{
+  background:linear-gradient(180deg,rgba(3,12,34,.50),rgba(3,10,27,.38))!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+#v10Tournament[data-v10-competition] #v10TournamentContent{
+  background:rgba(1,8,24,.10)!important;
+  border-radius:8px;
+}
+
+/* Header content sits below the floating logo, while the logo remains visually in front. */
+#cupsMenu .cups-shell{padding-top:86px!important}
+#v10CupSetup[data-v10-competition] .s9-team-picker{padding-top:82px!important}
+#v10Tournament[data-v10-competition] .v10-tournament-shell{padding-top:76px!important}
+
+/* Large desktop/fullscreen should feel like a game screen, not a small website card. */
+@media (min-width:1100px) and (min-height:720px){
+  #cupsMenu .cups-shell{
+    position:absolute!important;
+    left:50%!important;top:50%!important;
+    transform:translate(-50%,-50%)!important;
+    width:min(1320px,92vw)!important;
+    height:min(760px,78vh)!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:92px 24px 22px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    overflow:hidden!important;
+  }
+  #cupsMenu .v10-title{flex:0 0 auto}
+  #cupsMenu .v10-subtitle{flex:0 0 auto}
+  #cupsMenu .v10-cup-grid{
+    flex:1 1 auto!important;
+    min-height:0!important;
+    align-items:stretch!important;
+    margin-top:12px!important;
+  }
+  #cupsMenu .v10-cup-btn.v104-cup-card{
+    height:100%!important;
+    min-height:0!important;
+    justify-content:center!important;
+  }
+  #cupsMenu .v10-actions{flex:0 0 auto;margin-top:14px!important}
+
+  #v10CupSetup[data-v10-competition] .s9-team-picker{
+    inset:86px 4vw 24px!important;
+    max-width:1380px!important;
+    padding:82px 18px 16px!important;
+  }
+  #v10CupSetup[data-v10-competition] .s9-picker-grid{
+    grid-template-columns:minmax(220px,.82fr) minmax(520px,1.9fr) minmax(220px,.82fr)!important;
+    gap:18px!important;
+  }
+  #v10CupSetup[data-v10-competition] .s9-picker-kits{
+    flex-basis:230px!important;
+  }
+  #v10CupSetup[data-v10-competition] .s9-picker-kits figure{max-width:205px!important}
+  #v10CupSetup[data-v10-competition] .s9-picker-kits img{max-height:205px!important}
+
+  #v10Tournament[data-v10-competition] .v10-tournament-shell{
+    position:absolute!important;
+    left:4vw!important;right:4vw!important;
+    top:86px!important;bottom:24px!important;
+    width:auto!important;height:auto!important;max-width:1380px!important;
+    margin:0 auto!important;
+    padding:76px 20px 16px!important;
+  }
+}
+
+/* Keep the competition artwork visible during the match flow as well. */
+body[data-v10-cup-theme] :is(#prematch,#kits,#match,#halftime,#postmatch)::before{
+  opacity:.52!important;
+}
+body[data-v10-cup-theme] :is(#prematch,#halftime,#postmatch)>.panel,
+body[data-v10-cup-theme] #match .match-shell{
+  background:rgba(3,12,34,.70)!important;
+  backdrop-filter:blur(1px)!important;
+  -webkit-backdrop-filter:blur(1px)!important;
+}
+
+/* Full post-match report: never clip the lower sections. */
+#postmatch.active{
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  padding:92px 18px 42px!important;
+}
+#postmatch>.v51-page-logo{position:fixed!important;top:82px!important}
+#postmatch>.panel.v105-post-panel,
+#postmatch>.panel{
+  position:relative!important;
+  left:auto!important;right:auto!important;top:auto!important;
+  transform:none!important;
+  width:min(1180px,calc(100% - 24px))!important;
+  max-height:none!important;
+  height:auto!important;
+  margin:46px auto 28px!important;
+  padding:22px!important;
+  overflow:visible!important;
+  background:rgba(4,14,38,.84)!important;
+  color:#fff!important;
+}
+#postmatch>.panel>h2{
+  margin:0 0 8px!important;
+  text-align:center!important;
+  color:#fff4cf!important;
+  letter-spacing:.04em!important;
+}
+.v105-post-score{
+  display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  gap:18px;align-items:center;width:min(820px,100%);margin:8px auto 18px;
+  text-align:center;font:900 clamp(20px,2.4vw,32px)/1.05 "Trebuchet MS",Arial,sans-serif;
+}
+.v105-post-score span:first-child{text-align:right}.v105-post-score span:last-child{text-align:left}
+.v105-post-score strong{
+  min-width:120px;padding:8px 14px;border:1px solid #d5b85f;border-radius:6px;
+  color:#f6dc7a;background:rgba(2,10,30,.82);font:900 clamp(25px,3vw,40px)/1 Impact,Arial,sans-serif;
+}
+#postmatch>.panel>.grid{
+  display:grid!important;
+  grid-template-columns:minmax(300px,.82fr) minmax(0,1.6fr)!important;
+  gap:14px!important;
+  margin-top:0!important;
+}
+#postmatch>.panel>.grid>div{
+  min-width:0;padding:12px;border:1px solid rgba(213,184,95,.55);
+  background:rgba(2,10,29,.66);border-radius:8px;
+}
+#postmatch>.panel>.grid>div>h3{
+  margin:0 0 9px!important;padding-bottom:7px;border-bottom:1px solid rgba(213,184,95,.38);
+  color:#f0d47b!important;font-size:12px!important;letter-spacing:.08em!important;
+}
+.v105-number-table{display:grid;gap:4px}
+.v105-number-head,.v105-number-row{
+  display:grid;grid-template-columns:minmax(64px,1fr) minmax(110px,1.5fr) minmax(64px,1fr);
+  gap:8px;align-items:center;text-align:center;
+}
+.v105-number-head{padding-bottom:5px;color:#f0d47b;font-size:9px;font-weight:900;letter-spacing:.05em}
+.v105-number-row{padding:5px 6px;border-top:1px solid rgba(255,255,255,.08);font-size:12px}
+.v105-number-row span{color:#efe5cb}.v105-number-row b{font-size:14px;color:#fff}
+.v105-tactic-line{text-align:center;margin-top:10px;padding-top:9px;border-top:1px solid rgba(213,184,95,.35);color:#e9dfc7;font-size:11px}
+.v105-tactic-line span{margin:0 7px;color:#d5b85f}
+.v105-events-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.v105-events-grid section{min-width:0;padding:9px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.035);border-radius:6px}
+.v105-events-grid h4{margin:0 0 7px;color:#f0d47b;font-size:10px;letter-spacing:.08em}
+.v105-event-row{display:grid;grid-template-columns:38px minmax(0,1fr);gap:6px;padding:4px 0;border-top:1px solid rgba(255,255,255,.07);font-size:11px}
+.v105-event-row:first-of-type{border-top:0}.v105-event-row b{color:#f7dc82}.v105-event-row span{min-width:0;overflow-wrap:anywhere}
+.v105-event-empty{padding:7px 0;color:#aba58f;font-size:10px;font-style:italic}
+#postmatch #returnSeason{display:block!important;margin:16px auto 0!important;min-width:min(360px,90%)!important}
+
+@media (max-width:850px){
+  #postmatch>.panel>.grid{grid-template-columns:1fr!important}
+  .v105-events-grid{grid-template-columns:1fr 1fr!important}
+  #postmatch>.v51-page-logo{position:absolute!important;top:12px!important}
+}
+@media (max-width:560px){
+  .v105-events-grid{grid-template-columns:1fr!important}
+  .v105-post-score{grid-template-columns:1fr;gap:7px}
+  .v105-post-score span:first-child,.v105-post-score span:last-child{text-align:center}
+  #postmatch.active{padding:78px 8px 24px!important}
+  #postmatch>.panel{padding:14px!important;margin:18px auto!important}
+}

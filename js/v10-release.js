@@ -968,10 +968,45 @@ try{
  };
 }catch(e){console.warn('V10.3 player profile patch',e)}
 
+/* Final post-match presentation: scorers, assists, cards and injuries stay visible
+   in one compact report without changing match logic. */
+function renderV105Postmatch(){
+ const m=current;if(!m)return;
+ const panel=$c('#postmatch>.panel'),score=$c('#postScore'),stats=$c('#postStats'),eventsBox=$c('#postEvents');
+ if(!panel||!score||!stats||!eventsBox)return;
+ panel.classList.add('v105-post-panel');
+ const headings=panel.querySelectorAll(':scope>.grid>div>h3');
+ if(headings[0])headings[0].textContent='NUMERI DEL MATCH';
+ if(headings[1])headings[1].textContent='PROTAGONISTI';
+ const home=T(m.h)?.name||m.h,away=T(m.a)?.name||m.a,s=m.stats||{};
+ score.innerHTML=`<div class="v105-post-score"><span>${escapeHTML(home)}</span><strong>${m.scoreH} - ${m.scoreA}</strong><span>${escapeHTML(away)}</span></div>`;
+ const rows=[
+  ['Possesso',`${s.possessionH??50}%`,`${s.possessionA??50}%`],
+  ['Tiri',s.shotsH||0,s.shotsA||0],
+  ['Tiri in porta',s.onH||0,s.onA||0],
+  ['Parate',s.savesH||0,s.savesA||0],
+  ["Calci d'angolo",s.cornersH||0,s.cornersA||0]
+ ];
+ const st=career?.teamStates?.[career.user];
+ stats.innerHTML=`<div class="v105-number-table"><div class="v105-number-head"><span>${escapeHTML(home)}</span><span>STATISTICA</span><span>${escapeHTML(away)}</span></div>${rows.map(r=>`<div class="v105-number-row"><b>${r[1]}</b><span>${r[0]}</span><b>${r[2]}</b></div>`).join('')}</div><div class="v105-tactic-line">Modulo <b>${escapeHTML(st?.formation||'—')}</b><span>·</span> Atteggiamento <b>${escapeHTML(st?.mentality||'—')}</b></div>`;
+ const played=(m.events||[]).filter(e=>Number(e.min||0)<=Math.max(90,Number(m.minute||90)));
+ const goals=played.filter(e=>e.type==='goal');
+ const assists=goals.filter(e=>e.assist);
+ const cards=played.filter(e=>e.type==='yellow'||e.type==='red');
+ const injuries=played.filter(e=>e.type==='injury');
+ const list=(items,render,empty='Nessuno')=>items.length?items.map(render).join(''):`<div class="v105-event-empty">${empty}</div>`;
+ eventsBox.innerHTML=`<div class="v105-events-grid">
+  <section><h4>MARCATORI</h4>${list(goals,e=>`<div class="v105-event-row"><b>${e.min}'</b><span>${escapeHTML(e.player?.name||'—')}</span></div>`,'Nessun gol')}</section>
+  <section><h4>ASSIST</h4>${list(assists,e=>`<div class="v105-event-row"><b>${e.min}'</b><span>${escapeHTML(e.assist?.name||'—')}</span></div>`,'Nessun assist')}</section>
+  <section><h4>CARTELLINI</h4>${list(cards,e=>`<div class="v105-event-row"><b>${e.min}'</b><span>${e.type==='red'?'🟥':'🟨'} ${escapeHTML(e.player?.name||'—')}</span></div>`,'Nessun cartellino')}</section>
+  <section><h4>INFORTUNI</h4>${list(injuries,e=>`<div class="v105-event-row"><b>${e.min}'</b><span>${escapeHTML(e.player?.name||'—')}${e.injuryLabel?` · ${escapeHTML(e.injuryLabel)}`:''}</span></div>`,'Nessun infortunio')}</section>
+ </div>`;
+}
+
 /* Finalize condition exactly once when a played match reaches post-match. */
 try{
  const oldShowV103=show;
- show=function(id){const out=oldShowV103(id);if(id==='postmatch')finalizeMatchCondition(current,true);return out};
+ show=function(id){const out=oldShowV103(id);if(id==='postmatch'){finalizeMatchCondition(current,true);requestAnimationFrame(renderV105Postmatch)}return out};
 }catch(e){console.warn('V10.3 show patch',e)}
 
 /* Small live indicator: individual values remain available in TATTICA/CAMBI. */
