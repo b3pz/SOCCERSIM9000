@@ -713,7 +713,7 @@ main{max-width:none!important;padding:0!important}
 <link rel="stylesheet" href="css/v91-final-touches.css?v=10-final-3">
 <link rel="stylesheet" href="css/v10-release.css?v=10-final-3">
 <link rel="stylesheet" href="css/v102-hotfix.css?v=10-final-3">
-<link rel="stylesheet" href="css/v104-professional-layout.css?v=10-final-4">
+<link rel="stylesheet" href="css/v104-professional-layout.css?v=10-final-5">
 </head>
 <body>
 <header><div><h1>SERIEA 9000 SIM</h1><small id="headerSub">IL CAMPIONATO DEI CAMPIONI</small></div><div id="headerRight">—</div></header>
@@ -989,44 +989,14 @@ main{max-width:none!important;padding:0!important}
 
 <section id="postmatch" class="screen">
 <img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
-<div class="panel v105-post-panel">
+<div class="panel">
 <h2>ANALISI POST-PARTITA</h2>
-<div id="postScore" class="v105-post-score"></div>
-
-<div class="v105-post-summary-card" aria-label="Riepilogo partita">
-  <div class="v105-post-summary-head">RIEPILOGO PARTITA</div>
-  <div class="v105-post-summary-grid">
-    <section class="v105-post-item">
-      <h3>GOL</h3>
-      <div id="v105PostGoals" class="v105-post-list"></div>
-    </section>
-    <section class="v105-post-item">
-      <h3>ASSIST</h3>
-      <div id="v105PostAssists" class="v105-post-list"></div>
-    </section>
-    <section class="v105-post-item">
-      <h3>CARTELLINI</h3>
-      <div id="v105PostCards" class="v105-post-list"></div>
-    </section>
-    <section class="v105-post-item">
-      <h3>INFORTUNI</h3>
-      <div id="v105PostInjuries" class="v105-post-list"></div>
-    </section>
-  </div>
-  <div id="postStatus" class="v105-post-status"></div>
+<div id="postScore"></div>
+<div class="grid" style="margin-top:12px">
+<div><h3>Statistiche</h3><div id="postStats"></div></div>
+<div><h3>Eventi chiave</h3><div id="postEvents"></div></div>
 </div>
-
-<div class="v105-post-stats-card">
-  <div class="v105-post-summary-head">NUMERI DEL MATCH</div>
-  <div id="postStats" class="v105-post-stats-grid"></div>
-</div>
-
-<!-- Manteniamo il contenitore storico per compatibilità con eventuali estensioni, ma non lo mostriamo. -->
-<div id="postEvents" class="v105-post-events-legacy" hidden></div>
-
-<div class="v105-post-actions">
-  <button class="primary" id="returnSeason">TORNA AL RIEPILOGO STAGIONE</button>
-</div>
+<br><button class="primary" id="returnSeason">TORNA AL RIEPILOGO STAGIONE</button>
 </div>
 </section>
 
@@ -1315,13 +1285,13 @@ function renderV63TacticalXI(){
  for(const p of ps)if(ordered.length<11&&!ordered.some(x=>x.id===p.id))ordered.push(p);
  const f=st.formation||"4-4-1-1";
  const layouts={
-  "4-4-1-1":[[8,50],[27,16],[27,38],[27,62],[27,84],[51,14],[51,38],[51,62],[51,86],[70,50],[86,50]],
-  "4-3-1-2":[[8,50],[28,16],[28,38],[28,62],[28,84],[52,25],[52,50],[52,75],[69,50],[86,34],[86,66]],
-  "3-5-2":[[8,50],[29,24],[29,50],[29,76],[53,10],[53,30],[53,50],[53,70],[53,90],[84,34],[84,66]],
-  "4-4-2":[[8,50],[27,16],[27,38],[27,62],[27,84],[54,15],[54,38],[54,62],[54,85],[84,34],[84,66]],
-  "4-3-2-1":[[8,50],[27,16],[27,38],[27,62],[27,84],[52,25],[52,50],[52,75],[70,34],[70,66],[87,50]],
-  "4-2-3-1":[[8,50],[27,16],[27,38],[27,62],[27,84],[48,35],[48,65],[68,18],[68,50],[68,82],[87,50]],
-  "4-3-3":[[8,50],[27,16],[27,38],[27,62],[27,84],[53,25],[53,50],[53,75],[84,18],[84,50],[84,82]]
+  "4-4-1-1":[[10,50],[24,12],[24,37],[24,63],[24,88],[50,14],[50,38],[50,62],[50,86],[72,50],[89,50]],
+  "4-3-1-2":[[10,50],[24,12],[24,37],[24,63],[24,88],[49,24],[49,50],[49,76],[69,50],[88,34],[88,66]],
+  "3-5-2":[[10,50],[26,22],[26,50],[26,78],[48,10],[48,30],[48,50],[48,70],[48,90],[86,34],[86,66]],
+  "4-4-2":[[10,50],[24,12],[24,37],[24,63],[24,88],[52,14],[52,38],[52,62],[52,86],[88,34],[88,66]],
+  "4-3-2-1":[[10,50],[24,12],[24,37],[24,63],[24,88],[49,24],[49,50],[49,76],[71,34],[71,66],[89,50]],
+  "4-2-3-1":[[10,50],[24,12],[24,37],[24,63],[24,88],[43,35],[43,65],[67,18],[67,50],[67,82],[89,50]],
+  "4-3-3":[[10,50],[24,12],[24,37],[24,63],[24,88],[50,24],[50,50],[50,76],[88,18],[88,50],[88,82]]
  };
  const pos=layouts[f]||layouts["4-4-1-1"];
  box.innerHTML=ordered.map((p,i)=>{const [x,y]=pos[i]||[50,50];const short=p.name.split(" ").slice(-1)[0];return `<div class="v63-player" style="left:${x}%;top:${y}%"><div class="v63-dot">${i+1}</div><div class="v63-name">${short}</div></div>`}).join("");
@@ -1688,28 +1658,6 @@ document.querySelectorAll("[data-kit-side]").forEach(b=>b.onclick=()=>{
 });
 $("#kitBack").onclick=()=>show("prematch");
 
-function v105SafePostLines(lines,emptyText){
- const clean=(lines||[]).filter(Boolean);
- return clean.length?clean.map(x=>`<div class="v105-post-line">${escapeHTML(String(x))}</div>`).join(""):`<div class="v105-post-empty">${emptyText}</div>`;
-}
-function renderPostMatchSummary(){
- const events=Array.isArray(current?.keyEvents)?current.keyEvents:[];
- const goals=events.filter(x=>/\bGOL\b/i.test(x));
- const cards=events.filter(x=>/\bGiallo\b|\bRosso\b/i.test(x));
- const injuries=events.filter(x=>/\bINFORTUNIO\b/i.test(x));
- const assists=[];
- for(const line of goals){
-   const m=String(line).match(/^(\d+)'\s+GOL\s+.+?\s+\(assist\s+(.+)\)$/i);
-   if(m)assists.push(`${m[1]}' ${m[2]}`);
- }
- const g=document.querySelector('#v105PostGoals'),a=document.querySelector('#v105PostAssists'),c=document.querySelector('#v105PostCards'),i=document.querySelector('#v105PostInjuries');
- if(g)g.innerHTML=v105SafePostLines(goals.map(x=>String(x).replace(/\s+\(assist.+\)$/i,'')),'Nessun gol');
- if(a)a.innerHTML=v105SafePostLines(assists,'Nessun assist');
- if(c)c.innerHTML=v105SafePostLines(cards,'Nessun cartellino');
- if(i)i.innerHTML=v105SafePostLines(injuries,'Nessun infortunio');
- const status=document.querySelector('#postStatus');if(status)status.innerHTML='';
-}
-
 async function launchMatch(){
  if(!current?.fixture||current._running)return;
  current._running=true;
@@ -1733,14 +1681,9 @@ async function launchMatch(){
  career.round++;
  }
  current._finished=true;current._running=false;
- $("#postScore").innerHTML=`<h2>${T(current.h).name} <strong>${current.scoreH} - ${current.scoreA}</strong> ${T(current.a).name}</h2>`;
- $("#postStats").innerHTML=`
-   <div class="v105-stat"><span>TIRI</span><b>${current.stats.shotsH} - ${current.stats.shotsA}</b></div>
-   <div class="v105-stat"><span>IN PORTA</span><b>${current.stats.onH} - ${current.stats.onA}</b></div>
-   <div class="v105-stat"><span>MODULO</span><b>${escapeHTML(career.teamStates[career.user].formation)}</b></div>
-   <div class="v105-stat"><span>ATTEGGIAMENTO</span><b>${escapeHTML(career.teamStates[career.user].mentality)}</b></div>`;
- $("#postEvents").innerHTML=current.keyEvents.length?current.keyEvents.map(x=>`<div>${escapeHTML(String(x))}</div>`).join(""):"";
- renderPostMatchSummary();
+ $("#postScore").innerHTML=`<h2>${T(current.h).name} ${current.scoreH} - ${current.scoreA} ${T(current.a).name}</h2>`;
+ $("#postStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}<br>Modulo: ${career.teamStates[career.user].formation}<br>Atteggiamento: ${career.teamStates[career.user].mentality}`;
+ $("#postEvents").innerHTML=current.keyEvents.length?current.keyEvents.map(x=>`<div class="card">${x}</div>`).join(""):"Nessun evento chiave.";
  show("postmatch"); if(!window.S9V10?.matchContext&&career?.careerId)S9Save.putCareer(career).catch(e=>console.warn("Save:",e)); if(sb){sb.disabled=false;sb.textContent="SCEGLI DIVISE ▶"}
 }
 
@@ -2205,7 +2148,7 @@ renderTeamPicker();
 <script src="js/v80-safari-iphone.js?v=10-final-3"></script>
 <script src="js/v91-final-touches.js?v=10-final-3"></script>
 <script src="js/v10-data.js?v=10-final-3"></script>
-<script src="js/v10-release.js?v=10-final-4"></script>
-<script src="js/v104-navigation.js?v=10-final-3"></script>
+<script src="js/v10-release.js?v=10-final-5"></script>
+<script src="js/v104-navigation.js?v=10-final-5"></script>
 </body>
 </html>

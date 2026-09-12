@@ -370,162 +370,273 @@ input,select{border-radius:6px}
 #setup #teamStep.s9-team-picker[style*="display: none"],
 #setup #teamStep.s9-team-picker[style*="display:none"]{display:none!important}
 
-/* ================================================================
-   V10 FINAL GRAPHIC POLISH 01 — POST-MATCH SUMMARY
-   Compact one-card recap instead of scattered event boxes.
-   ================================================================ */
-#postmatch>.v105-post-panel{
-  display:flex!important;
-  flex-direction:column!important;
-  gap:10px!important;
-  max-height:min(88vh,820px)!important;
-  overflow:auto!important;
-  padding:clamp(16px,2vw,26px)!important;
+/* ------------------------------------------------------------------
+   V10 final graphic polish — cup identity / world-euro flavour
+------------------------------------------------------------------ */
+#cupsMenu .cups-shell{position:relative;overflow:hidden!important}
+#cupsMenu .cups-shell::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(circle at 50% -10%,rgba(255,255,255,.09),transparent 38%),
+    linear-gradient(180deg,rgba(213,184,95,.08),transparent 28%,transparent 72%,rgba(213,184,95,.06));
 }
-#postmatch>.v105-post-panel>h2{
-  margin:0!important;
-  text-align:center!important;
-  letter-spacing:.08em!important;
+#cupsMenu .v10-cup-grid{align-items:stretch!important}
+#cupsMenu .v10-cup-btn.v104-cup-card{
+  position:relative;overflow:hidden;isolation:isolate;
+  min-height:220px!important;padding:16px 14px 14px!important;
+  justify-content:flex-start!important;gap:10px!important;
+  border:1px solid rgba(236,214,144,.72)!important;
+  background:linear-gradient(180deg,rgba(7,22,55,.95),rgba(4,12,31,.97))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 14px 34px rgba(0,0,0,.35)!important;
 }
-#postmatch .v105-post-score{
-  text-align:center!important;
-  margin:0!important;
+#cupsMenu .v10-cup-btn.v104-cup-card::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.95;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 22%,transparent 78%,rgba(0,0,0,.2));
 }
-#postmatch .v105-post-score h2{
-  margin:0!important;
-  font-size:clamp(19px,2vw,30px)!important;
-  line-height:1.1!important;
+#cupsMenu .v10-cup-btn.v104-cup-card::after{
+  content:"";position:absolute;right:-18px;top:-18px;width:84px;height:84px;pointer-events:none;
+  border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),rgba(255,255,255,0) 68%);
 }
-#postmatch .v105-post-score strong{
-  display:inline-block!important;
-  margin:0 .45em!important;
-  padding:.12em .42em!important;
-  color:#f4df8a!important;
-  border:1px solid rgba(222,191,92,.65)!important;
-  background:rgba(3,14,39,.78)!important;
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)!important;
+.v104-cup-topline{display:block;font:900 10px/1.2 "Trebuchet MS",Arial,sans-serif;letter-spacing:.18em;color:#f6e4a2;text-transform:uppercase}
+.v104-cup-emblem{
+  width:96px;height:96px;display:grid;place-items:center;position:relative;margin:2px auto 0;
+  border-radius:22px;border:1px solid rgba(255,240,188,.48);background:rgba(247,240,220,.08);
+  box-shadow:inset 0 0 24px rgba(255,255,255,.06);
 }
-#postmatch .v105-post-summary-card,
-#postmatch .v105-post-stats-card{
-  border:1px solid rgba(213,184,95,.65)!important;
-  background:linear-gradient(180deg,rgba(4,17,47,.88),rgba(2,11,31,.78))!important;
-  color:#f5efdf!important;
-  box-shadow:0 10px 28px rgba(0,0,0,.28)!important;
-  border-radius:8px!important;
-  overflow:hidden!important;
+.v104-cup-shape{position:relative;display:block;width:54px;height:62px}
+.v104-cup-year{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);font:900 9px/1 Arial,sans-serif;letter-spacing:.18em;color:#fff6c7}
+.v104-cup-hook{display:block;font:900 10px/1.2 "Trebuchet MS",Arial,sans-serif;letter-spacing:.12em;color:#f0d47b;text-transform:uppercase}
+#cupsMenu .v10-cup-name{font:900 clamp(18px,1.7vw,24px)/1.02 Impact,"Arial Narrow",sans-serif!important;color:#fff4cf!important;letter-spacing:.03em}
+#cupsMenu .v10-cup-desc{font-size:11px!important;color:#eadfca!important;line-height:1.35!important}
+
+.v104-cup-italia{background:linear-gradient(180deg,rgba(19,63,46,.95),rgba(6,25,31,.97))!important}
+.v104-cup-italia .v104-cup-emblem{background:linear-gradient(180deg,rgba(25,106,66,.34),rgba(255,255,255,.06))}
+.v104-cup-italia .v104-cup-shape::before{
+  content:"";position:absolute;left:10px;right:10px;top:6px;bottom:10px;
+  background:linear-gradient(180deg,#fbf5dc 0%,#e5c96d 55%,#bc9031 100%);
+  clip-path:polygon(22% 0,78% 0,72% 18%,72% 49%,62% 63%,58% 100%,42% 100%,38% 63%,28% 49%,28% 18%);
 }
-#postmatch .v105-post-summary-head{
-  padding:7px 11px!important;
-  background:rgba(218,187,90,.12)!important;
-  border-bottom:1px solid rgba(213,184,95,.42)!important;
-  color:#e7ca70!important;
-  font-weight:900!important;
-  font-size:clamp(10px,.85vw,13px)!important;
-  letter-spacing:.12em!important;
-  text-align:left!important;
-}
-#postmatch .v105-post-summary-grid{
-  display:grid!important;
-  grid-template-columns:repeat(4,minmax(0,1fr))!important;
-}
-#postmatch .v105-post-item{
-  min-width:0!important;
-  padding:10px 11px 11px!important;
-  border-right:1px solid rgba(213,184,95,.22)!important;
-}
-#postmatch .v105-post-item:last-child{border-right:0!important}
-#postmatch .v105-post-item h3{
-  margin:0 0 7px!important;
-  padding:0 0 5px!important;
-  border-bottom:1px solid rgba(255,255,255,.12)!important;
-  color:#fff!important;
-  font-size:clamp(10px,.85vw,13px)!important;
-  letter-spacing:.08em!important;
-}
-#postmatch .v105-post-list{
-  display:grid!important;
-  gap:4px!important;
-  font-size:clamp(10px,.8vw,12px)!important;
-  line-height:1.28!important;
-}
-#postmatch .v105-post-line{
-  white-space:normal!important;
-  overflow-wrap:anywhere!important;
-}
-#postmatch .v105-post-empty{
-  color:rgba(238,234,221,.55)!important;
-  font-style:italic!important;
-}
-#postmatch .v105-post-status:empty{display:none!important}
-#postmatch .v105-post-status{
-  display:flex!important;
-  flex-wrap:wrap!important;
-  gap:5px 14px!important;
-  padding:8px 11px!important;
-  border-top:1px solid rgba(213,184,95,.35)!important;
-  background:rgba(120,34,28,.12)!important;
-  color:#f2dca1!important;
-  font-size:clamp(9px,.76vw,11px)!important;
-  line-height:1.3!important;
-}
-#postmatch .v105-post-status .v103-post-summary{
-  display:contents!important;
-}
-#postmatch .v105-post-status .v103-post-summary>div{
-  margin:0!important;
-}
-#postmatch .v105-post-stats-grid{
-  display:grid!important;
-  grid-template-columns:repeat(4,minmax(0,1fr))!important;
-}
-#postmatch .v105-stat{
-  display:grid!important;
-  gap:3px!important;
-  padding:9px 11px!important;
-  text-align:center!important;
-  border-right:1px solid rgba(213,184,95,.22)!important;
-}
-#postmatch .v105-stat:last-child{border-right:0!important}
-#postmatch .v105-stat span{
-  color:#cfd6e5!important;
-  font-size:clamp(8px,.7vw,10px)!important;
-  font-weight:800!important;
-  letter-spacing:.08em!important;
-}
-#postmatch .v105-stat b{
-  color:#fff!important;
-  font-size:clamp(12px,1vw,16px)!important;
-  line-height:1.15!important;
-}
-#postmatch .v105-post-events-legacy{display:none!important}
-#postmatch .v105-post-actions{
-  display:flex!important;
-  justify-content:center!important;
-  margin-top:1px!important;
-}
-#postmatch .v105-post-actions button{
-  min-width:min(360px,100%)!important;
+.v104-cup-italia .v104-cup-shape::after{content:"";position:absolute;left:3px;right:3px;top:19px;height:16px;border-top:5px solid #f3de95;border-left:4px solid #f3de95;border-right:4px solid #f3de95;border-radius:14px 14px 0 0;opacity:.92}
+
+.v104-cup-cdc{background:linear-gradient(180deg,rgba(16,40,88,.96),rgba(6,18,38,.98))!important}
+.v104-cup-cdc .v104-cup-emblem{background:radial-gradient(circle at 50% 35%,rgba(255,247,205,.22),rgba(255,255,255,.05) 55%,rgba(6,18,38,.2) 100%)}
+.v104-cup-cdc .v104-cup-shape::before{content:"";position:absolute;left:9px;right:9px;top:10px;height:38px;background:linear-gradient(180deg,#fdf5d8,#e8c96c 58%,#ba9233);clip-path:polygon(25% 0,75% 0,66% 46%,66% 100%,34% 100%,34% 46%)}
+.v104-cup-cdc .v104-cup-shape::after{content:"";position:absolute;inset:0;background:conic-gradient(from 0deg,transparent 0 24%,#f2dc94 24% 26%,transparent 26% 49%,#f2dc94 49% 51%,transparent 51% 74%,#f2dc94 74% 76%,transparent 76% 100%);opacity:.7;clip-path:circle(48% at 50% 42%)}
+
+.v104-cup-uefa{background:linear-gradient(180deg,rgba(89,45,16,.96),rgba(36,19,10,.98))!important}
+.v104-cup-uefa .v104-cup-emblem{background:linear-gradient(180deg,rgba(171,100,47,.28),rgba(255,255,255,.05))}
+.v104-cup-uefa .v104-cup-shape::before{content:"";position:absolute;left:17px;right:17px;top:6px;bottom:12px;background:linear-gradient(180deg,#fff1cf,#ebca72 55%,#bb8840);clip-path:polygon(50% 0,72% 18%,66% 78%,34% 78%,28% 18%)}
+.v104-cup-uefa .v104-cup-shape::after{content:"";position:absolute;left:11px;right:11px;top:18px;bottom:18px;border-left:3px solid #f5e0a0;border-right:3px solid #f5e0a0;opacity:.86}
+
+.v104-cup-world{background:linear-gradient(180deg,rgba(12,67,137,.96),rgba(6,31,69,.98))!important}
+.v104-cup-world .v104-cup-topline{color:#fff7d2}
+.v104-cup-world .v104-cup-emblem{background:linear-gradient(180deg,rgba(4,69,145,.48),rgba(184,45,45,.18))}
+.v104-cup-world .v104-cup-shape::before{content:"";position:absolute;inset:7px 8px 17px;background:radial-gradient(circle at 50% 45%,rgba(251,245,220,.98) 0 16px,transparent 16px),radial-gradient(circle at 50% 45%,transparent 0 20px,#f5de97 20px 22px,transparent 22px),linear-gradient(180deg,#f7e4a0,#d3a53a);clip-path:polygon(50% 0,76% 15%,70% 49%,58% 63%,58% 100%,42% 100%,42% 63%,30% 49%,24% 15%)}
+.v104-cup-world .v104-cup-shape::after{content:"";position:absolute;left:14px;right:14px;bottom:16px;height:8px;border-radius:8px;background:linear-gradient(90deg,#f9f2d2,#e2bd58,#f9f2d2)}
+.v104-cup-world .v10-cup-name{color:#ffffff!important;text-shadow:0 0 10px rgba(255,255,255,.12)}
+
+.v104-cup-euro{background:linear-gradient(180deg,rgba(60,28,96,.96),rgba(17,11,46,.98))!important}
+.v104-cup-euro .v104-cup-emblem{background:linear-gradient(180deg,rgba(95,56,163,.34),rgba(18,13,48,.18))}
+.v104-cup-euro .v104-cup-shape::before{content:"";position:absolute;left:8px;right:8px;top:8px;bottom:14px;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(255,241,196,.95) 0 15px,transparent 15px),radial-gradient(circle at 50% 50%,transparent 0 22px,#f0cf77 22px 24px,transparent 24px)}
+.v104-cup-euro .v104-cup-shape::after{content:"";position:absolute;inset:0;background:conic-gradient(from 15deg,#f0cf77 0 4%,transparent 4% 20%,#f0cf77 20% 24%,transparent 24% 40%,#f0cf77 40% 44%,transparent 44% 60%,#f0cf77 60% 64%,transparent 64% 80%,#f0cf77 80% 84%,transparent 84% 100%);clip-path:circle(49% at 50% 41%);opacity:.9}
+
+.v104-competition-kicker,.v104-competition-main{display:block}
+.v104-competition-kicker{font:900 10px/1.2 "Trebuchet MS",Arial,sans-serif;letter-spacing:.18em;color:#f0d47b;text-transform:uppercase;margin-bottom:4px}
+.v104-competition-main{font:900 clamp(18px,2.4vw,30px)/1.02 Impact,"Arial Narrow",sans-serif;color:#fff6d7;letter-spacing:.04em}
+#v10TournamentTitle .v104-competition-main{font-size:clamp(22px,2.4vw,34px)}
+#v10CupSetup[data-v10-competition="world"] .s9-team-picker,
+#v10Tournament[data-v10-competition="world"] .v10-tournament-shell{background:linear-gradient(180deg,rgba(6,41,93,.95),rgba(5,17,49,.94))!important}
+#v10CupSetup[data-v10-competition="euro"] .s9-team-picker,
+#v10Tournament[data-v10-competition="euro"] .v10-tournament-shell{background:linear-gradient(180deg,rgba(34,16,72,.95),rgba(11,9,39,.94))!important}
+#v10CupSetup[data-v10-competition="cdc"] .s9-team-picker,
+#v10Tournament[data-v10-competition="cdc"] .v10-tournament-shell{background:linear-gradient(180deg,rgba(7,24,66,.96),rgba(4,14,36,.94))!important}
+#v10CupSetup[data-v10-competition="uefa"] .s9-team-picker,
+#v10Tournament[data-v10-competition="uefa"] .v10-tournament-shell{background:linear-gradient(180deg,rgba(53,27,13,.95),rgba(22,14,10,.94))!important}
+#v10CupSetup[data-v10-competition="italia"] .s9-team-picker,
+#v10Tournament[data-v10-competition="italia"] .v10-tournament-shell{background:linear-gradient(180deg,rgba(8,41,36,.95),rgba(6,19,28,.94))!important}
+#v10CupSetup[data-v10-competition] .s9-picker-heading,
+#v10Tournament[data-v10-competition] #v10TournamentTitle{border-bottom:1px solid rgba(244,220,139,.72)!important}
+#season>.v104-menu-back{z-index:65!important}
+
+@media (max-height:600px) and (min-width:560px) and (max-width:1200px){
+  #cupsMenu .v10-cup-btn.v104-cup-card{height:calc(100vh - 106px)!important;min-height:0!important;padding:8px 6px!important;gap:4px!important}
+  .v104-cup-emblem{width:60px;height:60px;border-radius:14px}
+  .v104-cup-shape{width:36px;height:40px}.v104-cup-year{font-size:6px;bottom:4px}
+  #cupsMenu .v10-cup-name{font-size:12px!important}.v104-cup-topline,.v104-cup-hook{font-size:7px!important;letter-spacing:.11em}
+  #cupsMenu .v10-cup-desc{font-size:7px!important;line-height:1.2!important}
+  .v104-competition-kicker{font-size:7px!important;margin-bottom:2px}.v104-competition-main{font-size:15px!important}
 }
 
-@media (max-width:760px){
-  #postmatch .v105-post-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  #postmatch .v105-post-item:nth-child(2){border-right:0!important}
-  #postmatch .v105-post-item:nth-child(-n+2){border-bottom:1px solid rgba(213,184,95,.22)!important}
-  #postmatch .v105-post-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  #postmatch .v105-stat:nth-child(2){border-right:0!important}
-  #postmatch .v105-stat:nth-child(-n+2){border-bottom:1px solid rgba(213,184,95,.22)!important}
+/* ------------------------------------------------------------------
+   V10 graphic polish 03 — stronger competition identity + prematch fix
+------------------------------------------------------------------ */
+#v10CupSetup[data-v10-competition],
+#v10Tournament[data-v10-competition],
+body[data-v10-cup-theme] #prematch,
+body[data-v10-cup-theme] #halftime,
+body[data-v10-cup-theme] #postmatch,
+body[data-v10-cup-theme] #match{isolation:isolate}
+
+#v10CupSetup[data-v10-competition] .v10-shell,
+#v10Tournament[data-v10-competition] .v10-tournament-shell{
+  position:relative;overflow:hidden!important;isolation:isolate;
+  border-color:rgba(239,214,126,.9)!important;
+  box-shadow:0 18px 46px rgba(0,0,0,.4), inset 0 0 0 1px rgba(255,255,255,.04)!important;
 }
-@media (max-height:600px) and (min-width:560px){
-  #postmatch>.v105-post-panel{gap:5px!important;padding:9px 12px!important;max-height:94vh!important}
-  #postmatch>.v105-post-panel>h2{font-size:15px!important}
-  #postmatch .v105-post-score h2{font-size:15px!important}
-  #postmatch .v105-post-summary-head{padding:4px 7px!important;font-size:8px!important}
-  #postmatch .v105-post-item{padding:5px 7px!important}
-  #postmatch .v105-post-item h3{font-size:8px!important;margin-bottom:3px!important;padding-bottom:3px!important}
-  #postmatch .v105-post-list{font-size:7px!important;gap:2px!important}
-  #postmatch .v105-post-status{padding:4px 7px!important;font-size:7px!important}
-  #postmatch .v105-stat{padding:5px 7px!important}
-  #postmatch .v105-stat span{font-size:6px!important}
-  #postmatch .v105-stat b{font-size:9px!important}
-  #postmatch .v105-post-actions button{min-height:27px!important;font-size:8px!important;padding:3px 8px!important}
+#v10CupSetup[data-v10-competition] .v10-shell>* ,
+#v10Tournament[data-v10-competition] .v10-tournament-shell>*{position:relative;z-index:1}
+#v10CupSetup[data-v10-competition] .v10-shell::before,
+#v10Tournament[data-v10-competition] .v10-tournament-shell::before{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  font:900 clamp(46px,7vw,108px)/.9 Impact,"Arial Narrow",sans-serif;
+  letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;
+  color:rgba(255,249,224,.09);text-shadow:0 0 18px rgba(255,255,255,.05);
+  pointer-events:none;z-index:0;
+}
+#v10CupSetup[data-v10-competition] .v10-shell::after,
+#v10Tournament[data-v10-competition] .v10-tournament-shell::after{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(circle at 50% 15%,rgba(255,255,255,.08),transparent 24%),
+    linear-gradient(90deg,transparent 0 8%,rgba(255,255,255,.05) 8% 8.5%,transparent 8.5% 91.5%,rgba(255,255,255,.05) 91.5% 92%,transparent 92% 100%),
+    linear-gradient(180deg,rgba(245,218,121,.08),transparent 18%,transparent 82%,rgba(245,218,121,.08));
+}
+
+/* competition-specific setup/tournament styling */
+#v10CupSetup[data-v10-competition="world"] .v10-shell,
+#v10Tournament[data-v10-competition="world"] .v10-tournament-shell{
+  background:
+    linear-gradient(180deg,rgba(11,53,118,.95),rgba(7,26,74,.95)),
+    radial-gradient(circle at 50% 10%,rgba(255,255,255,.08),transparent 26%)!important;
+}
+#v10CupSetup[data-v10-competition="world"] .v10-shell::before,
+#v10Tournament[data-v10-competition="world"] .v10-tournament-shell::before{content:"FRANCIA 98"}
+#v10CupSetup[data-v10-competition="world"] .v10-shell::after,
+#v10Tournament[data-v10-competition="world"] .v10-tournament-shell::after{
+  background:
+    linear-gradient(90deg,rgba(22,86,185,.32) 0 22%,transparent 22% 78%,rgba(188,44,55,.28) 78% 100%),
+    radial-gradient(circle at 50% 15%,rgba(255,255,255,.14),transparent 28%),
+    linear-gradient(180deg,rgba(248,231,170,.08),transparent 20%,transparent 82%,rgba(248,231,170,.08));
+}
+#v10CupSetup[data-v10-competition="world"] .v104-competition-kicker,
+#v10Tournament[data-v10-competition="world"] .v104-competition-kicker{color:#fff5bf!important}
+
+#v10CupSetup[data-v10-competition="euro"] .v10-shell,
+#v10Tournament[data-v10-competition="euro"] .v10-tournament-shell{
+  background:linear-gradient(180deg,rgba(42,18,96,.95),rgba(13,12,52,.95))!important;
+}
+#v10CupSetup[data-v10-competition="euro"] .v10-shell::before,
+#v10Tournament[data-v10-competition="euro"] .v10-tournament-shell::before{content:"EURO 2000"}
+#v10CupSetup[data-v10-competition="euro"] .v10-shell::after,
+#v10Tournament[data-v10-competition="euro"] .v10-tournament-shell::after{
+  background:
+    conic-gradient(from 180deg at 50% 15%,rgba(241,205,102,.28),transparent 18%,rgba(241,205,102,.16) 30%,transparent 42%,rgba(241,205,102,.22) 54%,transparent 70%,rgba(241,205,102,.16) 84%,transparent 100%),
+    linear-gradient(180deg,rgba(101,74,187,.25),transparent 32%,transparent 74%,rgba(18,113,194,.18));
+}
+
+#v10CupSetup[data-v10-competition="cdc"] .v10-shell,
+#v10Tournament[data-v10-competition="cdc"] .v10-tournament-shell{
+  background:linear-gradient(180deg,rgba(6,28,79,.96),rgba(4,14,40,.96))!important;
+}
+#v10CupSetup[data-v10-competition="cdc"] .v10-shell::before,
+#v10Tournament[data-v10-competition="cdc"] .v10-tournament-shell::before{content:"COPPA DEI CAMPIONI"}
+#v10CupSetup[data-v10-competition="cdc"] .v10-shell::after,
+#v10Tournament[data-v10-competition="cdc"] .v10-tournament-shell::after{
+  background:
+    radial-gradient(circle at 50% 22%,rgba(255,234,151,.18),transparent 18%),
+    linear-gradient(90deg,transparent 0 12%,rgba(255,255,255,.06) 12% 12.4%,transparent 12.4% 87.6%,rgba(255,255,255,.06) 87.6% 88%,transparent 88% 100%),
+    linear-gradient(180deg,rgba(220,191,97,.14),transparent 16%,transparent 84%,rgba(220,191,97,.08));
+}
+
+#v10CupSetup[data-v10-competition="uefa"] .v10-shell,
+#v10Tournament[data-v10-competition="uefa"] .v10-tournament-shell{
+  background:linear-gradient(180deg,rgba(70,35,14,.96),rgba(26,16,11,.96))!important;
+}
+#v10CupSetup[data-v10-competition="uefa"] .v10-shell::before,
+#v10Tournament[data-v10-competition="uefa"] .v10-tournament-shell::before{content:"COPPA UEFA"}
+#v10CupSetup[data-v10-competition="uefa"] .v10-shell::after,
+#v10Tournament[data-v10-competition="uefa"] .v10-tournament-shell::after{
+  background:
+    linear-gradient(90deg,rgba(255,207,112,.14) 0 8%,transparent 8% 92%,rgba(255,207,112,.14) 92% 100%),
+    radial-gradient(circle at 50% 15%,rgba(255,230,162,.14),transparent 22%),
+    linear-gradient(180deg,rgba(255,221,132,.08),transparent 18%,transparent 82%,rgba(255,221,132,.08));
+}
+
+#v10CupSetup[data-v10-competition="italia"] .v10-shell,
+#v10Tournament[data-v10-competition="italia"] .v10-tournament-shell{
+  background:linear-gradient(180deg,rgba(9,61,50,.95),rgba(6,24,30,.95))!important;
+}
+#v10CupSetup[data-v10-competition="italia"] .v10-shell::before,
+#v10Tournament[data-v10-competition="italia"] .v10-tournament-shell::before{content:"COPPA ITALIA"}
+#v10CupSetup[data-v10-competition="italia"] .v10-shell::after,
+#v10Tournament[data-v10-competition="italia"] .v10-tournament-shell::after{
+  background:
+    linear-gradient(90deg,rgba(34,136,71,.22) 0 20%,transparent 20% 80%,rgba(198,52,52,.22) 80% 100%),
+    radial-gradient(circle at 50% 12%,rgba(255,255,255,.12),transparent 24%),
+    linear-gradient(180deg,rgba(243,222,150,.08),transparent 20%,transparent 80%,rgba(243,222,150,.08));
+}
+
+/* stronger in-match competition identity */
+body[data-v10-cup-theme="world"] #prematch::before,
+body[data-v10-cup-theme="world"] #halftime::before,
+body[data-v10-cup-theme="world"] #postmatch::before,
+body[data-v10-cup-theme="world"] #match::before{
+  background:
+    linear-gradient(90deg,rgba(23,86,183,.28) 0 18%,transparent 18% 82%,rgba(188,44,55,.22) 82% 100%),
+    linear-gradient(rgba(4,12,34,.34),rgba(4,12,34,.52));
+}
+body[data-v10-cup-theme="world"] #prematch::after,
+body[data-v10-cup-theme="world"] #halftime::after,
+body[data-v10-cup-theme="world"] #postmatch::after,
+body[data-v10-cup-theme="world"] #match::after{
+  content:"FRANCIA 98";position:absolute;left:50%;top:80px;transform:translateX(-50%);z-index:0;pointer-events:none;
+  font:900 clamp(42px,7vw,94px)/.92 Impact,"Arial Narrow",sans-serif;letter-spacing:.08em;color:rgba(255,244,210,.10);
+}
+body[data-v10-cup-theme="euro"] #prematch::before,
+body[data-v10-cup-theme="euro"] #halftime::before,
+body[data-v10-cup-theme="euro"] #postmatch::before,
+body[data-v10-cup-theme="euro"] #match::before{
+  background:
+    radial-gradient(circle at 50% 14%,rgba(241,205,102,.12),transparent 22%),
+    linear-gradient(180deg,rgba(70,40,153,.28),rgba(9,20,66,.48));
+}
+body[data-v10-cup-theme="euro"] #prematch::after,
+body[data-v10-cup-theme="euro"] #halftime::after,
+body[data-v10-cup-theme="euro"] #postmatch::after,
+body[data-v10-cup-theme="euro"] #match::after{
+  content:"EURO 2000";position:absolute;left:50%;top:80px;transform:translateX(-50%);z-index:0;pointer-events:none;
+  font:900 clamp(42px,7vw,94px)/.92 Impact,"Arial Narrow",sans-serif;letter-spacing:.08em;color:rgba(255,244,210,.10);
+}
+body[data-v10-cup-theme="cdc"] #prematch::before,
+body[data-v10-cup-theme="cdc"] #halftime::before,
+body[data-v10-cup-theme="cdc"] #postmatch::before,
+body[data-v10-cup-theme="cdc"] #match::before{background:linear-gradient(rgba(8,23,61,.45),rgba(5,15,43,.58)),radial-gradient(circle at 50% 14%,rgba(241,214,118,.12),transparent 20%)}
+body[data-v10-cup-theme="cdc"] #prematch::after,
+body[data-v10-cup-theme="cdc"] #halftime::after,
+body[data-v10-cup-theme="cdc"] #postmatch::after,
+body[data-v10-cup-theme="cdc"] #match::after{content:"COPPA DEI CAMPIONI";position:absolute;left:50%;top:80px;transform:translateX(-50%);z-index:0;pointer-events:none;font:900 clamp(34px,5.5vw,72px)/.94 Impact,"Arial Narrow",sans-serif;letter-spacing:.06em;color:rgba(255,244,210,.09)}
+body[data-v10-cup-theme="uefa"] #prematch::before,
+body[data-v10-cup-theme="uefa"] #halftime::before,
+body[data-v10-cup-theme="uefa"] #postmatch::before,
+body[data-v10-cup-theme="uefa"] #match::before{background:linear-gradient(rgba(67,35,17,.34),rgba(19,12,11,.56)),radial-gradient(circle at 50% 14%,rgba(255,224,145,.12),transparent 20%)}
+body[data-v10-cup-theme="uefa"] #prematch::after,
+body[data-v10-cup-theme="uefa"] #halftime::after,
+body[data-v10-cup-theme="uefa"] #postmatch::after,
+body[data-v10-cup-theme="uefa"] #match::after{content:"COPPA UEFA";position:absolute;left:50%;top:80px;transform:translateX(-50%);z-index:0;pointer-events:none;font:900 clamp(40px,6.2vw,84px)/.94 Impact,"Arial Narrow",sans-serif;letter-spacing:.07em;color:rgba(255,244,210,.10)}
+
+/* prematch tactical board — use the full playable area */
+@media (min-width:901px){
+  #prematch.active #v63TacticalXI{
+    left:29.2%!important;top:18.2%!important;width:42.8%!important;height:62.8%!important;
+  }
+  #prematch.active #v63TacticalXI .v63-player{max-width:90px!important}
+  #prematch.active #v63TacticalXI .v63-dot{width:22px!important;height:22px!important;line-height:20px!important;font-size:9px!important}
+  #prematch.active #v63TacticalXI .v63-name{font-size:9px!important;max-width:88px!important;padding:2px 5px!important}
+}
+@media (max-height:600px) and (min-width:560px) and (max-width:1200px){
+  #prematch.active #v63TacticalXI{
+    left:22.9%!important;top:10.8%!important;width:54.2%!important;height:68.5%!important;
+  }
+  #prematch.active #v63TacticalXI .v63-player{max-width:70px!important}
+  #prematch.active #v63TacticalXI .v63-name{max-width:68px!important;font-size:8px!important}
 }

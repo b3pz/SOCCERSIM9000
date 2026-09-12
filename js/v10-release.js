@@ -253,14 +253,14 @@ function restoreCareerAfterCup(){
 }
 function playTournamentFixture(state,match,mode){
  if(V10.matchContext||current?._running)return;
- V10.matchContext={state,match,mode,saved:null};tempPrepareCareerMatch(match.h,match.a,{mode});
+ V10.matchContext={state,match,mode,saved:null};applyCompetitionTheme(state.key||'');tempPrepareCareerMatch(match.h,match.a,{mode});
  const back=q('#backSeason');if(back)back.textContent='← TORNEO';
  openPrematch([match.h,match.a]);
 }
 function cancelTournamentPrematch(){
  if(!V10.matchContext)return false;
  if(V10.matchContext.mode!=='standalone')restoreCareerAfterCup();
- const mode=V10.matchContext.mode;V10.matchContext=null;
+ const mode=V10.matchContext.mode;V10.matchContext=null;if(mode!=='standalone')applyCompetitionTheme('');
  if(mode==='finaleight')show('v10FinalEight');else if(mode==='careerCup'){renderSeasonView('europe');show('season')}else show('v10Tournament');
  return true;
 }
@@ -332,10 +332,38 @@ function injectScreens(){
  <section id="v10Trophy" class="screen"><img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM"><div class="v10-shell"><div class="v10-champion"><div class="v10-title" id="v10TrophyTitle">CAMPIONE</div><img id="v10TrophyCrest" alt=""><div class="v10-champion-name" id="v10TrophyName"></div><div id="v10TrophyNote"></div><div class="v10-actions"><button class="primary" id="v10TrophyContinue">CONTINUA ▶</button></div></div></div></section>`;
  main.insertAdjacentHTML('beforeend',html);
 }
+function applyCompetitionTheme(key){
+ const theme=key||'';
+ try{document.body.dataset.v10CupTheme=theme;}catch(e){}
+ ['cupsMenu','v10CupSetup','v10Tournament','prematch','kits','match','halftime','postmatch'].forEach(id=>{
+   const el=document.getElementById(id);
+   if(!el)return;
+   if(theme) el.dataset.v10Competition=theme;
+   else delete el.dataset.v10Competition;
+ });
+}
+
+function competitionBrand(key){
+ const brands={
+  italia:{style:'italia',kicker:'COPPA NAZIONALE · ITALIA',setupTitle:'COPPA ITALIA',tournamentTitle:'COPPA ITALIA',cardTop:'COPPA NAZIONALE',cardTitle:'COPPA ITALIA',cardHook:'NOTTI ITALIANE',year:'1998·99'},
+  cdc:{style:'cdc',kicker:'EUROPA DEI CAMPIONI',setupTitle:'COPPA DEI CAMPIONI',tournamentTitle:'COPPA DEI CAMPIONI',cardTop:'COPPA EUROPEA',cardTitle:'COPPA DEI CAMPIONI',cardHook:'NOBILTÀ CONTINENTALE',year:'1999'},
+  uefa:{style:'uefa',kicker:'EUROPA DELLE GRANDI PIAZZE',setupTitle:'COPPA UEFA',tournamentTitle:'COPPA UEFA',cardTop:'COPPA EUROPEA',cardTitle:'COPPA UEFA',cardHook:'MERCOLEDÌ DI COPPA',year:'1999'},
+  world:{style:'world',kicker:'COPPA DEL MONDO · 32 NAZIONALI',setupTitle:'FRANCIA 98',tournamentTitle:'FRANCIA 98',cardTop:'COPPA DEL MONDO',cardTitle:'FRANCIA 98',cardHook:'ESTATE MONDIALE',year:'1998'},
+  euro:{style:'euro',kicker:'CAMPIONATO EUROPEO · 16 NAZIONALI',setupTitle:'EURO 2000',tournamentTitle:'EURO 2000',cardTop:'CAMPIONATO EUROPEO',cardTitle:'EURO 2000',cardHook:'NATIONS CUP',year:'2000'}
+ };
+ return brands[key]||{style:key||'cup',kicker:'COPPA',setupTitle:FORMATS?.[key]?.name||'COPPA',tournamentTitle:FORMATS?.[key]?.name||'COPPA',cardTop:'COPPA',cardTitle:FORMATS?.[key]?.name||'COPPA',cardHook:'TORNEO',year:''};
+}
 function rebuildCupsMenu(){
  const shell=q('#cupsMenu .cups-shell');if(!shell)return;
+ const cards=[
+  {key:'italia',desc:'32 italiane · eliminazione diretta'},
+  {key:'cdc',desc:'16 club · gironi + A/R'},
+  {key:'uefa',desc:'16 club · gironi + A/R'},
+  {key:'world',desc:'Formato Francia 98 · 32 nazionali'},
+  {key:'euro',desc:'Formato Euro 2000 · 16 nazionali'}
+ ].map(cfg=>({...cfg,...competitionBrand(cfg.key)}));
  shell.innerHTML=`<div class="v10-title">MODALITÀ COPPE · STANDALONE</div><div class="v10-subtitle">Tornei indipendenti dalla Carriera. Ogni nuova partita genera un sorteggio differente.</div><div class="v10-cup-grid">
- ${[['italia','🏆','COPPA ITALIA','32 italiane · eliminazione diretta'],['cdc','★','COPPA DEI CAMPIONI','16 club · gironi + A/R'],['uefa','◆','COPPA UEFA','16 club · gironi + A/R'],['world','◉','COPPA DEL MONDO','Francia 98 · 32 nazionali'],['euro','✦','EUROPEO','Euro 2000 · 16 nazionali']].map(x=>`<button class="v10-cup-btn" data-v10cup="${x[0]}"><span class="v10-cup-icon">${x[1]}</span><span class="v10-cup-name">${x[2]}</span><span class="v10-cup-desc">${x[3]}</span></button>`).join('')}</div><div class="v10-actions"><button id="cupsBack">◀ MENU PRINCIPALE</button></div>`;
+ ${cards.map(x=>`<button class="v10-cup-btn v104-cup-card v104-cup-${x.style}" data-v10cup="${x.key}"><span class="v104-cup-topline">${x.cardTop}</span><span class="v104-cup-emblem" aria-hidden="true"><span class="v104-cup-shape"></span><span class="v104-cup-year">${x.year}</span></span><span class="v10-cup-name">${x.cardTitle}</span><span class="v104-cup-hook">${x.cardHook}</span><span class="v10-cup-desc">${x.desc}</span></button>`).join('')}</div><div class="v10-actions"><button id="cupsBack">◀ MENU PRINCIPALE</button></div>`;
  const saved=readStandaloneState();
  if(saved){const actions=shell.querySelector('.v10-actions');actions.insertAdjacentHTML('afterbegin',`<button class="primary" id="v10ContinueCup">CONTINUA ${saved.name||'COPPA'} ▶</button>`);q('#v10ContinueCup').onclick=continueStandalone;}
  q('#cupsBack').onclick=()=>show('mainMenu');qa('[data-v10cup]').forEach(b=>b.onclick=()=>openCupSetup(b.dataset.v10cup));
@@ -351,8 +379,11 @@ function formatInfo(key){
 function pickerPool(key){if(key==='italia')return V10.italianIds;if(key==='cdc'||key==='uefa')return [...V10.italianIds,...V10.foreignIds];if(key==='world')return V10.nationalIds;if(key==='euro')return V10.nationalIds.filter(id=>T(id)?.confed==='UEFA');return[]}
 function openCupSetup(key){
  V10.selectedCompetition=key;V10.pickerPool=pickerPool(key);V10.pickerIndex=0;
- q('#v10CupSetup').classList.toggle('v10-world',key==='world');q('#v10CupSetup').classList.toggle('v10-euro-nations',key==='euro');
- q('#v10SetupTitle').textContent=FORMATS[key].name;q('#v10FormatInfo').textContent=formatInfo(key);renderCupPicker();show('v10CupSetup');
+ const brand=competitionBrand(key),setup=q('#v10CupSetup');
+ setup.classList.toggle('v10-world',key==='world');setup.classList.toggle('v10-euro-nations',key==='euro');
+ setup.dataset.v10Competition=brand.style;applyCompetitionTheme(brand.style);
+ q('#v10SetupTitle').innerHTML=`<span class="v104-competition-kicker">${brand.kicker}</span><span class="v104-competition-main">${brand.setupTitle}</span>`;
+ q('#v10FormatInfo').textContent=formatInfo(key);renderCupPicker();show('v10CupSetup');
 }
 function pickerDescription(t){
  const m=teamMeta[t.id]||{};
@@ -370,7 +401,7 @@ function beginStandalone(){
  if(participants.length<FORMATS[key].participants)return alert('Pool squadre insufficiente per questo torneo.');
  V10.savedCareer=career;career=makeStandaloneCareer(user,participants);V10.standalone=createTournament(key,participants,user);V10.activeTab='overview';saveStandaloneState();renderTournament();show('v10Tournament');
 }
-function leaveStandalone(){saveStandaloneState();career=V10.savedCareer;V10.savedCareer=null;V10.standalone=null;V10.matchContext=null;rebuildCupsMenu();show('cupsMenu')}
+function leaveStandalone(){saveStandaloneState();career=V10.savedCareer;V10.savedCareer=null;V10.standalone=null;V10.matchContext=null;applyCompetitionTheme('');rebuildCupsMenu();show('cupsMenu')}
 function continueStandalone(){const state=readStandaloneState();if(!state)return;V10.savedCareer=career;career=makeStandaloneCareer(state.user,state.participants);if(state.teamStates)career.teamStates=state.teamStates;if(state.pstats)career.pstats=state.pstats;V10.standalone=state;V10.selectedCompetition=state.key;V10.activeTab='overview';ensureTeamStates(state.participants,career);renderTournament();show('v10Tournament')}
 
 /* ------------------------------------------------------------------
@@ -401,7 +432,7 @@ function nextCard(state){
 }
 function championHTML(state){return`<div class="v10-champion"><img src="${crestFor(state.champion)}"><div class="v10-champion-name">${teamLabel(state.champion)}</div><div>${state.name} · CAMPIONE</div></div>`}
 function renderTournament(tab=V10.activeTab||'overview'){
- const s=V10.standalone;if(!s)return;V10.activeTab=tab;q('#v10TournamentTitle').textContent=s.name;q('#v10TournamentStage').textContent=s.completed?'CONCLUSA':stageLabel(s.phase);q('#v10UserTeam').textContent=`TU: ${teamLabel(s.user)}`;
+ const s=V10.standalone;if(!s)return;V10.activeTab=tab;const brand=competitionBrand(s.key),screen=q('#v10Tournament');screen.dataset.v10Competition=brand.style;applyCompetitionTheme(brand.style);q('#v10TournamentTitle').innerHTML=`<span class="v104-competition-kicker">${brand.kicker}</span><span class="v104-competition-main">${brand.tournamentTitle}</span>`;q('#v10TournamentStage').textContent=s.completed?'CONCLUSA':stageLabel(s.phase);q('#v10UserTeam').textContent=`TU: ${teamLabel(s.user)}`;
  qa('[data-v10tab]').forEach(b=>b.classList.toggle('active',b.dataset.v10tab===tab));const c=q('#v10TournamentContent');c.innerHTML=tab==='groups'?renderGroups(s):tab==='bracket'?renderBracket(s):tab==='results'?renderResults(s):nextCard(s);
  const m=nextUserTournamentMatch(s),play=q('#v10PlayNext');play.style.display=s.completed?'none':'';play.disabled=!m;play.textContent=m?`PREPARA ${m.stage} ▶`:'NESSUNA PARTITA';
 }
@@ -543,14 +574,14 @@ function installOverrides(){
 
  const returnBtn=q('#returnSeason');
  returnBtn.onclick=()=>{
-   if(!V10.matchContext){renderSeason();show('season');return}
+   if(!V10.matchContext){applyCompetitionTheme('');renderSeason();show('season');return}
    if(!current?._finished)return;
    const ctx=V10.matchContext,res={h:current.h,a:current.a,hg:current.scoreH,ag:current.scoreA,note:current.decider?.note||'',decider:current.decider};
    if(ctx.mode!=='standalone')restoreCareerAfterCup();
    processTournamentResult(ctx.state,ctx.match,res);V10.matchContext=null;current=null;
    if(ctx.mode==='standalone'){saveStandaloneState();renderTournament();show('v10Tournament')}
-   else if(ctx.mode==='careerCup'){syncCupCalendar(career);persistCareerV10();renderSeason();renderSeasonView('europe');show('season')}
-   else{finalizeFinalEightIfNeeded();persistCareerV10();renderFinalEight();show('v10FinalEight')}
+   else if(ctx.mode==='careerCup'){applyCompetitionTheme('');syncCupCalendar(career);persistCareerV10();renderSeason();renderSeasonView('europe');show('season')}
+   else{applyCompetitionTheme('');finalizeFinalEightIfNeeded();persistCareerV10();renderFinalEight();show('v10FinalEight')}
  };
  q('#backSeason').onclick=()=>{if(!cancelTournamentPrematch())show('season')};
 }
@@ -846,7 +877,7 @@ function finalizeMatchCondition(m=current,visible=true){
  const notes=[...finalizeTeamCondition(m,m.h,visible),...finalizeTeamCondition(m,m.a,visible)];
  m._v103.finalized=true;m._v103.summary=notes;
  if(visible&&notes.length){
-   const box=$c('#postStatus')||$c('#postEvents');if(box)box.insertAdjacentHTML('beforeend',`<div class="v103-post-summary">${notes.map(n=>`<div>${n}</div>`).join('')}</div>`);
+   const box=$c('#postEvents');if(box)box.insertAdjacentHTML('afterbegin',`<div class="v103-post-summary">${notes.map(n=>`<div>${n}</div>`).join('')}</div>`);
  }
  // The match owner persists once all results and condition have been finalized.
  return notes;
