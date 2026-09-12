@@ -111,29 +111,7 @@
   /* Keep the selected tab live while the match runs. */
   setInterval(()=>{if(currentView!=='pitch'&&$('#match.active'))renderView(currentView)},900);
 
-  /* Cleaner save replay: a diving keeper, not the old clip-art glove. */
-  window.saveGloveSVG=function(){
-    return `<div class="v76-save-replay">
-      <svg viewBox="0 0 520 260" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <defs><linearGradient id="g76" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#173b74"/><stop offset="1" stop-color="#07152f"/></linearGradient></defs>
-        <rect x="2" y="2" width="516" height="256" rx="6" fill="url(#g76)" stroke="#d3b34b" stroke-width="3"/>
-        <g opacity=".2" stroke="#fff"><path d="M25 55h470M25 95h470M25 135h470M25 175h470M25 215h470"/></g>
-        <circle cx="414" cy="91" r="25" fill="#f8f4e8" stroke="#111" stroke-width="5"/>
-        <path d="M395 78l39 26M430 76l-33 30M392 91h44" stroke="#111" stroke-width="3"/>
-        <g transform="translate(75 48) rotate(-12 155 85)">
-          <circle cx="92" cy="62" r="22" fill="#e8b07a" stroke="#05080d" stroke-width="6"/>
-          <path d="M113 79c38 14 64 26 101 38l-18 47c-37-12-74-31-111-52z" fill="#f0d24c" stroke="#05080d" stroke-width="7"/>
-          <path d="M194 118l65-32 15 23-55 42z" fill="#e8b07a" stroke="#05080d" stroke-width="7"/>
-          <path d="M107 101l-58 57-22-18 47-65z" fill="#e8b07a" stroke="#05080d" stroke-width="7"/>
-          <path d="M195 155l42 48-22 18-48-45z" fill="#182849" stroke="#05080d" stroke-width="7"/>
-          <path d="M168 151l-17 60-29-7 12-64z" fill="#182849" stroke="#05080d" stroke-width="7"/>
-          <path d="M263 81l19-7 18 26-16 16z" fill="#fff" stroke="#05080d" stroke-width="6"/>
-        </g>
-        <path d="M345 92c28-18 42-16 54-10" fill="none" stroke="#f2d45c" stroke-width="4" stroke-dasharray="8 8"/>
-      </svg>
-      <div><div class="v76-save-kicker">REPLAY · INTERVENTO DEL PORTIERE</div><div class="v76-save-title">PARATA!</div><div class="v76-save-sub">Riflesso decisivo. Il portiere respinge il tiro e tiene in piedi la sua squadra.</div></div>
-    </div>`;
-  };
+  window.saveGloveSVG=function(){return S9Popups.html('save',{detail:'Il portiere ferma il tiro.'})};
   try{saveGloveSVG=window.saveGloveSVG}catch(e){}
 
   function boot(){wireTabs();}

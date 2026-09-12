@@ -1,10 +1,6 @@
 /* SerieA 9000 SIM — V7 RELEASE CANDIDATE runtime polish */
 (function(){
   'use strict';
-  const EVENT_ASSETS={
-    goal:'assets/events/goal.png',offside:'assets/events/offside.png',foul:'assets/events/foul.png',
-    yellow:'assets/events/yellow.png',red:'assets/events/red.png',sub:'assets/events/substitution.png'
-  };
   let toastTimer=0;
   function ensureToast(){
     let el=document.getElementById('v7EventToast');
@@ -13,23 +9,15 @@
     el.innerHTML='<img alt=""><div><div class="v7-event-title"></div><div class="v7-event-sub"></div></div>';
     const match=document.getElementById('match'); (match||document.body).appendChild(el); return el;
   }
-  function eventKind(text){
-    const t=String(text||'').toUpperCase();
-    if(t.includes('GOOOL')||/\bGOL\b/.test(t)) return ['goal','GOOOL!'];
-    if(t.includes('FUORIGIOCO')) return ['offside','FUORIGIOCO'];
-    if(t.includes('ESPULSIONE')||t.includes('ROSSO')) return ['red','ESPULSIONE'];
-    if(t.includes('AMMONIZIONE')||t.includes('GIALLO')) return ['yellow','AMMONIZIONE'];
-    if(t.includes('CAMBIO')||t.includes('SOSTITUZ')) return ['sub','SOSTITUZIONE'];
-    if(t.includes('FALLO')) return ['foul','FALLO'];
-    return null;
-  }
+  function eventKind(text){const kind=S9Popups.detect(text);return kind?[kind,S9Popups.events[kind].title]:null;}
   window.v7ShowEvent=function(kind,title,sub,duration){
     const el=ensureToast(),img=el.querySelector('img');
-    img.src=EVENT_ASSETS[kind]||''; img.alt=title||'';
+    const event=S9Popups.events[kind];if(!event)return;
+    img.src='assets/events/'+event.asset;img.alt=event.alt;el.dataset.eventKind=kind;
     el.querySelector('.v7-event-title').textContent=title||'';
     el.querySelector('.v7-event-sub').textContent=sub||'';
     clearTimeout(toastTimer); el.classList.add('show');
-    toastTimer=setTimeout(()=>el.classList.remove('show'),duration||1700);
+    toastTimer=setTimeout(()=>el.classList.remove('show'),(duration||1700)/Math.max(1,typeof speed==='number'?speed:1));
   };
 
   /* Every important commentary event gets a visual cue. */
@@ -52,7 +40,7 @@
       const pickOne=arr=>arr[Math.floor(Math.random()*arr.length)];
       for(let i=0;i<rnd(2,5);i++){
         const side=Math.random()<.5?'home':'away',id=side==='home'?h:a,st=career?.teamStates?.[id];
-        const pool=st?.players||[]; if(pool.length) m.events.push({min:rnd(6,88),type:'offside',side,player:pickOne(pool)});
+        const pool=(st?.players||[]).filter(p=>st.lineup.includes(p.id)&&p.pos!=='GK'); if(pool.length) m.events.push({min:rnd(6,88),type:'offside',side,player:pickOne(pool)});
       }
       const oppId=(career&&career.user===h)?a:h, oppSide=oppId===h?'home':'away';
       const n=rnd(1,3), used=new Set();
@@ -77,7 +65,7 @@
     const originalDoEvent=window.doEvent;
     window.doEvent=async function(e){
       if(e&&e.type==='offside'){
-        while(paused) await wait(250); current.minute=e.min; updateScore(); whistle();
+        while(paused) await wait(250); current.minute=e.min; updateScore(); if(window.S9MatchVisual)await S9MatchVisual.offside(e); whistle();
         log(`${e.min}' FUORIGIOCO - ${e.player?.name||'attaccante'}`,e.side); showPitchImportant();
         current.keyEvents.push(`${e.min}' Fuorigioco ${e.player?.name||''}`.trim());
         await wait(1250); hidePitch(); return;

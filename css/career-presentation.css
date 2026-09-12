@@ -1,0 +1,51 @@
+/* Career club selection: the same translucent treatment as national cups. */
+#setup.v72-team-mode{
+  background-image:url('../assets/backgrounds_v10/bg_career_stadium.png')!important;
+  background-size:cover!important;background-position:center!important;
+}
+#setup.v72-team-mode::before{
+  background:linear-gradient(180deg,rgba(2,9,25,.08),rgba(2,9,25,.18))!important;
+}
+#setup.v72-team-mode::after{box-shadow:inset 0 0 70px rgba(1,8,24,.12)!important}
+#setup.v72-team-mode #teamStep.s9-team-picker{
+  background:linear-gradient(180deg,rgba(3,13,37,.46),rgba(3,13,37,.34))!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  border-color:rgba(238,213,131,.88)!important;
+  padding-top:72px!important;
+}
+#setup.v72-team-mode #teamStep :is(#teamLeftInfo,#teamRightInfo){
+  background:rgba(3,13,38,.64)!important;
+  border-color:rgba(238,213,131,.45)!important;
+  backdrop-filter:blur(1px)!important;-webkit-backdrop-filter:blur(1px)!important;
+}
+#setup.v72-team-mode #teamStep .s9-picker-center{
+  background:radial-gradient(ellipse at center,rgba(3,13,38,.30),transparent 72%)!important;
+}
+#setup.v72-team-mode #teamEmblem,#setup.v72-team-mode #teamEmblem img{
+  background:transparent!important;box-shadow:none!important;border:0!important;
+}
+#setup.v72-team-mode #teamEmblem img{filter:drop-shadow(0 4px 6px rgba(0,0,0,.72))}
+#setup.v72-team-mode .s9-picker-heading,
+#setup.v72-team-mode .s9-picker-name,
+#setup.v72-team-mode .s9-picker-year,
+#setup.v72-team-mode .s9-picker-kits figcaption{text-shadow:0 2px 3px #03102b,0 0 6px #03102b}
+#setup.v72-team-mode>.v51-page-logo{
+  top:12px!important;width:min(250px,24vw)!important;z-index:5!important;
+  pointer-events:none!important;filter:drop-shadow(0 5px 8px #0008)!important;
+}
+@media(min-width:1100px) and (min-height:720px){
+  #setup.v72-team-mode #teamStep.s9-team-picker{
+    inset:86px 4vw 24px!important;max-width:1380px!important;padding:82px 18px 16px!important;
+  }
+  #setup.v72-team-mode .s9-picker-grid{
+    grid-template-columns:minmax(220px,.82fr) minmax(440px,1.9fr) minmax(220px,.82fr)!important;gap:18px!important;
+  }
+}
+@media(max-height:700px){
+  #setup.v72-team-mode #teamStep.s9-team-picker{inset:60px 3% 12px!important;padding-top:48px!important}
+  #setup.v72-team-mode>.v51-page-logo{top:6px!important;width:180px!important}
+}
+@media(max-height:500px){
+  #setup.v72-team-mode>.v51-page-logo{display:none!important}
+  #setup.v72-team-mode #teamStep.s9-team-picker{inset:54px 12px 10px!important;padding:10px!important;overflow-y:auto!important}
+}

@@ -81,7 +81,7 @@
   }
   function repaintStats(){
     const h=$('#halftimeStats'); if(h&&current) h.innerHTML=statsGrid();
-    const p=$('#postStats'); if(p&&current){
+    const p=$('#postStats'); if(p&&current&&!document.querySelector('#postmatch .v105-post-panel')){
       const st=career?.teamStates?.[career.user];
       p.innerHTML=statsGrid()+`<div style="margin-top:12px;text-align:center;color:#f2e6bd">Modulo: <b>${st?.formation||'—'}</b> &nbsp; · &nbsp; Atteggiamento: <b>${st?.mentality||'—'}</b></div>`;
     }

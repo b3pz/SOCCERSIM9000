@@ -22,7 +22,7 @@
     const h = $('#halftimeStats');
     if(h) h.innerHTML = html;
     const p = $('#postStats');
-    if(p){
+    if(p&&!document.querySelector('#postmatch .v105-post-panel')){
       const st = typeof career!=='undefined' && career?.teamStates ? career.teamStates[career.user] : null;
       p.innerHTML = html + `<div style="margin-top:12px;text-align:center;color:#f2e6bd">Modulo: <b>${st?.formation || '—'}</b> &nbsp; · &nbsp; Atteggiamento: <b>${st?.mentality || '—'}</b></div>`;
     }

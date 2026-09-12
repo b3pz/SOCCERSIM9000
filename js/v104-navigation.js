@@ -70,7 +70,7 @@
   function installButtons(){
     buttonTargets.forEach(function(item){
       const screen=document.getElementById(item[0]);
-      if(!screen||screen.querySelector(':scope > .v104-menu-back')) return;
+      if(!screen||screen.querySelector('.v104-menu-back')) return;
       const button=document.createElement('button');
       button.type='button';
       button.className='v104-menu-back';
