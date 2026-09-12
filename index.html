@@ -713,14 +713,16 @@ main{max-width:none!important;padding:0!important}
 <link rel="stylesheet" href="css/v91-final-touches.css?v=10-final-3">
 <link rel="stylesheet" href="css/v10-release.css?v=10-final-3">
 <link rel="stylesheet" href="css/v102-hotfix.css?v=10-final-3">
-<link rel="stylesheet" href="css/v104-professional-layout.css?v=10-final-7">
+<link rel="stylesheet" href="css/v104-professional-layout.css?v=10-final-8">
+<link rel="stylesheet" href="css/match-coherence.css?v=11-2">
+<link rel="stylesheet" href="css/career-presentation.css?v=11-3">
 </head>
 <body>
 <header><div><h1>SERIEA 9000 SIM</h1><small id="headerSub">IL CAMPIONATO DEI CAMPIONI</small></div><div id="headerRight">—</div></header>
 <div id="titleScreen" class="title-screen intro-wait">
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM">PREMI START</button>
-  <div class="title-footer">© 1990-2000 STYLE FOOTBALL MANAGEMENT SYSTEM<br><span class="credit-b3pz">Sviluppato ed ideato da b3pZ</span></div>
+  <div class="title-footer">IL CALCIO DEGLI ANNI ’90 E 2000<br><span class="credit-b3pz">Sviluppato ed ideato da b3pZ</span></div>
 </div>
 <main>
 
@@ -830,7 +832,7 @@ main{max-width:none!important;padding:0!important}
 <article class="s9-picker-center">
 <div class="s9-picker-name" id="teamNameBig"></div><div class="s9-picker-year" id="teamSeasonBig"></div>
 <div class="s9-picker-art"><button class="s9-picker-arrow" id="prevTeam" aria-label="Squadra precedente">◀</button><div class="s9-picker-crest" id="teamEmblem"></div><button class="s9-picker-arrow" id="nextTeam" aria-label="Squadra successiva">▶</button></div>
-<div class="s9-picker-kits"><figure><img id="teamHomeKit" alt="Divisa HOME"><figcaption>HOME</figcaption></figure><figure><img id="teamAwayKit" alt="Divisa AWAY"><figcaption>AWAY</figcaption></figure></div>
+<div class="s9-picker-kits"><figure><img id="teamHomeKit" alt="Prima divisa"><figcaption>PRIMA DIVISA</figcaption></figure><figure><img id="teamAwayKit" alt="Seconda divisa"><figcaption>SECONDA DIVISA</figcaption></figure></div>
 </article>
 <aside class="s9-picker-side s9-picker-rating" id="teamRightInfo"></aside>
 </section>
@@ -844,6 +846,10 @@ main{max-width:none!important;padding:0!important}
 <img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
 <div class="grid">
 <div class="panel">
+<div class="v106-league-brand" aria-label="Serie A · Gironi A e B">
+  <img src="assets/league/serie_a_league.png" alt="Logo Serie A">
+  <div><span>CAMPIONATO</span><strong>SERIE A</strong><small>GIRONI A · B</small></div>
+</div>
 <h2>RIEPILOGO STAGIONE</h2>
 <div id="managerSummary"></div>
 <div class="toolbar" style="margin-top:12px">
@@ -934,7 +940,7 @@ main{max-width:none!important;padding:0!important}
     <div class="score-side" id="awayScorePanel"><div class="score-num" id="awayScoreNum">0</div><div class="score-team" id="awayTeamName">OSPITI</div></div>
   </div>
 
-  <div class="match-tabs"><span>OVERVIEW</span><span>STATISTICHE</span><span class="active">2D PITCH</span><span>REPORT</span></div>
+  <div class="match-tabs"><span>RIEPILOGO</span><span>STATISTICHE</span><span class="active">CAMPO 2D</span><span>CRONACA</span></div>
 
   <div class="match-controls">
     <button id="pauseBtn">⏸ PAUSA</button>
@@ -959,7 +965,7 @@ main{max-width:none!important;padding:0!important}
         <div class="pitch-mark corner tl"></div><div class="pitch-mark corner tr"></div>
         <div class="pitch-mark corner bl"></div><div class="pitch-mark corner br"></div>
         <div class="goal left"></div><div class="goal right"></div>
-        <div id="overlay"><div id="overlayBox"></div></div>
+        <div id="overlay" role="status" aria-live="polite"><div id="overlayBox"></div></div>
       </div></div>
 
       <div class="radio-strip"><span>● LIVE</span><span id="stadiumLabel">DIRETTA DALLO STADIO</span><span>SERIEA 9000 SIM</span></div>
@@ -1131,7 +1137,7 @@ function renderTeamPicker(){
  $("#teamEmblem").style.background=crest ? "transparent" : `linear-gradient(135deg,${m.colors[0]} 0 50%,${m.colors[1]} 50% 100%)`;
  $("#teamNameBig").textContent=t.name;$("#teamSeasonBig").textContent=t.season;
  $("#teamLeftInfo").innerHTML=`<b>CITTÀ</b><br>${m.city}<br><br><b>STADIO</b><br>${m.stadium}<br><br><b>VICE</b><br>${t.coach}<br><br><i>"${m.motto}"</i>`;
- $("#teamRightInfo").innerHTML=`<b>OVERALL</b><div class="overall90">${t.strength}</div><br><b>MODULI</b><br>${t.formations.join("<br>")}`;
+ $("#teamRightInfo").innerHTML=`<b>VALORE</b><div class="overall90">${t.strength}</div><br><b>MODULI</b><br>${t.formations.join("<br>")}`;
 }
 
 teams.forEach(t=>{let o=document.createElement("option");o.value=t.id;o.textContent=`${t.name} ${t.season}`;$("#managerTeam").appendChild(o)})
@@ -1554,7 +1560,7 @@ async function doEvent(e){
    await animAttack(e.side,outcome);
    if(e.side==="home"){current.stats.shotsH++;if(outcome==="save")current.stats.onH++}
    else{current.stats.shotsA++;if(outcome==="save")current.stats.onA++}
-   if(outcome==="save"){log(`${e.min}' PARATA DEL PORTIERE!`,e.side);await ov(`${saveGloveSVG()}<h2>PARATA DEL PORTIERE!</h2>`,1450);}
+   if(outcome==="save"){log(`${e.min}' PARATA DEL PORTIERE!`,e.side);await ov(S9Popups.html('save',{detail:'Il portiere ferma il tiro.'}),1800);}
    else if(outcome==="post")log(`${e.min}' PALO!`,e.side);
    else log(`${e.min}' TIRO FUORI.`,e.side);
    await wait(1050);
@@ -1571,7 +1577,7 @@ async function doEvent(e){
  if(e.type==="yellow"||e.type==="red"){
    log(`${e.min}' ${e.type==="red"?"ESPULSIONE":"AMMONIZIONE"} - ${e.player.name}`,e.side);showPitchImportant();
    current.keyEvents.push(`${e.min}' ${e.type==="red"?"Rosso":"Giallo"} ${e.player.name}`);
-   await ov(`<div style="font-size:70px">${e.type==="red"?"✋🟥":"✋🟨"}</div><b>${e.player.name}</b>`,1400);hidePitch();
+   await ov(S9Popups.html(e.type,{player:e.player.name,detail:e.secondYellow?'Seconda ammonizione.':''}),1400);hidePitch();
  }
 
  if(e.type==="goal"){
@@ -1593,10 +1599,7 @@ async function doEvent(e){
    current.keyEvents.push(`${e.min}' GOL ${e.player.name}${e.assist?" (assist "+e.assist.name+")":""}`);
    {
    const tc=getTeamColors(e.side==="home"?current.h:current.a);
-   await ov(`${goalNetSVG()}<div class="goal-flash">GOOOL!</div>
-   <div class="scorer-strip" style="background:${tc[0]};color:${tc[1]||"#fff"}">${e.player.name}</div>
-   ${e.assist?`<div style="margin-top:8px">Assist: ${e.assist.name}</div>`:""}
-   <h3>${T(current.h).name} ${current.scoreH} - ${current.scoreA} ${T(current.a).name}</h3>`,2800);
+   await ov(S9Popups.html('goal',{player:e.player.name,detail:e.assist?'Assist: '+e.assist.name:'',footer:`${T(current.h).name} ${current.scoreH} - ${current.scoreA} ${T(current.a).name}`}),2800);
  }
 
    let ds=[...document.querySelectorAll(".dot."+e.side)].slice(-4);
@@ -1624,7 +1627,16 @@ function updateScore(){
  const sm=$("#stadiumLabel"),meta=teamMeta[current.h];if(sm&&meta?.stadium)sm.textContent=`DIRETTA: ${meta.stadium.toUpperCase()}`;
 }
 
-async function playHalf(a,b){for(const e of current.events.filter(x=>x.min>=a&&x.min<=b)){while(paused)await wait(250);await wait(Math.max(500,(e.min-current.minute)*175));await doEvent(e)}current.minute=b;updateScore()}
+async function playHalf(a,b){
+ for(let minute=a;minute<=b;minute++){
+   while(paused)await wait(100);
+   current.minute=minute;updateScore();
+   if(window.S9MatchVisual)await S9MatchVisual.openPlay(minute);
+   else await wait(175);
+   for(const e of current.events.filter(x=>x.min===minute))await doEvent(e);
+ }
+ current.minute=b;updateScore();
+}
 function updateLeague(m){if(m._leagueRegistered)return;m._leagueRegistered=true;let H=career.stats[m.h],A=career.stats[m.a];H.p++;A.p++;H.gf+=m.scoreH;H.ga+=m.scoreA;A.gf+=m.scoreA;A.ga+=m.scoreH;if(m.scoreH>m.scoreA){H.w++;A.l++;H.pts+=3}else if(m.scoreH<m.scoreA){A.w++;H.l++;A.pts+=3}else{H.d++;A.d++;H.pts++;A.pts++};career.results.push({round:career.round+1,group:(career.groups?(career.groups.A.includes(m.h)?"A":"B"):"?"),date:(career.leagueDates?.[career.round]?v4FmtDate(career.leagueDates[career.round]):""),h:m.h,a:m.a,hg:m.scoreH,ag:m.scoreA})}
 function simOther(h,a){let m=buildMatch(h,a);m.scoreH=m.events.filter(e=>e.type==="goal"&&e.side==="home").length;m.scoreA=m.events.filter(e=>e.type==="goal"&&e.side==="away").length;m.events.filter(e=>e.type==="goal").forEach(e=>{
  if(!career.pstats[e.player.id])career.pstats[e.player.id]={name:e.player.name,team:(e.side==="home"?m.h:m.a),goals:0,assists:0,apps:0};
@@ -2130,7 +2142,7 @@ renderTeamPicker=function(){
  $("#teamEmblem").style.background="transparent";
  $("#teamNameBig").textContent=t.name;$("#teamSeasonBig").textContent=t.season;
  $("#teamLeftInfo").innerHTML=`<b>CITTÀ</b><br>${m.city}<br><br><b>STADIO</b><br>${m.stadium}<br><br><b>VICE</b><br>${t.coach}<br><br><i>"${m.motto}"</i>`;
- $("#teamRightInfo").innerHTML=`<b>OVERALL</b><div class="overall90">${t.strength}</div><br><b>MODULI</b><br>${t.formations.join("<br>")}`;
+ $("#teamRightInfo").innerHTML=`<b>VALORE</b><div class="overall90">${t.strength}</div><br><b>MODULI</b><br>${t.formations.join("<br>")}`;
 };
 
 // Aggiorna subito picker dopo override
@@ -2138,17 +2150,19 @@ renderTeamPicker();
 </script>
 
 <script src="js/save-manager.js?v=10-final-3"></script>
-<script src="js/save-integration.js?v=10-final-3"></script>
-<script src="js/v7-release.js?v=10-final-3"></script>
+<script src="js/save-integration.js?v=11-1"></script>
+<script src="js/match-popups.js?v=11-2"></script>
+<script src="js/v7-release.js?v=11-2"></script>
 <script src="js/v71-final-polish.js?v=10-final-3"></script>
 <script src="js/v72-publication-ui.js?v=10-final-3"></script>
-<script src="js/v73-alignment-fix.js?v=10-final-3"></script>
+<script src="js/v73-alignment-fix.js?v=11-1"></script>
 <script src="js/v75-browser-compat.js?v=10-final-3"></script>
-<script src="js/v76-match-ui.js?v=10-final-3"></script>
+<script src="js/v76-match-ui.js?v=11-2"></script>
 <script src="js/v80-safari-iphone.js?v=10-final-3"></script>
-<script src="js/v91-final-touches.js?v=10-final-3"></script>
-<script src="js/v10-data.js?v=10-final-3"></script>
-<script src="js/v10-release.js?v=10-final-7"></script>
-<script src="js/v104-navigation.js?v=10-final-7"></script>
+<script src="js/v91-final-touches.js?v=11-1"></script>
+<script src="js/v10-data.js?v=11-1"></script>
+<script src="js/v10-release.js?v=11-3"></script>
+<script src="js/v104-navigation.js?v=11-1"></script>
+<script src="js/match-coherence.js?v=11-2"></script>
 </body>
 </html>

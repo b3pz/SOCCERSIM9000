@@ -970,3 +970,123 @@ body[data-v10-cup-theme] #match .match-shell{
   #postmatch.active{padding:78px 8px 24px!important}
   #postmatch>.panel{padding:14px!important;margin:18px auto!important}
 }
+
+/* ==================================================================
+   V10 FINAL graphic polish 06 — official Serie A career identity
+   - one Serie A championship split into Girone A / Girone B
+   - dedicated league logo and brighter career scenography
+   - restored tactical pitch board behind the prematch XI
+   ================================================================== */
+
+/* CAREER — use one coherent, vivid stage just like the cup modes. */
+#season,
+#season.v51-calendar-bg,
+#season.v51-europe-bg{
+  background-image:
+    linear-gradient(180deg,rgba(3,12,34,.18),rgba(3,12,34,.42)),
+    url('../assets/backgrounds_v10/bg_career_stadium.png')!important;
+  background-size:cover!important;
+  background-position:center center!important;
+  background-repeat:no-repeat!important;
+}
+#season::before{
+  background:
+    radial-gradient(circle at 50% 8%,rgba(255,221,128,.13),transparent 28%),
+    linear-gradient(180deg,rgba(2,8,22,.08),rgba(2,8,22,.25))!important;
+}
+#season::after{
+  content:""!important;
+  background:url('../assets/league/serie_a_league.png') no-repeat 94% 88% / min(300px,22vw) auto!important;
+  opacity:.12!important;
+  box-shadow:inset 0 0 120px rgba(0,0,0,.24)!important;
+}
+#season>.grid>.panel,
+#season>#seasonContent{
+  background:linear-gradient(180deg,rgba(4,16,43,.72),rgba(3,12,33,.58))!important;
+  color:#fff!important;
+  border:1px solid rgba(225,194,96,.70)!important;
+  box-shadow:0 14px 36px rgba(0,0,0,.32)!important;
+  backdrop-filter:blur(2px)!important;
+  -webkit-backdrop-filter:blur(2px)!important;
+}
+#season>#seasonContent h2,
+#season>.grid h2{color:#fff4cf!important;text-shadow:0 2px 3px rgba(0,0,0,.55)!important}
+#season>#seasonContent .card,
+#season>#seasonContent .euro-card{
+  background:rgba(2,10,29,.58)!important;
+  color:#fff!important;
+  border-color:rgba(213,184,95,.38)!important;
+}
+
+/* Official league brand inside the career dashboard. */
+.v106-league-brand{
+  display:flex;align-items:center;gap:12px;width:max-content;max-width:100%;
+  margin:0 0 10px;padding:7px 11px 7px 8px;
+  border:1px solid rgba(225,194,96,.68);border-radius:8px;
+  background:rgba(2,10,29,.62);box-shadow:0 8px 22px rgba(0,0,0,.24);
+}
+.v106-league-brand img{display:block;width:58px;height:52px;object-fit:contain;filter:drop-shadow(0 4px 5px rgba(0,0,0,.42))}
+.v106-league-brand div{display:grid;gap:1px;line-height:1;text-align:left}
+.v106-league-brand span{font:900 8px/1.15 "Trebuchet MS",Arial,sans-serif;letter-spacing:.16em;color:#e3c665}
+.v106-league-brand strong{font:900 23px/.95 Impact,"Arial Narrow",sans-serif;letter-spacing:.04em;color:#fff4cf}
+.v106-league-brand small{font:900 9px/1.2 "Trebuchet MS",Arial,sans-serif;letter-spacing:.08em;color:#fff}
+
+/* Final Eight is part of the same Serie A championship, not a separate visual universe. */
+#v10FinalEight{
+  background-image:
+    linear-gradient(180deg,rgba(3,12,34,.28),rgba(3,12,34,.50)),
+    url('../assets/backgrounds_v10/bg_career_stadium.png')!important;
+  background-size:cover!important;background-position:center!important;
+}
+#v10FinalEight .v10-tournament-shell{
+  background:linear-gradient(180deg,rgba(4,15,42,.68),rgba(3,11,31,.56))!important;
+  border-color:rgba(225,194,96,.78)!important;
+}
+.v106-fe-brand{display:flex!important;align-items:center!important;gap:7px!important;color:#fff4cf!important;font-weight:900!important}
+.v106-fe-brand img{width:42px;height:38px;object-fit:contain;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
+.v106-fe-brand span{font-size:10px;letter-spacing:.05em}
+
+/* PREMATCH — restore the actual tactical board behind the well-spaced XI.
+   The competition/career artwork remains around it, while the pitch itself is always readable. */
+#prematch.active #v63TacticalXI{
+  isolation:isolate!important;
+  overflow:visible!important;
+}
+#prematch.active #v63TacticalXI::before{
+  content:"";
+  position:absolute;
+  inset:-3% -2.5%;
+  z-index:0;
+  pointer-events:none;
+  background:
+    linear-gradient(rgba(2,12,19,.04),rgba(2,12,19,.08)),
+    url('../assets/ui/prematch_pitch_board.png') center/100% 100% no-repeat;
+  border:2px solid rgba(231,207,137,.78);
+  border-radius:5px;
+  box-shadow:0 12px 30px rgba(0,0,0,.38),inset 0 0 22px rgba(0,0,0,.16);
+}
+#prematch.active #v63TacticalXI .v63-player{z-index:2!important}
+
+/* Career match presentation keeps the league identity subtle without hiding the tactical room. */
+body:not([data-v10-cup-theme]) #prematch::after{
+  content:""!important;
+  position:absolute!important;right:3.5%!important;bottom:6%!important;left:auto!important;top:auto!important;
+  width:120px!important;height:105px!important;transform:none!important;
+  background:url('../assets/league/serie_a_league.png') center/contain no-repeat!important;
+  opacity:.16!important;pointer-events:none!important;z-index:0!important;
+  box-shadow:none!important;
+}
+
+@media (max-height:600px) and (min-width:560px) and (max-width:1200px){
+  .v106-league-brand{padding:4px 7px;gap:7px;margin-bottom:5px}
+  .v106-league-brand img{width:38px;height:34px}
+  .v106-league-brand strong{font-size:15px}.v106-league-brand span{font-size:6px}.v106-league-brand small{font-size:6px}
+  #prematch.active #v63TacticalXI::before{inset:-2% -1.5%;border-width:1px}
+}
+
+@media (max-width:700px){
+  #season::after{background-size:150px auto!important;background-position:96% 94%!important;opacity:.08!important}
+  .v106-league-brand{margin-inline:auto}
+  .v106-league-brand img{width:48px;height:43px}
+  .v106-league-brand strong{font-size:19px}
+}
