@@ -345,11 +345,11 @@ function applyCompetitionTheme(key){
 
 function competitionBrand(key){
  const brands={
-  italia:{style:'italia',kicker:'COPPA NAZIONALE · ITALIA',setupTitle:'COPPA ITALIA',tournamentTitle:'COPPA ITALIA',cardTop:'COPPA NAZIONALE',cardTitle:'COPPA ITALIA',cardHook:'NOTTI ITALIANE',year:'1998·99'},
-  cdc:{style:'cdc',kicker:'EUROPA DEI CAMPIONI',setupTitle:'COPPA DEI CAMPIONI',tournamentTitle:'COPPA DEI CAMPIONI',cardTop:'COPPA EUROPEA',cardTitle:'COPPA DEI CAMPIONI',cardHook:'NOBILTÀ CONTINENTALE',year:'1999'},
-  uefa:{style:'uefa',kicker:'EUROPA DELLE GRANDI PIAZZE',setupTitle:'COPPA UEFA',tournamentTitle:'COPPA UEFA',cardTop:'COPPA EUROPEA',cardTitle:'COPPA UEFA',cardHook:'MERCOLEDÌ DI COPPA',year:'1999'},
-  world:{style:'world',kicker:'COPPA DEL MONDO · 32 NAZIONALI',setupTitle:'FRANCIA 98',tournamentTitle:'FRANCIA 98',cardTop:'COPPA DEL MONDO',cardTitle:'FRANCIA 98',cardHook:'ESTATE MONDIALE',year:'1998'},
-  euro:{style:'euro',kicker:'CAMPIONATO EUROPEO · 16 NAZIONALI',setupTitle:'EURO 2000',tournamentTitle:'EURO 2000',cardTop:'CAMPIONATO EUROPEO',cardTitle:'EURO 2000',cardHook:'NATIONS CUP',year:'2000'}
+  italia:{style:'italia',kicker:'COPPA NAZIONALE · ITALIA',setupTitle:'COPPA ITALIA',tournamentTitle:'COPPA ITALIA',cardTop:'COPPA NAZIONALE',cardTitle:'COPPA ITALIA',cardHook:'NOTTI ITALIANE',year:'1998·99',logo:'assets/competition_buttons/coppa_italia.png'},
+  cdc:{style:'cdc',kicker:'EUROPA DEI CAMPIONI',setupTitle:'COPPA DEI CAMPIONI',tournamentTitle:'COPPA DEI CAMPIONI',cardTop:'COPPA EUROPEA',cardTitle:'COPPA DEI CAMPIONI',cardHook:'NOBILTÀ CONTINENTALE',year:'1999',logo:'assets/competition_buttons/coppa_campioni.png'},
+  uefa:{style:'uefa',kicker:'EUROPA DELLE GRANDI PIAZZE',setupTitle:'COPPA UEFA',tournamentTitle:'COPPA UEFA',cardTop:'COPPA EUROPEA',cardTitle:'COPPA UEFA',cardHook:'MERCOLEDÌ DI COPPA',year:'1999',logo:'assets/competition_buttons/uefa_cup.png'},
+  world:{style:'world',kicker:'COPPA DEL MONDO · 32 NAZIONALI',setupTitle:'FRANCIA 98',tournamentTitle:'FRANCIA 98',cardTop:'COPPA DEL MONDO',cardTitle:'FRANCIA 98',cardHook:'ESTATE MONDIALE',year:'1998',logo:'assets/competition_buttons/francia98.png'},
+  euro:{style:'euro',kicker:'CAMPIONATO EUROPEO · 16 NAZIONALI',setupTitle:'EURO 2000',tournamentTitle:'EURO 2000',cardTop:'CAMPIONATO EUROPEO',cardTitle:'EURO 2000',cardHook:'NATIONS CUP',year:'2000',logo:'assets/competition_buttons/euro2000.png'}
  };
  return brands[key]||{style:key||'cup',kicker:'COPPA',setupTitle:FORMATS?.[key]?.name||'COPPA',tournamentTitle:FORMATS?.[key]?.name||'COPPA',cardTop:'COPPA',cardTitle:FORMATS?.[key]?.name||'COPPA',cardHook:'TORNEO',year:''};
 }
@@ -363,7 +363,7 @@ function rebuildCupsMenu(){
   {key:'euro',desc:'Formato Euro 2000 · 16 nazionali'}
  ].map(cfg=>({...cfg,...competitionBrand(cfg.key)}));
  shell.innerHTML=`<div class="v10-title">MODALITÀ COPPE · STANDALONE</div><div class="v10-subtitle">Tornei indipendenti dalla Carriera. Ogni nuova partita genera un sorteggio differente.</div><div class="v10-cup-grid">
- ${cards.map(x=>`<button class="v10-cup-btn v104-cup-card v104-cup-${x.style}" data-v10cup="${x.key}"><span class="v104-cup-topline">${x.cardTop}</span><span class="v104-cup-emblem" aria-hidden="true"><span class="v104-cup-shape"></span><span class="v104-cup-year">${x.year}</span></span><span class="v10-cup-name">${x.cardTitle}</span><span class="v104-cup-hook">${x.cardHook}</span><span class="v10-cup-desc">${x.desc}</span></button>`).join('')}</div><div class="v10-actions"><button id="cupsBack">◀ MENU PRINCIPALE</button></div>`;
+ ${cards.map(x=>`<button class="v10-cup-btn v104-cup-card v104-cup-${x.style}" data-v10cup="${x.key}"><span class="v104-cup-topline">${x.cardTop}</span><span class="v104-cup-logo-frame"><img class="v104-cup-logo" src="${x.logo}" alt="${x.cardTitle}"></span><span class="v10-cup-name">${x.cardTitle}</span><span class="v104-cup-hook">${x.cardHook}</span><span class="v10-cup-desc">${x.desc}</span></button>`).join('')}</div><div class="v10-actions"><button id="cupsBack">◀ MENU PRINCIPALE</button></div>`;
  const saved=readStandaloneState();
  if(saved){const actions=shell.querySelector('.v10-actions');actions.insertAdjacentHTML('afterbegin',`<button class="primary" id="v10ContinueCup">CONTINUA ${saved.name||'COPPA'} ▶</button>`);q('#v10ContinueCup').onclick=continueStandalone;}
  q('#cupsBack').onclick=()=>show('mainMenu');qa('[data-v10cup]').forEach(b=>b.onclick=()=>openCupSetup(b.dataset.v10cup));

@@ -640,3 +640,127 @@ body[data-v10-cup-theme="uefa"] #match::after{content:"COPPA UEFA";position:abso
   #prematch.active #v63TacticalXI .v63-player{max-width:70px!important}
   #prematch.active #v63TacticalXI .v63-name{max-width:68px!important;font-size:8px!important}
 }
+
+/* ------------------------------------------------------------------
+   V10 graphic polish 04 — real competition artwork + supplied logo buttons
+------------------------------------------------------------------ */
+.v104-cup-logo-frame{
+  width:112px;height:96px;display:flex;align-items:center;justify-content:center;
+  margin:2px auto 0;padding:8px;box-sizing:border-box;
+  border:1px solid rgba(255,239,184,.52);border-radius:14px;
+  background:rgba(246,241,222,.94);
+  box-shadow:inset 0 0 0 1px rgba(9,24,59,.14),0 7px 18px rgba(0,0,0,.24);
+  overflow:hidden;
+}
+.v104-cup-logo{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.18))}
+.v104-cup-cdc .v104-cup-logo-frame{background:#f1ead5}
+.v104-cup-world .v104-cup-logo-frame{background:#fff}
+.v104-cup-euro .v104-cup-logo-frame{background:#fff}
+.v104-cup-italia .v104-cup-logo-frame{background:#fff}
+.v104-cup-uefa .v104-cup-logo-frame{background:#f5efe1}
+
+/* Make the supplied artwork the dominant visual identity of each competition. */
+#v10CupSetup[data-v10-competition="world"],
+#v10Tournament[data-v10-competition="world"]{
+  background-image:
+    linear-gradient(rgba(4,16,47,.24),rgba(4,16,47,.44)),
+    url('../assets/competition_themes/francia98_bg.png')!important;
+  background-size:cover!important;background-position:center!important;
+}
+#v10CupSetup[data-v10-competition="euro"],
+#v10Tournament[data-v10-competition="euro"]{
+  background-image:
+    linear-gradient(rgba(6,18,54,.22),rgba(6,18,54,.45)),
+    url('../assets/competition_themes/euro2000_bg.png')!important;
+  background-size:cover!important;background-position:center!important;
+}
+#v10CupSetup[data-v10-competition="cdc"],
+#v10Tournament[data-v10-competition="cdc"]{
+  background-image:
+    linear-gradient(rgba(2,11,35,.20),rgba(2,11,35,.48)),
+    url('../assets/competition_themes/campioni_bg.png')!important;
+  background-size:cover!important;background-position:center!important;
+}
+#v10CupSetup[data-v10-competition="uefa"],
+#v10Tournament[data-v10-competition="uefa"]{
+  background-image:
+    linear-gradient(rgba(30,16,8,.15),rgba(4,13,35,.48)),
+    url('../assets/competition_themes/uefa_bg.png')!important;
+  background-size:cover!important;background-position:center!important;
+}
+#v10CupSetup[data-v10-competition="italia"],
+#v10Tournament[data-v10-competition="italia"]{
+  background-image:
+    linear-gradient(rgba(3,24,31,.16),rgba(3,24,31,.42)),
+    url('../assets/competition_themes/coppa_italia_bg.png')!important;
+  background-size:cover!important;background-position:center!important;
+}
+
+/* The selector was nearly opaque before, hiding the artwork. */
+#v10CupSetup[data-v10-competition] .s9-team-picker{
+  background:linear-gradient(180deg,rgba(5,18,47,.77),rgba(3,13,37,.72))!important;
+  border-color:rgba(238,213,131,.88)!important;
+  box-shadow:0 18px 55px rgba(0,0,0,.42),inset 0 0 0 1px rgba(255,255,255,.04)!important;
+  backdrop-filter:blur(2px) saturate(1.05)!important;
+  -webkit-backdrop-filter:blur(2px) saturate(1.05)!important;
+}
+#v10CupSetup[data-v10-competition] .s9-picker-side{
+  background:rgba(3,13,38,.60)!important;
+  border-color:rgba(234,208,121,.38)!important;
+}
+#v10CupSetup[data-v10-competition] .s9-picker-center{
+  background:radial-gradient(circle at 50% 48%,rgba(5,21,58,.30),transparent 68%);
+  border-radius:10px;
+}
+#v10Tournament[data-v10-competition] .v10-tournament-shell{
+  background:linear-gradient(180deg,rgba(4,15,43,.78),rgba(3,11,31,.72))!important;
+  border-color:rgba(238,213,131,.88)!important;
+  backdrop-filter:blur(2px) saturate(1.05)!important;
+  -webkit-backdrop-filter:blur(2px) saturate(1.05)!important;
+}
+#v10Tournament[data-v10-competition] .v10-next-card,
+#v10Tournament[data-v10-competition] .v10-group,
+#v10Tournament[data-v10-competition] .v10-tie,
+#v10Tournament[data-v10-competition] .v10-log-row{box-shadow:0 8px 22px rgba(0,0,0,.20)}
+
+/* Carry the artwork into match presentation while preserving readability. */
+body[data-v10-cup-theme="world"] :is(#prematch,#kits,#match,#halftime,#postmatch){
+  background-image:linear-gradient(rgba(3,12,35,.46),rgba(3,12,35,.58)),url('../assets/competition_themes/francia98_bg.png')!important;
+  background-size:cover!important;background-position:center!important;
+}
+body[data-v10-cup-theme="euro"] :is(#prematch,#kits,#match,#halftime,#postmatch){
+  background-image:linear-gradient(rgba(4,12,39,.48),rgba(4,12,39,.60)),url('../assets/competition_themes/euro2000_bg.png')!important;
+  background-size:cover!important;background-position:center!important;
+}
+body[data-v10-cup-theme="cdc"] :is(#prematch,#kits,#match,#halftime,#postmatch){
+  background-image:linear-gradient(rgba(2,9,27,.46),rgba(2,9,27,.62)),url('../assets/competition_themes/campioni_bg.png')!important;
+  background-size:cover!important;background-position:center!important;
+}
+body[data-v10-cup-theme="uefa"] :is(#prematch,#kits,#match,#halftime,#postmatch){
+  background-image:linear-gradient(rgba(19,10,8,.40),rgba(3,10,27,.62)),url('../assets/competition_themes/uefa_bg.png')!important;
+  background-size:cover!important;background-position:center!important;
+}
+body[data-v10-cup-theme="italia"] :is(#prematch,#kits,#match,#halftime,#postmatch){
+  background-image:linear-gradient(rgba(3,17,28,.42),rgba(3,17,28,.58)),url('../assets/competition_themes/coppa_italia_bg.png')!important;
+  background-size:cover!important;background-position:center!important;
+}
+
+/* Competition header: keep it legible over image-heavy backgrounds. */
+#v10CupSetup[data-v10-competition] .s9-picker-heading,
+#v10Tournament[data-v10-competition] #v10TournamentTitle{
+  background:linear-gradient(90deg,transparent,rgba(2,10,30,.66) 18%,rgba(2,10,30,.66) 82%,transparent)!important;
+  padding:7px 14px 9px!important;border-bottom:1px solid rgba(240,214,129,.72)!important;
+  text-shadow:0 2px 4px #000;
+}
+
+/* Slightly larger HOME/AWAY in cup selector. */
+#v10CupSetup[data-v10-competition] .s9-picker-kits{flex-basis:205px!important;gap:26px!important}
+#v10CupSetup[data-v10-competition] .s9-picker-kits figure{max-width:175px!important;width:43%!important}
+#v10CupSetup[data-v10-competition] .s9-picker-kits img{height:calc(100% - 18px)!important;max-height:180px!important;filter:drop-shadow(0 8px 10px rgba(0,0,0,.42))}
+
+@media (max-height:600px) and (min-width:560px) and (max-width:1200px){
+  .v104-cup-logo-frame{width:62px;height:54px;padding:4px;border-radius:8px}
+  #v10CupSetup[data-v10-competition] .s9-picker-kits{flex-basis:102px!important;gap:12px!important}
+  #v10CupSetup[data-v10-competition] .s9-picker-kits figure{max-width:92px!important}
+  #v10CupSetup[data-v10-competition] .s9-picker-kits img{max-height:90px!important}
+}
