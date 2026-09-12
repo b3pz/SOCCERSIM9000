@@ -1,0 +1,145 @@
+/* V105 – intro + main menu coherence refresh */
+#titleScreen{
+  background-image:
+    radial-gradient(circle at center, rgba(255,255,255,.06), transparent 42%),
+    linear-gradient(180deg, rgba(5,14,35,.14), rgba(5,14,35,.52)),
+    url('../assets/screens/01_title_screen.png')!important;
+  background-size:cover!important;
+  background-position:center!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:22px!important;
+  overflow:hidden!important;
+}
+#titleScreen::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(180deg, rgba(4,11,26,.18), rgba(4,11,26,.58));
+  pointer-events:none;
+}
+#titleScreen::after{
+  content:"";
+  position:absolute;
+  left:50%; top:52%;
+  transform:translate(-50%,-50%);
+  width:min(920px,86vw);
+  height:min(430px,48vh);
+  border:2px solid rgba(223,192,116,.52);
+  background:linear-gradient(180deg, rgba(7,20,41,.38), rgba(7,20,41,.20));
+  box-shadow:0 24px 52px rgba(0,0,0,.38), inset 0 0 0 1px rgba(255,255,255,.06);
+  backdrop-filter:blur(1.5px);
+  z-index:1;
+}
+#titleScreen > *{position:relative; z-index:2}
+#titleScreen .title-logo-img{
+  width:min(680px,74vw)!important;
+  max-width:680px!important;
+  filter:drop-shadow(0 8px 24px rgba(0,0,0,.50));
+}
+#titleScreen .press-start{
+  background:linear-gradient(180deg,#f6ebcf 0%,#ddd0a9 100%)!important;
+  color:#14233d!important;
+  border:3px solid #c9b073!important;
+  box-shadow:0 7px 0 #05111f,0 16px 26px rgba(0,0,0,.32)!important;
+  border-radius:3px!important;
+  font-family:Impact,'Arial Narrow',sans-serif!important;
+  letter-spacing:.08em!important;
+  font-size:clamp(20px,2vw,30px)!important;
+  padding:16px 34px!important;
+  text-transform:uppercase!important;
+}
+#titleScreen .title-footer{
+  color:#f3ebd2!important;
+  font:700 14px/1.45 Arial,sans-serif!important;
+  text-align:center!important;
+  letter-spacing:.08em!important;
+  text-transform:uppercase!important;
+  background:rgba(5,14,32,.56)!important;
+  border:1px solid rgba(223,192,116,.46)!important;
+  padding:12px 18px!important;
+  box-shadow:0 10px 24px rgba(0,0,0,.20)!important;
+}
+#titleScreen .credit-b3pz{display:block; margin-top:6px; font-size:12px; letter-spacing:.12em}
+
+#mainMenu.screen{
+  background-image:
+    linear-gradient(180deg, rgba(5,15,35,.28), rgba(5,15,35,.56)),
+    url('../assets/screens/01_title_screen.png')!important;
+  background-size:cover!important;
+  background-position:center!important;
+}
+#mainMenu.screen::before{
+  background:
+    radial-gradient(circle at center top, rgba(255,255,255,.06), transparent 42%),
+    linear-gradient(180deg, rgba(5,12,28,.16), rgba(5,12,28,.50))!important;
+}
+#mainMenu.screen::after{display:none!important}
+#mainMenu .main-menu-shell{
+  width:min(920px,92vw)!important;
+  background:linear-gradient(180deg, rgba(8,24,49,.84), rgba(6,18,38,.88))!important;
+  border:2px solid rgba(222,190,113,.78)!important;
+  border-top:3px solid #f2d693!important;
+  box-shadow:0 16px 36px rgba(0,0,0,.36), inset 0 0 0 1px rgba(255,255,255,.06)!important;
+  padding:26px 28px 24px!important;
+}
+#mainMenu .menu-title{
+  color:#f4ebd5!important;
+  font:900 clamp(30px,3vw,46px)/1 Impact,'Arial Narrow',sans-serif!important;
+  letter-spacing:.04em!important;
+  margin:6px 0 18px!important;
+}
+#mainMenu .main-menu-grid{gap:20px!important}
+#mainMenu #careerModeBtn,
+#mainMenu #cupsModeBtn{
+  min-height:248px!important;
+  grid-template-rows:72px auto auto!important;
+  gap:10px!important;
+  background:linear-gradient(180deg,#efe4c6 0%,#d6c8a8 100%)!important;
+  border:3px solid #c3aa6b!important;
+  border-top-color:#fff1c8!important;
+  border-left-color:#f7ebc9!important;
+  box-shadow:4px 5px 0 #03101d, 0 10px 20px rgba(0,0,0,.16)!important;
+}
+#mainMenu #careerModeBtn .career-mode-logo{
+  width:80px!important;
+  height:72px!important;
+}
+#mainMenu .cups-mode-symbol{display:none!important}
+#mainMenu .cups-mode-logo{
+  display:block!important;
+  width:72px!important;
+  height:72px!important;
+  object-fit:contain!important;
+  align-self:center!important;
+  justify-self:center!important;
+  filter:drop-shadow(0 3px 4px rgba(0,0,0,.16));
+}
+#mainMenu .big-menu-btn .big{
+  font-size:clamp(22px,2.4vw,32px)!important;
+}
+#mainMenu .big-menu-btn .small{
+  font-size:12px!important;
+  line-height:1.42!important;
+  color:#35425a!important;
+}
+#mainMenu .prototype-note{display:none!important}
+
+@media (max-width: 920px){
+  #titleScreen::after{width:min(92vw,760px);height:min(380px,50vh)}
+  #mainMenu .main-menu-shell{width:min(94vw,820px)!important;padding:18px 18px 20px!important}
+  #mainMenu #careerModeBtn,
+  #mainMenu #cupsModeBtn{min-height:220px!important}
+}
+@media (max-width: 700px){
+  #mainMenu .main-menu-grid{grid-template-columns:1fr!important}
+  #mainMenu #careerModeBtn,
+  #mainMenu #cupsModeBtn{min-height:176px!important;grid-template-rows:54px auto auto!important}
+  #mainMenu #careerModeBtn .career-mode-logo,
+  #mainMenu .cups-mode-logo{width:56px!important;height:54px!important}
+  #titleScreen .press-start{font-size:20px!important;padding:13px 26px!important}
+  #titleScreen::after{height:min(340px,52vh)}
+}
