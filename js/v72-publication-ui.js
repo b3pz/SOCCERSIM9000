@@ -88,7 +88,7 @@
           const summary=$('#managerSummary'), status=$('#seasonStatus');
           if(summary){
             summary.innerHTML=`
-              <div class="season-summary-row"><span class="season-summary-label">Manager:</span><span class="season-summary-value">${career.manager}</span></div>
+              <div class="season-summary-row"><span class="season-summary-label">Manager:</span><span class="season-summary-value">${escapeHTML(career.manager)}</span></div>
               <div class="season-summary-row"><span class="season-summary-label">Squadra:</span><span class="season-summary-value">${t.name} ${t.season}</span></div>
               <div class="season-summary-row"><span class="season-summary-label">Vice:</span><span class="season-summary-value">${t.coach}</span></div>
               <div class="season-summary-row"><span class="season-summary-label">Serie A:</span><span class="season-summary-value">Girone ${career.userGroup||'A'}</span></div>

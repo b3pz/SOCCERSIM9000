@@ -65,11 +65,11 @@
   function aiSub(e){
     const id=e.teamId||(e.side==='home'?current.h:current.a), st=career?.teamStates?.[id]; if(!st)return null;
     const starters=st.players.filter(p=>st.lineup.includes(p.id));
-    const bench=st.players.filter(p=>!st.lineup.includes(p.id));
+    const bench=st.players.filter(p=>!st.lineup.includes(p.id)&&(!window.S9V10?.canSubstitute||S9V10.canSubstitute(st,null,p.id,false)));
     if(!starters.length||!bench.length||(st.subs||0)>=3)return null;
     const outPool=starters.filter(p=>p.pos!=='GK'); const out=(outPool.length?outPool:starters)[Math.floor(Math.random()*(outPool.length||starters.length))];
     let compatible=bench.filter(p=>p.pos===out.pos); const inp=(compatible.length?compatible:bench)[Math.floor(Math.random()*(compatible.length||bench.length))];
-    const ix=st.lineup.indexOf(out.id); if(ix<0)return null; st.lineup[ix]=inp.id; st.subs=(st.subs||0)+1;
+    const ix=st.lineup.indexOf(out.id); if(ix<0)return null; if(window.S9V10?.recordSubstitution)S9V10.recordSubstitution(id,out.id,inp.id,current.minute); st.lineup[ix]=inp.id; Object.keys(st.setPieces||{}).forEach(k=>{if(st.setPieces[k]===out.id)st.setPieces[k]=inp.id}); st.subs=(st.subs||0)+1;
     return {out,inp};
   }
 
@@ -102,7 +102,7 @@
      so white parts of a shirt remain intact. */
   const transparentCache=new Map();
   function removeConnectedLightBackground(img){
-    const src=img.currentSrc||img.src; if(!src||transparentCache.has(src)){ if(transparentCache.has(src)) img.src=transparentCache.get(src); return; }
+    const src=img.currentSrc||img.src; if(!src||src.startsWith('data:')||transparentCache.has(src)){ if(transparentCache.has(src)) img.src=transparentCache.get(src); return; }
     const work=new Image(); work.onload=()=>{
       try{
         const maxDim=700,scale=Math.min(1,maxDim/Math.max(work.naturalWidth,work.naturalHeight));

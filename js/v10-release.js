@@ -1,4 +1,4 @@
-/* SerieA 9000 SIM — V10 COMPLETE BETA
+/* SerieA 9000 SIM — V10 FINAL
    Competitions: Final Eight, Coppa Italia, Coppa dei Campioni, Coppa UEFA,
    World Cup (France 98 format), European Championship (Euro 2000 format).
    Standalone cups are separate from Career and support foreign/national teams.
@@ -10,8 +10,8 @@ const q=s=>document.querySelector(s);
 const qa=s=>[...document.querySelectorAll(s)];
 const V10=window.S9V10={version:'10.0',matchContext:null,standalone:null,savedCareer:null,selectedCompetition:null,pickerIndex:0};
 const V10_CUP_SAVE_KEY='S9_V10_STANDALONE_CUP';
-function saveStandaloneState(){try{if(V10.standalone)localStorage.setItem(V10_CUP_SAVE_KEY,JSON.stringify({version:10,state:V10.standalone,ts:Date.now()}))}catch(e){}}
-function readStandaloneState(){try{const x=JSON.parse(localStorage.getItem(V10_CUP_SAVE_KEY)||'null');return x?.state||null}catch(e){return null}}
+function saveStandaloneState(){try{if(V10.standalone)localStorage.setItem(V10_CUP_SAVE_KEY,JSON.stringify({version:10,state:{...V10.standalone,teamStates:career?.teamStates,pstats:career?.pstats},ts:Date.now()}))}catch(e){}}
+function readStandaloneState(){try{const x=JSON.parse(localStorage.getItem(V10_CUP_SAVE_KEY)||'null'),s=x?.state,f=s&&FORMATS[s.key];return f&&Array.isArray(s.participants)&&s.participants.length===f.participants&&new Set(s.participants).size===f.participants&&s.participants.every(id=>T(id))&&s.participants.includes(s.user)?normalizeTournament(s):null}catch(e){return null}}
 function clearStandaloneState(){try{localStorage.removeItem(V10_CUP_SAVE_KEY)}catch(e){}}
 async function persistCareerV10(){try{if(career?.careerId&&window.S9Save){await S9Save.putCareer(career,{careerId:career.careerId});await S9Save.backupCareer(career)}}catch(e){console.warn('V10 save:',e)}}
 V10.italianIds=teams.map(t=>t.id); // snapshot BEFORE foreign/national additions
@@ -52,9 +52,11 @@ function ensureTeamStates(ids, targetCareer=career){
    MATCH SIM / TIE RESOLUTION
 ------------------------------------------------------------------ */
 function sim90(h,a){
- const H=T(h),A=T(a),hs=H?.strength||80,as=A?.strength||80;
+ ensureTeamStates([h,a]);
+ const H=T(h),A=T(a),hs=career?.teamStates?.[h]?lineupPower(h):H?.strength||80,as=career?.teamStates?.[a]?lineupPower(a):A?.strength||80;
  const hp=Math.max(.25,1.15+(hs-as)/20+.18),ap=Math.max(.22,1.00+(as-hs)/20);
- return {h,a,hg:Math.min(6,poisson(hp)),ag:Math.min(6,poisson(ap)),note:''};
+ const result={h,a,hg:Math.min(6,poisson(hp)),ag:Math.min(6,poisson(ap)),note:''};
+ if(V10.simulateCondition)V10.simulateCondition(h,a);return result;
 }
 function penaltyShootout(a,b){
  const sa=T(a)?.strength||80,sb=T(b)?.strength||80;
@@ -69,13 +71,15 @@ function goldenOrPens(a,b){
 }
 function resolveSingle(tie,res,directPens=false){
  tie.legs=[res];
+ if(res.decider){tie.winner=res.decider.winner;tie.loser=tie.winner===tie.a?tie.b:tie.a;tie.note=res.decider.note;return}
  if(res.hg>res.ag){tie.winner=tie.a;tie.loser=tie.b}
  else if(res.ag>res.hg){tie.winner=tie.b;tie.loser=tie.a}
  else if(directPens){const p=penaltyShootout(tie.a,tie.b);tie.winner=p.winner;tie.loser=p.winner===tie.a?tie.b:tie.a;tie.note=`RIGORI ${p.score}`}
- else{const x=goldenOrPens(tie.a,tie.b);tie.winner=x.winner;tie.loser=x.winner===tie.a?tie.b:tie.a;tie.note=x.note}
+ else{const x=goldenOrPens(tie.a,tie.b);tie.winner=x.winner;tie.loser=x.winner===tie.a?tie.b:tie.a;tie.note=x.note;if(x.note.startsWith('GOLDEN GOAL')){if(x.winner===res.h)res.hg++;else res.ag++}}
 }
 function resolveTwoLeg(tie,awayGoals){
  const [l1,l2]=tie.legs;if(!l1||!l2)return;
+ if(l2.decider){tie.winner=l2.decider.winner;tie.loser=tie.winner===tie.a?tie.b:tie.a;tie.note=l2.decider.note;tie.aggregate=`${l1.hg+l2.ag}-${l1.ag+l2.hg}`;return}
  const aAgg=l1.hg+l2.ag,bAgg=l1.ag+l2.hg;
  tie.aggregate=`${aAgg}-${bAgg}`;
  if(aAgg>bAgg){tie.winner=tie.a;tie.loser=tie.b;return}
@@ -85,7 +89,7 @@ function resolveTwoLeg(tie,awayGoals){
    if(aAway>bAway){tie.winner=tie.a;tie.loser=tie.b;tie.note='GOL IN TRASFERTA';return}
    if(bAway>aAway){tie.winner=tie.b;tie.loser=tie.a;tie.note='GOL IN TRASFERTA';return}
  }
- const x=goldenOrPens(tie.a,tie.b);tie.winner=x.winner;tie.loser=x.winner===tie.a?tie.b:tie.a;tie.note=x.note;
+ const x=goldenOrPens(tie.a,tie.b);tie.winner=x.winner;tie.loser=x.winner===tie.a?tie.b:tie.a;tie.note=x.note;if(x.note.startsWith('GOLDEN GOAL')){if(x.winner===l2.h)l2.hg++;else l2.ag++;tie.aggregate=`${l1.hg+l2.ag}-${l1.ag+l2.hg}`;}
 }
 
 /* ------------------------------------------------------------------
@@ -93,6 +97,7 @@ function resolveTwoLeg(tie,awayGoals){
 ------------------------------------------------------------------ */
 function blankStanding(id){return {id,p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}}
 function applyGroupResult(state,r){
+ if(state.results.some(x=>x.group===r.group&&x.h===r.h&&x.a===r.a))return;
  const H=state.groupStats[r.group][r.h],A=state.groupStats[r.group][r.a];
  H.p++;A.p++;H.gf+=r.hg;H.ga+=r.ag;A.gf+=r.ag;A.ga+=r.hg;
  if(r.hg>r.ag){H.w++;A.l++;H.pts+=3}else if(r.hg<r.ag){A.w++;H.l++;A.pts+=3}else{H.d++;A.d++;H.pts++;A.pts++}
@@ -153,7 +158,7 @@ function checkRoundComplete(state){
  if(!state.ties?.length||!state.ties.every(t=>t.winner))return false;
  recordEliminations(state);const winners=state.ties.map(t=>t.winner),rule=state.format.rounds[state.phase];
  if(!rule.next){state.champion=winners[0];state.runnerUp=state.ties[0].loser;state.completed=true;state.phase='DONE';if(state.format.key==='finaleight')buildFinalEightRanking(state);return true}
- createRound(state,rule.next,winners);return true;
+ createRoundFromPairs(state,rule.next,winners.reduce((pairs,id,i)=>{if(i%2===0)pairs.push([id,winners[i+1]]);return pairs},[]));return true;
 }
 function nextUserTournamentMatch(state){
  if(state.completed)return null;
@@ -166,6 +171,7 @@ function nextUserTournamentMatch(state){
  return null;
 }
 function processTournamentResult(state,match,res){
+ if(match.processed||state.completed)return;match.processed=true;state.played=playedCupMatches(state)+1;
  res.stage=match.stage;
  if(match.kind==='group'){
    res.group=match.group;applyGroupResult(state,res);state.groupMatchIndex++;
@@ -199,7 +205,10 @@ function buildFinalEightRanking(state){
    TOURNAMENT CREATION
 ------------------------------------------------------------------ */
 function createTournament(key,participants,user,opts={}){
- const format=FORMATS[key],state={id:`${key}_${Date.now()}_${Math.random().toString(36).slice(2,6)}`,key,name:format.name,format,user,participants:[...participants],phase:null,completed:false,champion:null,results:[],roundHistory:{},eliminated:{},careerMode:!!opts.careerMode};
+ const format=FORMATS[key];
+ if(!format||participants.length!==format.participants||new Set(participants).size!==participants.length||participants.some(id=>!T(id)))throw new Error('Partecipanti non validi');
+ if((key==='world'||key==='euro')&&new Set(participants.map(id=>T(id).country)).size!==participants.length)throw new Error('Paese duplicato');
+ const state={id:`${key}_${Date.now()}_${Math.random().toString(36).slice(2,6)}`,key,name:format.name,format,user,participants:[...participants],phase:null,completed:false,champion:null,results:[],roundHistory:{},eliminated:{},careerMode:!!opts.careerMode};
  if(format.groups)createGroupPhase(state,format.groups,format.double);
  else if(opts.initialPairs)createRoundFromPairs(state,opts.startStage||'QF',opts.initialPairs);
  else createRound(state,key==='italia'?'R32':opts.startStage||'QF',participants);
@@ -207,7 +216,7 @@ function createTournament(key,participants,user,opts={}){
  return state;
 }
 function uniqueNationalSelection(pool,user,n){
- const userT=T(user),used=new Set([userT.country]),out=[user];
+ const userT=T(user);if(!userT)return [];const used=new Set([userT.country]),out=[user];
  for(const id of shuffle(pool.filter(x=>x!==user))){const t=T(id);if(!t||used.has(t.country))continue;used.add(t.country);out.push(id);if(out.length>=n)break}
  return out;
 }
@@ -232,10 +241,10 @@ function makeStandaloneCareer(user,participants){
 function tempPrepareCareerMatch(h,a,meta){
  const standalone=meta.mode==='standalone';
  if(!standalone){
-   V10.matchContext.saved={fixtures:career.fixtures,otherFixtures:career.otherFixtures,round:career.round,stats:career.stats,europe:career.europe,groups:career.groups,userGroup:career.userGroup,otherGroup:career.otherGroup};
+   V10.matchContext.saved={fixtures:career.fixtures,otherFixtures:career.otherFixtures,round:career.round,stats:career.stats,results:career.results,pstats:career.pstats,europe:career.europe,groups:career.groups,userGroup:career.userGroup,otherGroup:career.otherGroup};
  }
  ensureTeamStates([h,a],career);
- career.fixtures=[[[h,a]]];career.otherFixtures=[[]];career.round=0;career.stats=initStats();career.europe={cdc:{winner:'V10',history:[]},uefa:{winner:'V10',history:[]}};
+ career.fixtures=[[[h,a]]];career.otherFixtures=[[]];career.round=0;career.stats=initStats();career.results=[];career.pstats=initPlayerStats();career.europe={cdc:{winner:'V10',history:[]},uefa:{winner:'V10',history:[]}};
  if(!career.groups)career.groups={A:[],B:[]};
 }
 function restoreCareerAfterCup(){
@@ -243,6 +252,7 @@ function restoreCareerAfterCup(){
  Object.assign(career,s);
 }
 function playTournamentFixture(state,match,mode){
+ if(V10.matchContext||current?._running)return;
  V10.matchContext={state,match,mode,saved:null};tempPrepareCareerMatch(match.h,match.a,{mode});
  const back=q('#backSeason');if(back)back.textContent='← TORNEO';
  openPrematch([match.h,match.a]);
@@ -255,6 +265,54 @@ function cancelTournamentPrematch(){
  return true;
 }
 
+function normalizeTournament(state){
+ state.format=FORMATS[state.key];state.name=state.format.name;state.results=state.results||[];state.roundHistory=state.roundHistory||{};state.eliminated=state.eliminated||{};
+ if(state.ties&&state.phase!=='GROUPS'&&state.phase!=='DONE')state.roundHistory[state.phase]=state.ties;
+ return state;
+}
+function normalizeCareer(c){
+ if(!c)return c;
+ if(!V10.italianIds.includes(c.user))throw new Error('Squadra della carriera non valida');
+ c.seasonYear=Number(c.seasonYear)||1998;c.round=Math.max(0,Math.min(30,Number(c.round)||0));
+ if(!c.groups){const own=[...new Set((c.fixtures?.[0]||[]).flat())];const rest=V10.italianIds.filter(id=>!own.includes(id));c.groups=own.length===16&&rest.length===16?{A:own,B:rest}:v4DrawGroups(V10.italianIds)}
+ c.userGroup=c.groups.A.includes(c.user)?'A':'B';c.otherGroup=c.userGroup==='A'?'B':'A';
+ c.fixtures=c.fixtures||fixtures(c.groups[c.userGroup]);c.otherFixtures=c.otherFixtures||fixtures(c.groups[c.otherGroup]);
+ c.stats=Object.assign(initStats(),c.stats||{});for(const stat of Object.values(c.stats)){for(const key of ['p','w','d','l','gf','ga','pts'])if(!Number.isFinite(stat[key]))stat[key]=0;}c.pstats=Object.assign(initPlayerStats(),c.pstats||{});c.results=c.results||[];
+ c.leagueDates=(c.leagueDates||v4SeasonSundays(c.seasonYear)).map(d=>new Date(d));
+ c.calendar=(c.calendar||v4BuildCalendar(c.seasonYear)).map(e=>({...e,date:new Date(e.date)}));
+ c.honours=c.honours||{};['scudetti','coppaItalia','cdc','uefa','world','euro'].forEach(k=>c.honours[k]=c.honours[k]||[]);
+ c.europe=c.europe||legacyEuropeDummy();ensureTeamStates(V10.clubIds,c);
+ Object.values(c.v10Cups||{}).forEach(normalizeTournament);if(c.v10FinalEight)normalizeTournament(c.v10FinalEight);
+ return c;
+}
+V10.normalizeCareer=normalizeCareer;
+V10.finishPlayedTie=async function(){
+ const ctx=V10.matchContext,m=current;if(!ctx||ctx.match.kind!=='knockout'||m.decider)return;
+ const tie=ctx.match.tie;let tied=m.scoreH===m.scoreA;
+ if(tie.twoLeg){
+   if(ctx.match.leg===1)return;
+   const first=tie.legs[0];tied=first.hg+m.scoreA===first.ag+m.scoreH;
+   if(tied&&tie.awayGoals&&m.scoreA!==first.ag)return;
+ }
+ if(!tied)return;
+ let result;
+ if(tie.directPens){const p=penaltyShootout(m.h,m.a);result={winner:p.winner,note:`RIGORI ${p.score}`}}
+ else{
+   log("90' SUPPLEMENTARI · GOLDEN GOAL");await ov('<h2>SUPPLEMENTARI · GOLDEN GOAL</h2>',1300);
+   result=goldenOrPens(m.h,m.a);
+   if(result.note.startsWith('GOLDEN GOAL')){
+     m.minute=91+rand(0,29);if(result.winner===m.h)m.scoreH++;else m.scoreA++;updateScore();
+   }else m.minute=120;
+ }
+ m.decider=result;m.keyEvents.push(result.note);log(result.note);await ov(`<h2>${result.note}</h2>`,1800);
+};
+V10.leaveContext=function(){
+ if(V10.matchContext&&current?._finished)q('#returnSeason').onclick();
+ else if(V10.matchContext)cancelTournamentPrematch();
+ if(V10.standalone)leaveStandalone();
+ current=null;
+};
+
 /* ------------------------------------------------------------------
    UI BUILD
 ------------------------------------------------------------------ */
@@ -262,7 +320,13 @@ function injectScreens(){
  if(q('#v10CupSetup'))return;
  const main=q('main');
  const html=`
- <section id="v10CupSetup" class="screen"><img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM"><div class="v10-shell"><div class="v10-title" id="v10SetupTitle">COPPA</div><div class="v10-subtitle">Scegli prima la tua squadra. Il sorteggio viene generato dopo la conferma.</div><div class="v10-picker-layout"><div class="v10-picker-side"><b>FORMATO</b><div id="v10FormatInfo" style="margin-top:10px;font-size:12px;line-height:1.45"></div></div><div class="v10-picker-main"><div></div><div class="v10-team-art"><button class="v10-picker-arrow" id="v10PrevTeam">◀</button><div><img id="v10PickerCrest" alt=""><div class="v10-team-title" id="v10PickerName"></div><div class="v10-team-season" id="v10PickerSeason"></div><div class="v10-kit-mini"><img id="v10PickerHome" alt="Home"><img id="v10PickerAway" alt="Away"></div></div><button class="v10-picker-arrow" id="v10NextTeam">▶</button></div><div class="v10-actions"><button id="v10CupSetupBack">◀ COPPE</button><button class="primary" id="v10CreateCup">SORTEGGIA TORNEO ▶</button></div></div><div class="v10-picker-side"><b>SQUADRE DISPONIBILI</b><div id="v10TeamList" class="v10-team-list"></div></div></div></div></section>
+ <section id="v10CupSetup" class="screen"><img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM"><div class="s9-team-picker">
+ <header class="s9-picker-heading" id="v10SetupTitle">COPPA</header>
+ <section class="s9-picker-grid">
+ <aside class="s9-picker-side"><div id="v10PickerDescription"></div><details class="s9-picker-details"><summary>FORMATO TORNEO</summary><div id="v10FormatInfo"></div></details></aside>
+ <article class="s9-picker-center"><div class="s9-picker-name" id="v10PickerName"></div><div class="s9-picker-year" id="v10PickerSeason"></div><div class="s9-picker-art"><button class="s9-picker-arrow" id="v10PrevTeam" aria-label="Squadra precedente">◀</button><div class="s9-picker-crest"><img id="v10PickerCrest" alt="Stemma"></div><button class="s9-picker-arrow" id="v10NextTeam" aria-label="Squadra successiva">▶</button></div><div class="s9-picker-kits"><figure><img id="v10PickerHome" alt="Divisa HOME"><figcaption>HOME</figcaption></figure><figure><img id="v10PickerAway" alt="Divisa AWAY"><figcaption>AWAY</figcaption></figure></div></article>
+ <aside class="s9-picker-side s9-picker-rating"><div id="v10PickerRating"></div><details class="s9-picker-details"><summary>SQUADRE DISPONIBILI</summary><div id="v10TeamList" class="v10-team-list"></div></details></aside>
+ </section><footer class="s9-picker-actions"><button id="v10CupSetupBack">◀ COPPE</button><button class="primary" id="v10CreateCup">SORTEGGIA TORNEO ▶</button></footer></div></section>
  <section id="v10Tournament" class="screen"><img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM"><div class="v10-tournament-shell"><div class="v10-competition-head"><div class="v10-userclub" id="v10UserTeam"></div><div class="v10-title" id="v10TournamentTitle"></div><div class="v10-stage" id="v10TournamentStage"></div></div><div class="v10-tabs"><button data-v10tab="overview" class="active">PROSSIMA</button><button data-v10tab="groups">GIRONI</button><button data-v10tab="bracket">TABELLONE</button><button data-v10tab="results">RISULTATI</button></div><div id="v10TournamentContent"></div><div class="v10-actions"><button id="v10TournamentExit">◀ MENU COPPE</button><button class="primary" id="v10PlayNext">PREPARA PARTITA ▶</button></div></div></section>
  <section id="v10FinalEight" class="screen"><img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM"><div class="v10-tournament-shell"><div class="v10-competition-head"><div class="v10-userclub">FASE FINALE CAMPIONATO</div><div class="v10-title">FINAL EIGHT · SCUDETTO</div><div class="v10-stage" id="v10FEStage"></div></div><div class="v10-tabs"><button data-fetab="overview" class="active">PROSSIMA</button><button data-fetab="bracket">TABELLONE</button><button data-fetab="ranking">CLASSIFICA FINALE</button></div><div id="v10FEContent"></div><div class="v10-actions"><button id="v10FEBack">◀ STAGIONE</button><button class="primary" id="v10FEPlay">GIOCA ▶</button></div></div></section>
  <section id="v10Trophy" class="screen"><img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM"><div class="v10-shell"><div class="v10-champion"><div class="v10-title" id="v10TrophyTitle">CAMPIONE</div><img id="v10TrophyCrest" alt=""><div class="v10-champion-name" id="v10TrophyName"></div><div id="v10TrophyNote"></div><div class="v10-actions"><button class="primary" id="v10TrophyContinue">CONTINUA ▶</button></div></div></div></section>`;
@@ -290,8 +354,14 @@ function openCupSetup(key){
  q('#v10CupSetup').classList.toggle('v10-world',key==='world');q('#v10CupSetup').classList.toggle('v10-euro-nations',key==='euro');
  q('#v10SetupTitle').textContent=FORMATS[key].name;q('#v10FormatInfo').textContent=formatInfo(key);renderCupPicker();show('v10CupSetup');
 }
+function pickerDescription(t){
+ const m=teamMeta[t.id]||{};
+ return `<div class="s9-picker-label">${isNational(t.id)?'NAZIONALE':'CLUB STORICO'}</div><p>${escapeHTML(t.name)} · ${escapeHTML(t.season)}</p><dl><dt>${isNational(t.id)?'NAZIONE':'CITTÀ'}</dt><dd>${escapeHTML(isNational(t.id)?t.name:m.city||t.country||'Italia')}</dd><dt>STADIO</dt><dd>${escapeHTML(m.stadium||'Stadio storico')}</dd><dt>ALLENATORE</dt><dd>${escapeHTML(t.coach||'—')}</dd></dl>`;
+}
+function pickerRating(t){return `<div class="s9-picker-label">OVR</div><div class="s9-picker-ovr">${t.strength}</div><div class="s9-picker-label">MODULI</div><div class="s9-picker-formations">${t.formations.map(escapeHTML).join('<br>')}</div>`}
 function renderCupPicker(){
  const id=V10.pickerPool[V10.pickerIndex],t=T(id);if(!t)return;
+ q('#v10PickerDescription').innerHTML=pickerDescription(t);q('#v10PickerRating').innerHTML=pickerRating(t);
  q('#v10PickerCrest').src=crestFor(id);q('#v10PickerName').textContent=t.name;q('#v10PickerSeason').textContent=t.season;q('#v10PickerHome').src=kitFor(id,'home');q('#v10PickerAway').src=kitFor(id,'away');
  const box=q('#v10TeamList');box.innerHTML=V10.pickerPool.map((x,i)=>`<button class="${i===V10.pickerIndex?'active':''}" data-pick="${i}">${teamLabel(x)}</button>`).join('');qa('[data-pick]').forEach(b=>b.onclick=()=>{V10.pickerIndex=+b.dataset.pick;renderCupPicker()});
 }
@@ -301,7 +371,7 @@ function beginStandalone(){
  V10.savedCareer=career;career=makeStandaloneCareer(user,participants);V10.standalone=createTournament(key,participants,user);V10.activeTab='overview';saveStandaloneState();renderTournament();show('v10Tournament');
 }
 function leaveStandalone(){saveStandaloneState();career=V10.savedCareer;V10.savedCareer=null;V10.standalone=null;V10.matchContext=null;rebuildCupsMenu();show('cupsMenu')}
-function continueStandalone(){const state=readStandaloneState();if(!state)return;V10.savedCareer=career;career=makeStandaloneCareer(state.user,state.participants);V10.standalone=state;V10.selectedCompetition=state.key;V10.activeTab='overview';ensureTeamStates(state.participants,career);renderTournament();show('v10Tournament')}
+function continueStandalone(){const state=readStandaloneState();if(!state)return;V10.savedCareer=career;career=makeStandaloneCareer(state.user,state.participants);if(state.teamStates)career.teamStates=state.teamStates;if(state.pstats)career.pstats=state.pstats;V10.standalone=state;V10.selectedCompetition=state.key;V10.activeTab='overview';ensureTeamStates(state.participants,career);renderTournament();show('v10Tournament')}
 
 /* ------------------------------------------------------------------
    TOURNAMENT RENDERING
@@ -353,32 +423,55 @@ function initCareerCups(c,qualified=null){
  }
  c.v10Cups.cdc=createTournament('cdc',createEuropeParticipants(cdcIt,'cdc'),cdcIt.includes(user)?user:null,{careerMode:true});
  c.v10Cups.uefa=createTournament('uefa',createEuropeParticipants(uefaIt,'uefa'),uefaIt.includes(user)?user:null,{careerMode:true});
- c.v10Cups.cdc.italianParticipants=cdcIt;c.v10Cups.uefa.italianParticipants=uefaIt;
+ c.v10Cups.cdc.italianParticipants=cdcIt;c.v10Cups.uefa.italianParticipants=uefaIt;syncCupCalendar(c);
 }
 function createCareerV10(){
  const name=q('#managerName').value.trim()||'Manager',team=q('#managerTeam').value;const groups=v4DrawGroups(V10.italianIds),ug=groups.A.includes(team)?'A':'B',og=ug==='A'?'B':'A';
  career={manager:name,user:team,round:0,seasonYear:1998,groups,userGroup:ug,otherGroup:og,fixtures:fixtures(groups[ug]),otherFixtures:fixtures(groups[og]),stats:initStats(),pstats:initPlayerStats(),teamStates:{},results:[],leagueDates:v4SeasonSundays(1998),calendar:v4BuildCalendar(1998),honours:{scudetti:[],coppaItalia:[],cdc:[],uefa:[],world:[],euro:[]},qualified:null,europe:legacyEuropeDummy(),v10FinalEight:null};
  ensureTeamStates(V10.clubIds,career);initCareerCups(career,null);renderSeason();show('season');
 }
+const CUP_SLOTS={italia:[2,6,10,15,19,27],cdc:[1,3,5,7,9,11,16,18,21,23,28],uefa:[1,3,5,7,9,11,16,18,21,23,28]};
+function playedCupMatches(s){return Number.isFinite(s.played)?s.played:(s.results||[]).filter(r=>r.h===s.user||r.a===s.user).length+Object.values(s.roundHistory||{}).flat().flatMap(t=>t.legs||[]).filter(r=>r.h===s.user||r.a===s.user).length}
+function cupSlot(s){return CUP_SLOTS[s.key]?.[playedCupMatches(s)]??30}
+function cupDate(s){const d=new Date(career.leagueDates[Math.max(0,cupSlot(s)-1)]);d.setDate(d.getDate()+3);return d}
+function dueCareerCup(){
+ if(!career||V10.standalone||V10.matchContext)return null;
+ return Object.values(career.v10Cups||{}).filter(s=>!s.completed&&s.user===career.user&&nextUserTournamentMatch(s)&&cupSlot(s)<=career.round).sort((a,b)=>cupSlot(a)-cupSlot(b))[0]||null;
+}
+V10.dueCareerCup=dueCareerCup;
+function syncCupCalendar(c){
+ if(!c.v10Cups)return;
+ c.honours=c.honours||{};for(const s of Object.values(c.v10Cups)){const key=s.key==='italia'?'coppaItalia':s.key;c.honours[key]=c.honours[key]||[];if(s.completed&&!c.honours[key].some(h=>h.year===c.seasonYear))c.honours[key].push({year:c.seasonYear,team:s.champion})}
+ c.calendar=v4BuildCalendar(c.seasonYear);
+ for(const s of Object.values(c.v10Cups)){
+   if(s.user!==c.user)continue;
+   for(const [i,slot]of CUP_SLOTS[s.key].entries()){
+     const d=new Date(c.leagueDates[slot-1]);d.setDate(d.getDate()+3);
+     const event=c.calendar.find(e=>e.type==='MERCOLEDÌ'&&e.round===slot-1);
+     if(event)event.label=`${s.name} · Gara ${i+1}${i<playedCupMatches(s)?' · disputata':s.completed?' · eliminata/conclusa':''}`;
+   }
+ }
+}
 function careerCupSummary(state){
  const userIn=state.participants.includes(career.user),m=userIn?nextUserTournamentMatch(state):null;
- return `<div class="euro-card"><h3>${state.name}</h3><div class="euro-stage">${state.completed?'CONCLUSA':stageLabel(state.phase)}</div>${state.completed?`<h2>🏆 ${teamLabel(state.champion)}</h2>`:userIn?(m?`<div class="euro-match">Prossima: ${teamLabel(m.h)} vs ${teamLabel(m.a)}</div><button class="primary" data-careercup="${state.key}">GIOCA PROSSIMA ▶</button>`:`<div class="euro-match">In attesa del turno successivo.</div>`):`<div class="euro-match">La tua squadra non partecipa. Competizione simulata.</div>`}<details><summary>Tabellone / risultati</summary>${state.groups?renderGroups(state):''}${renderBracket(state)}</details></div>`;
+ return `<div class="euro-card"><h3>${state.name}</h3><div class="euro-stage">${state.completed?'CONCLUSA':stageLabel(state.phase)}</div>${state.completed?`<h2>🏆 ${teamLabel(state.champion)}</h2>`:userIn?(m?`<div class="euro-match">Prossima: ${teamLabel(m.h)} vs ${teamLabel(m.a)}</div><button class="primary" data-careercup="${state.key}" ${cupSlot(state)>career.round?'disabled':''}>${v4FmtDate(cupDate(state))} · GIOCA PROSSIMA ▶</button>`:`<div class="euro-match">In attesa del turno successivo.</div>`):`<div class="euro-match">La tua squadra non partecipa. Competizione simulata.</div>`}<details><summary>Tabellone / risultati</summary>${state.groups?renderGroups(state):''}${renderBracket(state)}</details></div>`;
 }
 function renderCareerCups(){
  const c=q('#seasonContent');if(!career.v10Cups)initCareerCups(career,career.qualified);
  c.innerHTML=`<h2>COPPE DELLA STAGIONE</h2><p>Coppa Italia sempre accessibile. Le coppe europee vengono assegnate dalla classifica finale della Final Eight della stagione precedente.</p><div class="europe-grid">${careerCupSummary(career.v10Cups.italia)}${careerCupSummary(career.v10Cups.cdc)}${careerCupSummary(career.v10Cups.uefa)}</div>`;
  qa('[data-careercup]').forEach(b=>b.onclick=()=>playCareerCup(b.dataset.careercup));
 }
-function playCareerCup(key){const s=career.v10Cups[key],m=nextUserTournamentMatch(s);if(m)playTournamentFixture(s,m,'careerCup')}
+function playCareerCup(key){const s=career.v10Cups[key],m=nextUserTournamentMatch(s);if(cupSlot(s)>career.round)return;if(m)playTournamentFixture(s,m,'careerCup')}
 
 /* ------------------------------------------------------------------
    CAREER FINAL EIGHT + NEW SEASON
 ------------------------------------------------------------------ */
 function startFinalEight(){
+ if(career.round<30)return;const due=dueCareerCup();if(due){playCareerCup(due.key);return}
  const A=v4Standings('A').slice(0,4).map(x=>x.t.id),B=v4Standings('B').slice(0,4).map(x=>x.t.id);
  const pairs=[[A[0],B[3]],[A[1],B[2]],[B[0],A[3]],[B[1],A[2]]],participants=[...A,...B];
  const user=participants.includes(career.user)?career.user:null;career.v10FinalEight=createTournament('finaleight',participants,user,{careerMode:true,initialPairs:pairs,startStage:'QF'});
- if(!user)simulateTournamentToEnd(career.v10FinalEight);renderFinalEight();show('v10FinalEight');
+ if(!user)simulateTournamentToEnd(career.v10FinalEight);finalizeFinalEightIfNeeded();persistCareerV10();renderFinalEight();show('v10FinalEight');
 }
 function renderFinalEight(tab=V10.feTab||'overview'){
  const s=career?.v10FinalEight;if(!s)return;V10.feTab=tab;q('#v10FEStage').textContent=s.completed?'CONCLUSA':stageLabel(s.phase);qa('[data-fetab]').forEach(b=>b.classList.toggle('active',b.dataset.fetab===tab));
@@ -389,13 +482,14 @@ function renderFinalEight(tab=V10.feTab||'overview'){
 function rankingHTML(s){return`<table class="v10-ranking"><tr><th>#</th><th>Squadra</th><th>Europa</th></tr>${s.ranking.map((id,i)=>`<tr><td>${i+1}</td><td>${teamLabel(id)}</td><td>${i<4?'COPPA DEI CAMPIONI':'COPPA UEFA'}</td></tr>`).join('')}</table>`}
 function playFinalEightNext(){const s=career.v10FinalEight,m=nextUserTournamentMatch(s);if(m)playTournamentFixture(s,m,'finaleight');else if(!s.completed){simulateTournamentToEnd(s);renderFinalEight()}}
 function finalizeFinalEightIfNeeded(){
+ normalizeCareer(career);
  const s=career.v10FinalEight;if(!s?.completed)return;
  if(!s.ranking)buildFinalEightRanking(s);career.qualified={cdc:s.ranking.slice(0,4),uefa:s.ranking.slice(4,8)};
  const yr=career.seasonYear;if(!career.honours.scudetti.some(x=>x.year===yr))career.honours.scudetti.push({year:yr,team:s.ranking[0]});
 }
 function advanceCareerSeasonV10(){
  finalizeFinalEightIfNeeded();const champ=career.v10FinalEight.ranking[0],nextYear=career.seasonYear+1,qualified=career.qualified,groups=v4DrawGroups(V10.italianIds,qualified);
- career.seasonYear=nextYear;career.groups=groups;career.userGroup=groups.A.includes(career.user)?'A':'B';career.otherGroup=career.userGroup==='A'?'B':'A';career.fixtures=fixtures(groups[career.userGroup]);career.otherFixtures=fixtures(groups[career.otherGroup]);career.round=0;career.stats=initStats();career.pstats=initPlayerStats();career.results=[];career.leagueDates=v4SeasonSundays(nextYear);career.calendar=v4BuildCalendar(nextYear);career.europe=legacyEuropeDummy();career.v10FinalEight=null;career.teamStates={};ensureTeamStates(V10.clubIds,career);initCareerCups(career,qualified);persistCareerV10();renderSeason();show('season');alert(`Nuova stagione ${nextYear}/${String(nextYear+1).slice(-2)}. Campione d'Italia: ${teamLabel(champ)}.`)
+ career.seasonYear=nextYear;career.groups=groups;career.userGroup=groups.A.includes(career.user)?'A':'B';career.otherGroup=career.userGroup==='A'?'B':'A';career.fixtures=fixtures(groups[career.userGroup]);career.otherFixtures=fixtures(groups[career.otherGroup]);career.round=0;career.stats=initStats();career.pstats=initPlayerStats();career.results=[];career.leagueDates=v4SeasonSundays(nextYear);career.calendar=v4BuildCalendar(nextYear);career.europe=legacyEuropeDummy();career.v10FinalEight=null;Object.values(career.teamStates||{}).forEach(st=>{st.subs=0;(st.players||[]).forEach(p=>{p.fitness=100;p.yellowStreak=0;p.injuryGames=Math.max(0,(p.injuryGames||0)-6)})});ensureTeamStates(V10.clubIds,career);initCareerCups(career,qualified);persistCareerV10();renderSeason();show('season');alert(`Nuova stagione ${nextYear}/${String(nextYear+1).slice(-2)}. Campione d'Italia: ${teamLabel(champ)}.`)
 }
 
 /* ------------------------------------------------------------------
@@ -418,18 +512,24 @@ function installOverrides(){
  /* Career picker must remain strictly Italian even though V10 loads foreign/national teams. */
  try{
    const oldPicker=renderTeamPicker;
-   renderTeamPicker=function(){selectedTeamIndex=((selectedTeamIndex%V10.italianIds.length)+V10.italianIds.length)%V10.italianIds.length;return oldPicker()};
+   renderTeamPicker=function(){selectedTeamIndex=((selectedTeamIndex%V10.italianIds.length)+V10.italianIds.length)%V10.italianIds.length;const out=oldPicker();const t=T(V10.italianIds[selectedTeamIndex]);q('#teamLeftInfo').innerHTML=pickerDescription(t);q('#teamRightInfo').innerHTML=pickerRating(t);q('#teamEmblem').innerHTML=`<img src="${crestFor(t.id)}" alt="Stemma ${escapeHTML(t.name)}">`;q('#teamHomeKit').src=kitFor(t.id,'home');q('#teamAwayKit').src=kitFor(t.id,'away');return out};
    q('#prevTeam').onclick=()=>{selectedTeamIndex=(selectedTeamIndex-1+V10.italianIds.length)%V10.italianIds.length;renderTeamPicker()};
    q('#nextTeam').onclick=()=>{selectedTeamIndex=(selectedTeamIndex+1)%V10.italianIds.length;renderTeamPicker()};
  }catch(e){}
  q('#createCareer').onclick=createCareerV10;
- const proto=q('.prototype-note');if(proto)proto.textContent='V10 COMPLETE BETA · FINAL EIGHT · COPPE · NAZIONALI 1990–2010 · GOLDEN GOAL · b3pZ';
+ const proto=q('.prototype-note');if(proto)proto.textContent='V10 FINAL · FINAL EIGHT · COPPE · NAZIONALI 1990–2010 · GOLDEN GOAL · b3pZ';
  const cupButton=q('#cupsModeBtn');if(cupButton){cupButton.querySelector('.small').textContent='CLUB + MONDIALE + EUROPEO · TORNEI STANDALONE';cupButton.onclick=()=>show('cupsMenu')}
  const euroBtn=q('[data-view="europe"]');if(euroBtn)euroBtn.textContent='Coppe';
 
+ const oldSeason=renderSeason;renderSeason=function(){const out=oldSeason();const due=dueCareerCup();if(due){q('#seasonStatus').textContent=`${due.name} · ${v4FmtDate(cupDate(due))}`;q('#headerRight').textContent=v4FmtDate(cupDate(due))}return out};
  const oldRender=renderSeasonView;
  renderSeasonView=function(v){
-   if(v==='europe'){const seasonEl=q('#season');if(seasonEl){seasonEl.classList.remove('v51-calendar-bg');seasonEl.classList.add('v51-europe-bg')}renderCareerCups();return}
+   const seasonEl=q('#season');
+   if(seasonEl){seasonEl.dataset.seasonView=v;seasonEl.classList.toggle('v51-calendar-bg',v==='calendar');seasonEl.classList.toggle('v51-europe-bg',v==='europe')}
+   if(v==='calendar')syncCupCalendar(career);
+   const due=v==='next'?dueCareerCup():null;
+   if(due){const status=q('#seasonStatus');if(status)status.textContent=`${due.name} · ${v4FmtDate(cupDate(due))}`;q('#seasonContent').innerHTML=`<h2>${due.name}</h2><p>${v4FmtDate(cupDate(due))} · Impegno infrasettimanale</p>${nextCard(due)}<button class="primary" id="v10DueCup">PREPARA PARTITA ▶</button>`;q('#v10DueCup').onclick=()=>playCareerCup(due.key);return}
+   if(v==='europe'){renderCareerCups();return}
    oldRender(v);
    if(v==='next'&&career?.round>=30){
      const c=q('#seasonContent');
@@ -444,11 +544,12 @@ function installOverrides(){
  const returnBtn=q('#returnSeason');
  returnBtn.onclick=()=>{
    if(!V10.matchContext){renderSeason();show('season');return}
-   const ctx=V10.matchContext,res={h:current.h,a:current.a,hg:current.scoreH,ag:current.scoreA,note:''};
+   if(!current?._finished)return;
+   const ctx=V10.matchContext,res={h:current.h,a:current.a,hg:current.scoreH,ag:current.scoreA,note:current.decider?.note||'',decider:current.decider};
    if(ctx.mode!=='standalone')restoreCareerAfterCup();
    processTournamentResult(ctx.state,ctx.match,res);V10.matchContext=null;current=null;
    if(ctx.mode==='standalone'){saveStandaloneState();renderTournament();show('v10Tournament')}
-   else if(ctx.mode==='careerCup'){persistCareerV10();renderSeason();renderSeasonView('europe');show('season')}
+   else if(ctx.mode==='careerCup'){syncCupCalendar(career);persistCareerV10();renderSeason();renderSeasonView('europe');show('season')}
    else{finalizeFinalEightIfNeeded();persistCareerV10();renderFinalEight();show('v10FinalEight')}
  };
  q('#backSeason').onclick=()=>{if(!cancelTournamentPrematch())show('season')};
@@ -484,7 +585,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 'use strict';
 
 const S9=window.S9V10||{};
-S9.version='10.3';
+S9.version='10 FINAL';
 window.S9V10=S9;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const $c=s=>document.querySelector(s);
@@ -498,12 +599,17 @@ function ensurePlayerState(p){
  if(!Number.isFinite(p.suspensionGames))p.suspensionGames=0;
  if(!Number.isFinite(p.yellowStreak))p.yellowStreak=0;
  if(!Number.isFinite(p.matchesPlayedV103))p.matchesPlayedV103=0;
+ p.injuryGames=clamp(Math.floor(p.injuryGames),0,20);p.suspensionGames=clamp(Math.floor(p.suspensionGames),0,10);p.yellowStreak=clamp(Math.floor(p.yellowStreak),0,2);
  return p;
 }
 function ensureTeamStateV103(id){
  const st=career?.teamStates?.[id];
  if(!st)return null;
- (st.players||[]).forEach(ensurePlayerState);
+ const defaults=(!Array.isArray(st.players)||!Array.isArray(st.lineup)||!st.setPieces||!st.formation||!st.mentality)?initTeamState(T(id)):st;
+ if(!Array.isArray(st.players)||!st.players.length)st.players=defaults.players;
+ if(!Array.isArray(st.lineup))st.lineup=defaults.lineup;
+ st.setPieces={...defaults.setPieces,...st.setPieces};st.formation=st.formation||defaults.formation;st.mentality=st.mentality||defaults.mentality;
+ st.players.forEach(ensurePlayerState);
  return st;
 }
 function ensureAllV103(){
@@ -607,6 +713,7 @@ try{
  const oldBuildMatchV103=buildMatch;
  buildMatch=function(h,a){
    ensureAvailableLineup(h);ensureAvailableLineup(a);
+   [h,a].forEach(id=>{career.teamStates[id].subs=0;career.teamStates[id].usedSubs=[]});
    const m=oldBuildMatchV103(h,a);
    m._v103={teams:{[h]:teamTrack(h),[a]:teamTrack(a)},finalized:false};
    for(const e of m.events||[]){
@@ -636,7 +743,7 @@ function minutesPlayed(pid,atMinute){
  const x=getTrackForPlayer(pid);if(!x)return 0;
  const start=x.tr.enteredAt[pid];if(start==null)return 0;
  const end=x.tr.exitedAt[pid]??atMinute??current?.minute??0;
- return clamp(end-start,0,90);
+ return clamp(end-start,0,120);
 }
 function liveFitness(p){
  ensurePlayerState(p);
@@ -652,6 +759,14 @@ function liveFitness(p){
 try{
  const oldDoEventV103=doEvent;
  doEvent=async function(e){
+   if(!current||current._finished||!e||e._processed)return;e._processed=true;
+   while(paused)await wait(250);if(!current||current._finished)return;
+   if(e.player&&current._v103){const tid=e.side==='home'?current.h:current.a,tr=current._v103.teams[tid],st=career.teamStates[tid];
+     if(tr?.newInjuries[e.player.id]||tr?.reds[e.player.id]||tr?.exitedAt[e.player.id]!=null||!st.lineup.includes(e.player.id)){
+       const pool=st.players.filter(p=>st.lineup.includes(p.id)&&!tr.reds[p.id]&&!tr.newInjuries[p.id]);if(!pool.length)return;e={...e,player:pick(pool)};
+     }
+     if(e.assist&&!st.lineup.includes(e.assist.id))e={...e,assist:null};
+   }
    if(current?._v103&&e?.player){
      const tid=e.side==='home'?current.h:current.a,tr=current._v103.teams?.[tid];
      if(tr){
@@ -663,6 +778,7 @@ try{
          if(tr.reds[e.player.id])return;
          tr.reds[e.player.id]=true;
        }
+       if(e.type==='red'){tr.exitedAt[e.player.id]=e.min;const st=career.teamStates[tid];st.lineup=st.lineup.filter(id=>id!==e.player.id);Object.keys(st.setPieces||{}).forEach(k=>{if(st.setPieces[k]===e.player.id)st.setPieces[k]=st.lineup[0]})}
        if(e.type==='injury'){
          const st=ensureTeamStateV103(tid),p=st?.players?.find(x=>x.id===e.player.id);if(!p)return;
          const games=Math.max(1,e.recovery||1),label=e.injuryLabel||'INFORTUNIO';
@@ -683,17 +799,18 @@ function processSilentEvents(m){
  for(const e of m.events||[]){
    if(!e.player)continue;
    const tid=e.side==='home'?m.h:m.a,tr=m._v103.teams?.[tid],st=ensureTeamStateV103(tid);if(!tr||!st)continue;
-   const p=st.players.find(x=>x.id===e.player.id);if(!p)continue;
+   const p=st.players.find(x=>x.id===e.player.id);if(!p||tr.reds[p.id]||tr.newInjuries[p.id])continue;
    if(e.type==='injury'){
      const games=Math.max(1,e.recovery||1);p.injuryGames=Math.max(p.injuryGames||0,games);tr.newInjuries[p.id]={games,label:e.injuryLabel||'INFORTUNIO'};
    }else if(e.type==='yellow'){
      tr.yellows[p.id]=(tr.yellows[p.id]||0)+1;if(tr.yellows[p.id]>=2)tr.reds[p.id]=true;
    }else if(e.type==='red')tr.reds[p.id]=true;
+   if(tr.reds[p.id])tr.exitedAt[p.id]=e.min;
  }
 }
 
 function playedMinutesFrom(m,tr,pid){
- const start=tr.enteredAt[pid];if(start==null)return 0;return clamp((tr.exitedAt[pid]??90)-start,0,90);
+ const start=tr.enteredAt[pid];if(start==null)return 0;return clamp((tr.exitedAt[pid]??Math.max(90,m.minute||0))-start,0,120);
 }
 function finalizeTeamCondition(m,id,visible){
  const st=ensureTeamStateV103(id),tr=m?._v103?.teams?.[id];if(!st||!tr)return[];
@@ -709,7 +826,7 @@ function finalizeTeamCondition(m,id,visible){
    const mins=playedMinutesFrom(m,tr,p.id),start=tr.startFitness[p.id]??p.fitness;
    const load=(20+Math.max(0,78-playerPhysical(p))*.12)*(mins/90);
    p.fitness=clamp(Math.round(start+12-load),25,100);
-   if(mins>0)p.matchesPlayedV103=(p.matchesPlayedV103||0)+1;
+   if(mins>0){p.matchesPlayedV103=(p.matchesPlayedV103||0)+1;const stat=career.pstats?.[p.id];if(stat)stat.apps=(stat.apps||0)+1;}
    if(tr.newInjuries[p.id])p.fitness=Math.min(p.fitness,55);
  }
  /* Three yellows in three consecutive team matches => one-match ban. A red always bans the next match. */
@@ -731,7 +848,7 @@ function finalizeMatchCondition(m=current,visible=true){
  if(visible&&notes.length){
    const box=$c('#postEvents');if(box)box.insertAdjacentHTML('afterbegin',`<div class="v103-post-summary">${notes.map(n=>`<div>${n}</div>`).join('')}</div>`);
  }
- try{if(career?.careerId&&window.S9Save)S9Save.putCareer(career,{careerId:career.careerId})}catch(_e){}
+ // The match owner persists once all results and condition have been finalized.
  return notes;
 }
 
@@ -793,19 +910,24 @@ try{
  const oldBindSubRowsV103=bindSubRows;
  bindSubRows=function(){
    oldBindSubRowsV103();
-   $$c('[data-in]').forEach(tr=>{const st=ensureTeamStateV103(career.user),p=st?.players.find(x=>x.id===tr.dataset.in);if(p&&unavailable(p)){tr.classList.add('v103-unavailable');tr.onclick=()=>{};tr.setAttribute('aria-disabled','true')}});
+   $$c('[data-in]').forEach(tr=>{const st=ensureTeamStateV103(career.user),p=st?.players.find(x=>x.id===tr.dataset.in);if(p&&(unavailable(p)||(!window._prematchEdit&&!S9.canSubstitute(st,null,p.id,false)))){tr.classList.add('v103-unavailable');tr.onclick=()=>{};tr.setAttribute('aria-disabled','true')}});
  };
 }catch(e){console.warn('V10.3 tactics table patch',e)}
 
 /* Record the exact minute of substitutions so fatigue is proportional to minutes played. */
-function bindSubTracking(){
- const b=$c('#doSub');if(!b||b.dataset.v103Track)return;b.dataset.v103Track='1';
- b.addEventListener('click',()=>{
-   if(window._prematchEdit||!current?._v103||!selectedOut||!selectedIn)return;
-   const tid=career.user,tr=current._v103.teams?.[tid];if(!tr)return;
-   const min=clamp(current.minute||0,0,90);tr.exitedAt[selectedOut]=min;if(tr.enteredAt[selectedIn]==null)tr.enteredAt[selectedIn]=min;
- },true);
-}
+function bindSubTracking(){} // Changes are tracked only after validation, in the substitution handler.
+S9.canSubstitute=function(st,outId,inId,prematch=false){
+ const p=st?.players?.find(x=>x.id===inId);
+ return !!p&&!unavailable(p)&&!st.lineup.includes(inId)&&(!outId||st.lineup.includes(outId))&&(prematch||((st.subs||0)<3&&!(st.usedSubs||[]).includes(inId)&&!Object.values(current?._v103?.teams||{}).some(tr=>tr.reds[inId])));
+};
+S9.recordSubstitution=function(tid,outId,inId,minute){
+ const st=career.teamStates[tid],tr=current?._v103?.teams?.[tid];st.usedSubs=st.usedSubs||[];st.usedSubs.push(outId,inId);
+ if(tr){tr.exitedAt[outId]=minute||0;tr.enteredAt[inId]=minute||0;}
+};
+S9.simulateCondition=function(h,a){
+ ensureAvailableLineup(h);ensureAvailableLineup(a);const m=buildMatch(h,a);processSilentEvents(m);finalizeMatchCondition(m,false);
+};
+S9.ensureAvailableLineup=ensureAvailableLineup;
 
 /* Player profile includes condition, recovery and suspension information. */
 try{
@@ -831,6 +953,6 @@ function updateLiveConditionHeader(){
 }
 setInterval(updateLiveConditionHeader,1200);
 
-function bootV103(){ensureAllV103();bindSubTracking();const proto=$c('.prototype-note');if(proto)proto.textContent='V10.3 COMPLETE BETA · STANCHEZZA · INFORTUNI · SQUALIFICHE · COPPE · NAZIONALI · b3pZ'}
+function bootV103(){ensureAllV103();bindSubTracking();const proto=$c('.prototype-note');if(proto)proto.textContent='V10 FINAL · STANCHEZZA · INFORTUNI · SQUALIFICHE · COPPE · NAZIONALI · b3pZ'}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootV103,{once:true});else bootV103();
 })();

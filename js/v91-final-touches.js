@@ -4,7 +4,7 @@
   const $ = s => document.querySelector(s);
 
   function compactStatsHTML(){
-    const s = window.current && current.stats ? current.stats : null;
+    const s = typeof current!=='undefined' && current?.stats ? current.stats : null;
     if(!s) return '';
     const rows = [
       ['Possesso palla', `${s.possessionH ?? 50}%`, `${s.possessionA ?? 50}%`],
@@ -23,7 +23,7 @@
     if(h) h.innerHTML = html;
     const p = $('#postStats');
     if(p){
-      const st = window.career && career.teamStates ? career.teamStates[career.user] : null;
+      const st = typeof career!=='undefined' && career?.teamStates ? career.teamStates[career.user] : null;
       p.innerHTML = html + `<div style="margin-top:12px;text-align:center;color:#f2e6bd">Modulo: <b>${st?.formation || '—'}</b> &nbsp; · &nbsp; Atteggiamento: <b>${st?.mentality || '—'}</b></div>`;
     }
   }
