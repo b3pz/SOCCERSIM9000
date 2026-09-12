@@ -694,25 +694,26 @@ main{max-width:none!important;padding:0!important}
 #titleScreen .press-start{background:rgba(4,15,43,.72)!important;border:2px solid #d5bc70!important;color:#fff!important;padding:14px 28px!important;box-shadow:0 7px 18px #000!important}
 </style>
 
-<link rel="stylesheet" href="css/save-system.css">
-<link rel="stylesheet" href="css/v61-artboard-ui.css?v=61">
-<link rel="stylesheet" href="css/v62-responsive-safari.css?v=62">
-<link rel="stylesheet" href="css/v63-precision-artboard.css?v=63">
-<link rel="stylesheet" href="css/v64-ui-rebuild.css?v=64">
-<link rel="stylesheet" href="css/v651-background-master.css?v=651">
-<link rel="stylesheet" href="css/v66-ui-integration.css?v=660">
-<link rel="stylesheet" href="css/v67-layout-freeze.css?v=670">
-<link rel="stylesheet" href="css/v7-release.css?v=700">
-<link rel="stylesheet" href="css/v71-final-polish.css?v=710">
-<link rel="stylesheet" href="css/v72-publication-ui.css?v=720">
-<link rel="stylesheet" href="css/v73-alignment-fix.css?v=731">
-<link rel="stylesheet" href="css/v75-browser-compat.css?v=900">
-<link rel="stylesheet" href="css/v76-match-ui.css?v=760">
-<link rel="stylesheet" href="css/v77-iphone-landscape.css?v=900">
-<link rel="stylesheet" href="css/v80-safari-iphone.css?v=900">
-<link rel="stylesheet" href="css/v91-final-touches.css?v=910">
-<link rel="stylesheet" href="css/v10-release.css?v=1030">
-<link rel="stylesheet" href="css/v102-hotfix.css?v=1020">
+<link rel="stylesheet" href="css/save-system.css?v=10-final-3">
+<link rel="stylesheet" href="css/v61-artboard-ui.css?v=10-final-3">
+<link rel="stylesheet" href="css/v62-responsive-safari.css?v=10-final-3">
+<link rel="stylesheet" href="css/v63-precision-artboard.css?v=10-final-3">
+<link rel="stylesheet" href="css/v64-ui-rebuild.css?v=10-final-3">
+<link rel="stylesheet" href="css/v651-background-master.css?v=10-final-3">
+<link rel="stylesheet" href="css/v66-ui-integration.css?v=10-final-3">
+<link rel="stylesheet" href="css/v67-layout-freeze.css?v=10-final-3">
+<link rel="stylesheet" href="css/v7-release.css?v=10-final-3">
+<link rel="stylesheet" href="css/v71-final-polish.css?v=10-final-3">
+<link rel="stylesheet" href="css/v72-publication-ui.css?v=10-final-3">
+<link rel="stylesheet" href="css/v73-alignment-fix.css?v=10-final-3">
+<link rel="stylesheet" href="css/v75-browser-compat.css?v=10-final-3">
+<link rel="stylesheet" href="css/v76-match-ui.css?v=10-final-3">
+<link rel="stylesheet" href="css/v77-iphone-landscape.css?v=10-final-3">
+<link rel="stylesheet" href="css/v80-safari-iphone.css?v=10-final-3">
+<link rel="stylesheet" href="css/v91-final-touches.css?v=10-final-3">
+<link rel="stylesheet" href="css/v10-release.css?v=10-final-3">
+<link rel="stylesheet" href="css/v102-hotfix.css?v=10-final-3">
+<link rel="stylesheet" href="css/v104-professional-layout.css?v=10-final-3">
 </head>
 <body>
 <header><div><h1>SERIEA 9000 SIM</h1><small id="headerSub">IL CAMPIONATO DEI CAMPIONI</small></div><div id="headerRight">—</div></header>
@@ -822,24 +823,18 @@ main{max-width:none!important;padding:0!important}
 </div>
 </div>
 
-<div id="teamStep" class="panel team-selector" style="display:none">
-<h2 style="text-align:center">SCEGLI LA TUA SQUADRA</h2>
-<div class="team-stage">
-<div class="team-side" id="teamLeftInfo"></div>
-<div class="team-main">
-<div style="display:flex;align-items:center;justify-content:center;gap:18px">
-<button class="arrow90" id="prevTeam">◀</button>
-<div>
-<div class="team-emblem" id="teamEmblem">FC</div>
-<div class="team-name-big" id="teamNameBig"></div>
-<div class="team-season-big" id="teamSeasonBig"></div>
-</div>
-<button class="arrow90" id="nextTeam">▶</button>
-</div>
-</div>
-<div class="team-side" id="teamRightInfo"></div>
-</div>
-<div style="text-align:center"><button id="teamBack">◀ INDIETRO</button> <button class="primary" id="createCareer">CONFERMA SQUADRA ▶</button></div>
+<div id="teamStep" class="s9-team-picker" style="display:none">
+<header class="s9-picker-heading">SCEGLI LA TUA SQUADRA</header>
+<section class="s9-picker-grid">
+<aside class="s9-picker-side" id="teamLeftInfo"></aside>
+<article class="s9-picker-center">
+<div class="s9-picker-name" id="teamNameBig"></div><div class="s9-picker-year" id="teamSeasonBig"></div>
+<div class="s9-picker-art"><button class="s9-picker-arrow" id="prevTeam" aria-label="Squadra precedente">◀</button><div class="s9-picker-crest" id="teamEmblem"></div><button class="s9-picker-arrow" id="nextTeam" aria-label="Squadra successiva">▶</button></div>
+<div class="s9-picker-kits"><figure><img id="teamHomeKit" alt="Divisa HOME"><figcaption>HOME</figcaption></figure><figure><img id="teamAwayKit" alt="Divisa AWAY"><figcaption>AWAY</figcaption></figure></div>
+</article>
+<aside class="s9-picker-side s9-picker-rating" id="teamRightInfo"></aside>
+</section>
+<footer class="s9-picker-actions"><button id="teamBack">◀ INDIETRO</button><button class="primary" id="createCareer">CONFERMA SQUADRA ▶</button></footer>
 </div>
 <select id="managerTeam" style="display:none"></select>
 <div id="teamPreview" style="display:none"></div>
@@ -1052,6 +1047,7 @@ let career=null,current=null,paused=false,speed=1,halfResolver=null;
 
 function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));$("#"+id).classList.add("active")}
 function T(id){return teams.find(t=>t.id===id)}
+function escapeHTML(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
 function pick(a){return a[Math.floor(Math.random()*a.length)]}
 function avg(a){return a.reduce((x,y)=>x+y,0)/a.length}
@@ -1207,7 +1203,7 @@ function renderSeason(){
  let t=T(career.user),ng=nextUserGame();
  $("#headerSub").textContent=`${career.manager} · ${t.name} ${t.season}`;
  $("#headerRight").textContent=`Giornata ${career.round}/${career.fixtures.length}`;
- $("#managerSummary").innerHTML=`<b>Manager:</b> ${career.manager}<br><b>Squadra:</b> ${t.name} ${t.season}<br><b>Vice:</b> ${t.coach}`;
+ $("#managerSummary").innerHTML=`<b>Manager:</b> ${escapeHTML(career.manager)}<br><b>Squadra:</b> ${t.name} ${t.season}<br><b>Vice:</b> ${t.coach}`;
  $("#seasonStatus").innerHTML=career.round>=career.fixtures.length?`Stagione conclusa`:`Prossima giornata: ${career.round+1}`;
  renderSeasonView("next");
 }
@@ -1284,9 +1280,9 @@ function renderV63TacticalXI(){
  const ps=st.players.filter(p=>st.lineup.includes(p.id));
  const by=(...roles)=>ps.filter(p=>roles.includes(p.pos));
  let ordered=[];
- const gk=by("GK"); const df=by("DF"); const mf=by("MF","AM"); const fw=by("ST");
+ const gk=by("GK"); const df=by("DF"); const mf=by("MF","AM"); const fw=by("ST","FW");
  ordered=[...gk,...df,...mf,...fw].slice(0,11);
- while(ordered.length<11 && ps[ordered.length])ordered.push(ps[ordered.length]);
+ for(const p of ps)if(ordered.length<11&&!ordered.some(x=>x.id===p.id))ordered.push(p);
  const f=st.formation||"4-4-1-1";
  const layouts={
   "4-4-1-1":[[8,50],[27,16],[27,38],[27,62],[27,84],[51,14],[51,38],[51,62],[51,86],[70,50],[86,50]],
@@ -1591,7 +1587,6 @@ async function doEvent(e){
      if(!career.pstats[e.assist.id])career.pstats[e.assist.id]={name:e.assist.name,team:(e.side==="home"?current.h:current.a),goals:0,assists:0,apps:0};
      career.pstats[e.assist.id].assists++;
    }
-   career.pstats[e.player.id].apps++;
    updateScore();
 
    goalRoar();log(`${e.min}' GOOOL! ${e.player.name}`,e.side);
@@ -1630,7 +1625,7 @@ function updateScore(){
 }
 
 async function playHalf(a,b){for(const e of current.events.filter(x=>x.min>=a&&x.min<=b)){while(paused)await wait(250);await wait(Math.max(500,(e.min-current.minute)*175));await doEvent(e)}current.minute=b;updateScore()}
-function updateLeague(m){let H=career.stats[m.h],A=career.stats[m.a];H.p++;A.p++;H.gf+=m.scoreH;H.ga+=m.scoreA;A.gf+=m.scoreA;A.ga+=m.scoreH;if(m.scoreH>m.scoreA){H.w++;A.l++;H.pts+=3}else if(m.scoreH<m.scoreA){A.w++;H.l++;A.pts+=3}else{H.d++;A.d++;H.pts++;A.pts++};career.results.push({round:career.round+1,group:(career.groups?(career.groups.A.includes(m.h)?"A":"B"):"?"),date:(career.leagueDates?.[career.round]?v4FmtDate(career.leagueDates[career.round]):""),h:m.h,a:m.a,hg:m.scoreH,ag:m.scoreA})}
+function updateLeague(m){if(m._leagueRegistered)return;m._leagueRegistered=true;let H=career.stats[m.h],A=career.stats[m.a];H.p++;A.p++;H.gf+=m.scoreH;H.ga+=m.scoreA;A.gf+=m.scoreA;A.ga+=m.scoreH;if(m.scoreH>m.scoreA){H.w++;A.l++;H.pts+=3}else if(m.scoreH<m.scoreA){A.w++;H.l++;A.pts+=3}else{H.d++;A.d++;H.pts++;A.pts++};career.results.push({round:career.round+1,group:(career.groups?(career.groups.A.includes(m.h)?"A":"B"):"?"),date:(career.leagueDates?.[career.round]?v4FmtDate(career.leagueDates[career.round]):""),h:m.h,a:m.a,hg:m.scoreH,ag:m.scoreA})}
 function simOther(h,a){let m=buildMatch(h,a);m.scoreH=m.events.filter(e=>e.type==="goal"&&e.side==="home").length;m.scoreA=m.events.filter(e=>e.type==="goal"&&e.side==="away").length;m.events.filter(e=>e.type==="goal").forEach(e=>{
  if(!career.pstats[e.player.id])career.pstats[e.player.id]={name:e.player.name,team:(e.side==="home"?m.h:m.a),goals:0,assists:0,apps:0};
  career.pstats[e.player.id].goals++;
@@ -1664,8 +1659,10 @@ document.querySelectorAll("[data-kit-side]").forEach(b=>b.onclick=()=>{
 $("#kitBack").onclick=()=>show("prematch");
 
 async function launchMatch(){
+ if(!current?.fixture||current._running)return;
+ current._running=true;
  const sb=$("#startMatch");if(sb){sb.disabled=true;sb.textContent="CARICAMENTO..."}
- let g=current.fixture;let userHome=g[0]===career.user;current=buildMatch(g[0],g[1]);current.half=1;setupPitch();show("match");updateScore();hidePitch();
+ let g=current.fixture;let userHome=g[0]===career.user;current=buildMatch(g[0],g[1]);current._running=true;current.half=1;setupPitch();show("match");updateScore();hidePitch();
  const hist=$("#commentary");if(hist)hist.innerHTML="";
  log(`00' CALCIO D'INIZIO - ${T(current.h).name} contro ${T(current.a).name}`,"neutral");
  try{crowd(.035,2.5)}catch(e){console.warn("audio",e)}
@@ -1676,14 +1673,18 @@ async function launchMatch(){
  $("#halftimeScore").innerHTML=`<h2>${T(current.h).name} ${current.scoreH} - ${current.scoreA} ${T(current.a).name}</h2>`;
  $("#halftimeStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}`;
  show("halftime"); await new Promise(r=>halfResolver=r); paused=false;show("match");await playHalf(46,90);log("90' FINE PARTITA");
+ if(window.S9V10?.finishPlayedTie)await S9V10.finishPlayedTie();
+ if(!window.S9V10?.matchContext){
  let games=career.fixtures[career.round];for(const [h,a] of games){if(h===current.h&&a===current.a)continue;simOther(h,a)}
  updateLeague(current);
  if(window.v4SimOtherGroupRound) window.v4SimOtherGroupRound(career.round);
  career.round++;
+ }
+ current._finished=true;current._running=false;
  $("#postScore").innerHTML=`<h2>${T(current.h).name} ${current.scoreH} - ${current.scoreA} ${T(current.a).name}</h2>`;
  $("#postStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}<br>Modulo: ${career.teamStates[career.user].formation}<br>Atteggiamento: ${career.teamStates[career.user].mentality}`;
  $("#postEvents").innerHTML=current.keyEvents.length?current.keyEvents.map(x=>`<div class="card">${x}</div>`).join(""):"Nessun evento chiave.";
- show("postmatch"); if(sb){sb.disabled=false;sb.textContent="SCEGLI DIVISE ▶"}
+ show("postmatch"); if(!window.S9V10?.matchContext&&career?.careerId)S9Save.putCareer(career).catch(e=>console.warn("Save:",e)); if(sb){sb.disabled=false;sb.textContent="SCEGLI DIVISE ▶"}
 }
 
 $("#startMatch").onclick=()=>{
@@ -1718,7 +1719,7 @@ function bindSubRows(){
 }
 function updateSubButton(){
  let st=career.teamStates[career.user];
- $("#doSub").disabled=!(selectedOut&&selectedIn)||(!window._prematchEdit&&st.subs>=3);
+ $("#doSub").disabled=!(selectedOut&&selectedIn)||(!window._prematchEdit&&st.subs>=3)||(window.S9V10?.canSubstitute&&!S9V10.canSubstitute(st,selectedOut,selectedIn,!!window._prematchEdit));
 }
 function openTactics(){
  let st=career.teamStates[career.user],t=T(career.user);paused=true;selectedOut=null;selectedIn=null;
@@ -1735,10 +1736,13 @@ $("#doSub").onclick=()=>{
  let st=career.teamStates[career.user];
  if(!window._prematchEdit&&st.subs>=3)return alert("Hai già effettuato 3 sostituzioni.");
  if(!selectedOut||!selectedIn)return;
+ if(window.S9V10?.canSubstitute&&!S9V10.canSubstitute(st,selectedOut,selectedIn,!!window._prematchEdit))return;
+ if(!window._prematchEdit)S9V10.recordSubstitution(career.user,selectedOut,selectedIn,current.minute);
  let ix=st.lineup.indexOf(selectedOut);if(ix<0)return;
  const outName=st.players.find(p=>p.id===selectedOut)?.name||"—";
  const inName=st.players.find(p=>p.id===selectedIn)?.name||"—";
  st.lineup[ix]=selectedIn;
+ Object.keys(st.setPieces||{}).forEach(k=>{if(st.setPieces[k]===selectedOut)st.setPieces[k]=selectedIn});
  if(!window._prematchEdit){st.subs++;log(`CAMBIO: ${outName} ↓  ${inName} ↑`);}
  else{renderPrematchLineup();}
  openTactics();
@@ -1912,6 +1916,7 @@ function v4SeasonSundays(startYear){
  return all.filter((_,i)=>!skip.has(i)).slice(0,30);
 }
 function v4FmtDate(d){
+ d=new Date(d);if(!Number.isFinite(d.getTime()))return "—";
  return new Intl.DateTimeFormat("it-IT",{day:"2-digit",month:"2-digit",year:"numeric"}).format(d);
 }
 function v4BuildCalendar(startYear){
@@ -2022,7 +2027,7 @@ function renderSeason(){
  const t=T(career.user),d=v4CurrentDate();
  $("#headerSub").textContent=`${career.manager} · ${t.name} ${t.season}`;
  $("#headerRight").textContent=`${d?v4FmtDate(d):""} · G${career.round}/30`;
- $("#managerSummary").innerHTML=`<b>Manager:</b> ${career.manager}<br><b>Squadra:</b> ${t.name} ${t.season}<br>
+ $("#managerSummary").innerHTML=`<b>Manager:</b> ${escapeHTML(career.manager)}<br><b>Squadra:</b> ${t.name} ${t.season}<br>
  <b>Vice:</b> ${t.coach}<br><b>Serie A:</b> Girone ${career.userGroup}<br>
  <span class="world-date">Stagione ${career.seasonYear}/${String(career.seasonYear+1).slice(-2)}</span>`;
  $("#seasonStatus").innerHTML=career.round>=30?
@@ -2132,17 +2137,18 @@ renderTeamPicker=function(){
 renderTeamPicker();
 </script>
 
-<script src="js/save-manager.js"></script>
-<script src="js/save-integration.js"></script>
-<script src="js/v7-release.js?v=700"></script>
-<script src="js/v71-final-polish.js?v=710"></script>
-<script src="js/v72-publication-ui.js?v=720"></script>
-<script src="js/v73-alignment-fix.js?v=731"></script>
-<script src="js/v75-browser-compat.js?v=900"></script>
-<script src="js/v76-match-ui.js?v=760"></script>
-<script src="js/v80-safari-iphone.js?v=900"></script>
-<script src="js/v91-final-touches.js?v=910"></script>
-<script src="js/v10-data.js?v=1000"></script>
-<script src="js/v10-release.js?v=1031"></script>
+<script src="js/save-manager.js?v=10-final-3"></script>
+<script src="js/save-integration.js?v=10-final-3"></script>
+<script src="js/v7-release.js?v=10-final-3"></script>
+<script src="js/v71-final-polish.js?v=10-final-3"></script>
+<script src="js/v72-publication-ui.js?v=10-final-3"></script>
+<script src="js/v73-alignment-fix.js?v=10-final-3"></script>
+<script src="js/v75-browser-compat.js?v=10-final-3"></script>
+<script src="js/v76-match-ui.js?v=10-final-3"></script>
+<script src="js/v80-safari-iphone.js?v=10-final-3"></script>
+<script src="js/v91-final-touches.js?v=10-final-3"></script>
+<script src="js/v10-data.js?v=10-final-3"></script>
+<script src="js/v10-release.js?v=10-final-3"></script>
+<script src="js/v104-navigation.js?v=10-final-3"></script>
 </body>
 </html>
