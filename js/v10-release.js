@@ -846,7 +846,7 @@ function finalizeMatchCondition(m=current,visible=true){
  const notes=[...finalizeTeamCondition(m,m.h,visible),...finalizeTeamCondition(m,m.a,visible)];
  m._v103.finalized=true;m._v103.summary=notes;
  if(visible&&notes.length){
-   const box=$c('#postEvents');if(box)box.insertAdjacentHTML('afterbegin',`<div class="v103-post-summary">${notes.map(n=>`<div>${n}</div>`).join('')}</div>`);
+   const box=$c('#postStatus')||$c('#postEvents');if(box)box.insertAdjacentHTML('beforeend',`<div class="v103-post-summary">${notes.map(n=>`<div>${n}</div>`).join('')}</div>`);
  }
  // The match owner persists once all results and condition have been finalized.
  return notes;

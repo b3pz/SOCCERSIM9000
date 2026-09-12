@@ -369,3 +369,163 @@ input,select{border-radius:6px}
 /* Respect the existing wizard's inline visibility when returning to the name step. */
 #setup #teamStep.s9-team-picker[style*="display: none"],
 #setup #teamStep.s9-team-picker[style*="display:none"]{display:none!important}
+
+/* ================================================================
+   V10 FINAL GRAPHIC POLISH 01 — POST-MATCH SUMMARY
+   Compact one-card recap instead of scattered event boxes.
+   ================================================================ */
+#postmatch>.v105-post-panel{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:10px!important;
+  max-height:min(88vh,820px)!important;
+  overflow:auto!important;
+  padding:clamp(16px,2vw,26px)!important;
+}
+#postmatch>.v105-post-panel>h2{
+  margin:0!important;
+  text-align:center!important;
+  letter-spacing:.08em!important;
+}
+#postmatch .v105-post-score{
+  text-align:center!important;
+  margin:0!important;
+}
+#postmatch .v105-post-score h2{
+  margin:0!important;
+  font-size:clamp(19px,2vw,30px)!important;
+  line-height:1.1!important;
+}
+#postmatch .v105-post-score strong{
+  display:inline-block!important;
+  margin:0 .45em!important;
+  padding:.12em .42em!important;
+  color:#f4df8a!important;
+  border:1px solid rgba(222,191,92,.65)!important;
+  background:rgba(3,14,39,.78)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)!important;
+}
+#postmatch .v105-post-summary-card,
+#postmatch .v105-post-stats-card{
+  border:1px solid rgba(213,184,95,.65)!important;
+  background:linear-gradient(180deg,rgba(4,17,47,.88),rgba(2,11,31,.78))!important;
+  color:#f5efdf!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.28)!important;
+  border-radius:8px!important;
+  overflow:hidden!important;
+}
+#postmatch .v105-post-summary-head{
+  padding:7px 11px!important;
+  background:rgba(218,187,90,.12)!important;
+  border-bottom:1px solid rgba(213,184,95,.42)!important;
+  color:#e7ca70!important;
+  font-weight:900!important;
+  font-size:clamp(10px,.85vw,13px)!important;
+  letter-spacing:.12em!important;
+  text-align:left!important;
+}
+#postmatch .v105-post-summary-grid{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+}
+#postmatch .v105-post-item{
+  min-width:0!important;
+  padding:10px 11px 11px!important;
+  border-right:1px solid rgba(213,184,95,.22)!important;
+}
+#postmatch .v105-post-item:last-child{border-right:0!important}
+#postmatch .v105-post-item h3{
+  margin:0 0 7px!important;
+  padding:0 0 5px!important;
+  border-bottom:1px solid rgba(255,255,255,.12)!important;
+  color:#fff!important;
+  font-size:clamp(10px,.85vw,13px)!important;
+  letter-spacing:.08em!important;
+}
+#postmatch .v105-post-list{
+  display:grid!important;
+  gap:4px!important;
+  font-size:clamp(10px,.8vw,12px)!important;
+  line-height:1.28!important;
+}
+#postmatch .v105-post-line{
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+#postmatch .v105-post-empty{
+  color:rgba(238,234,221,.55)!important;
+  font-style:italic!important;
+}
+#postmatch .v105-post-status:empty{display:none!important}
+#postmatch .v105-post-status{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:5px 14px!important;
+  padding:8px 11px!important;
+  border-top:1px solid rgba(213,184,95,.35)!important;
+  background:rgba(120,34,28,.12)!important;
+  color:#f2dca1!important;
+  font-size:clamp(9px,.76vw,11px)!important;
+  line-height:1.3!important;
+}
+#postmatch .v105-post-status .v103-post-summary{
+  display:contents!important;
+}
+#postmatch .v105-post-status .v103-post-summary>div{
+  margin:0!important;
+}
+#postmatch .v105-post-stats-grid{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+}
+#postmatch .v105-stat{
+  display:grid!important;
+  gap:3px!important;
+  padding:9px 11px!important;
+  text-align:center!important;
+  border-right:1px solid rgba(213,184,95,.22)!important;
+}
+#postmatch .v105-stat:last-child{border-right:0!important}
+#postmatch .v105-stat span{
+  color:#cfd6e5!important;
+  font-size:clamp(8px,.7vw,10px)!important;
+  font-weight:800!important;
+  letter-spacing:.08em!important;
+}
+#postmatch .v105-stat b{
+  color:#fff!important;
+  font-size:clamp(12px,1vw,16px)!important;
+  line-height:1.15!important;
+}
+#postmatch .v105-post-events-legacy{display:none!important}
+#postmatch .v105-post-actions{
+  display:flex!important;
+  justify-content:center!important;
+  margin-top:1px!important;
+}
+#postmatch .v105-post-actions button{
+  min-width:min(360px,100%)!important;
+}
+
+@media (max-width:760px){
+  #postmatch .v105-post-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #postmatch .v105-post-item:nth-child(2){border-right:0!important}
+  #postmatch .v105-post-item:nth-child(-n+2){border-bottom:1px solid rgba(213,184,95,.22)!important}
+  #postmatch .v105-post-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #postmatch .v105-stat:nth-child(2){border-right:0!important}
+  #postmatch .v105-stat:nth-child(-n+2){border-bottom:1px solid rgba(213,184,95,.22)!important}
+}
+@media (max-height:600px) and (min-width:560px){
+  #postmatch>.v105-post-panel{gap:5px!important;padding:9px 12px!important;max-height:94vh!important}
+  #postmatch>.v105-post-panel>h2{font-size:15px!important}
+  #postmatch .v105-post-score h2{font-size:15px!important}
+  #postmatch .v105-post-summary-head{padding:4px 7px!important;font-size:8px!important}
+  #postmatch .v105-post-item{padding:5px 7px!important}
+  #postmatch .v105-post-item h3{font-size:8px!important;margin-bottom:3px!important;padding-bottom:3px!important}
+  #postmatch .v105-post-list{font-size:7px!important;gap:2px!important}
+  #postmatch .v105-post-status{padding:4px 7px!important;font-size:7px!important}
+  #postmatch .v105-stat{padding:5px 7px!important}
+  #postmatch .v105-stat span{font-size:6px!important}
+  #postmatch .v105-stat b{font-size:9px!important}
+  #postmatch .v105-post-actions button{min-height:27px!important;font-size:8px!important;padding:3px 8px!important}
+}
