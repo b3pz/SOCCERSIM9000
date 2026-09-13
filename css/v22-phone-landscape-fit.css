@@ -1,0 +1,217 @@
+/* SerieA 9000 SIM — V22 PHONE LANDSCAPE FIT
+   Phones must be used in landscape. In landscape the game is presented as a
+   centred 16:9 artboard instead of being stretched to ultra-wide browser
+   viewports (Galaxy / iPhone). Loaded last on purpose. */
+
+@media (orientation:landscape) and (max-height:700px) and (pointer:coarse){
+  html.s9-phone-landscape,
+  html.s9-phone-landscape body{
+    overflow:hidden!important;
+    background:#020817!important;
+  }
+
+  /* Keep the original game proportions. Wide phones get harmless side bars
+     instead of stretching/cropping the interface. */
+  html.s9-phone-landscape body>main{
+    position:fixed!important;
+    inset:auto!important;
+    left:50%!important;
+    top:50%!important;
+    width:min(100vw,177.777vh)!important;
+    height:min(100vh,56.25vw)!important;
+    margin:0!important;
+    padding:0!important;
+    transform:translate(-50%,-50%)!important;
+    transform-origin:center center!important;
+    overflow:hidden!important;
+    background:#020817!important;
+  }
+
+  @supports (height:100dvh){
+    html.s9-phone-landscape body>main{
+      width:min(100vw,177.777dvh)!important;
+      height:min(100dvh,56.25vw)!important;
+    }
+  }
+
+  html.s9-phone-landscape body>main>.screen.active{
+    position:absolute!important;
+    inset:0!important;
+    width:100%!important;
+    height:100%!important;
+    min-width:0!important;
+    min-height:0!important;
+    max-width:none!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:0!important;
+    transform:none!important;
+    overflow:hidden!important;
+    background-size:cover!important;
+    background-position:center!important;
+    background-repeat:no-repeat!important;
+  }
+
+  /* KIT SELECTION — everything must stay inside one screen. */
+  html.s9-phone-landscape #kits>.panel{
+    position:absolute!important;
+    inset:0!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+  }
+  html.s9-phone-landscape #kits>.panel>h2{
+    position:absolute!important;
+    left:50%!important;
+    top:2.2%!important;
+    transform:translateX(-50%)!important;
+    margin:0!important;
+    font-size:clamp(14px,4.5vh,20px)!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+  }
+  html.s9-phone-landscape #kits>.panel>.muted{
+    position:absolute!important;
+    left:50%!important;
+    top:8%!important;
+    transform:translateX(-50%)!important;
+    width:76%!important;
+    margin:0!important;
+    font-size:clamp(7px,2vh,9px)!important;
+    line-height:1.15!important;
+    text-align:center!important;
+  }
+  html.s9-phone-landscape #kits .kit-stage{
+    position:absolute!important;
+    left:7%!important;
+    right:7%!important;
+    top:13%!important;
+    bottom:17%!important;
+    width:auto!important;
+    height:auto!important;
+    margin:0!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 38px minmax(0,1fr)!important;
+    gap:2.5%!important;
+    align-items:center!important;
+    min-height:0!important;
+  }
+  html.s9-phone-landscape #kits .kit-card{
+    min-width:0!important;
+    min-height:0!important;
+    width:100%!important;
+    height:100%!important;
+    padding:4px!important;
+    display:grid!important;
+    grid-template-rows:18px minmax(0,1fr) 26px!important;
+    overflow:hidden!important;
+  }
+  html.s9-phone-landscape #kits .kit-card h3{
+    margin:0!important;
+    font-size:clamp(9px,2.6vh,12px)!important;
+    line-height:1!important;
+  }
+  html.s9-phone-landscape #kits .kit-imgbox{
+    min-height:0!important;
+    height:100%!important;
+    width:100%!important;
+    overflow:hidden!important;
+  }
+  html.s9-phone-landscape #kits .kit-imgbox img{
+    width:auto!important;
+    height:auto!important;
+    max-width:88%!important;
+    max-height:100%!important;
+    object-fit:contain!important;
+  }
+  html.s9-phone-landscape #kits .kit-vs{
+    font-size:clamp(16px,5vh,22px)!important;
+  }
+  html.s9-phone-landscape #kits .kit-choice{
+    display:flex!important;
+    justify-content:center!important;
+    gap:3px!important;
+    margin:0!important;
+    min-height:0!important;
+  }
+  html.s9-phone-landscape #kits .kit-choice button{
+    min-width:48px!important;
+    min-height:23px!important;
+    height:23px!important;
+    padding:1px 4px!important;
+    font-size:7px!important;
+    line-height:1!important;
+  }
+  html.s9-phone-landscape #kits #kitContrast{
+    position:absolute!important;
+    left:50%!important;
+    bottom:8.5%!important;
+    transform:translateX(-50%)!important;
+    width:min(390px,52%)!important;
+    margin:0!important;
+    padding:3px 6px!important;
+    font-size:7px!important;
+    line-height:1.1!important;
+  }
+  html.s9-phone-landscape #kits>.panel>.toolbar{
+    position:absolute!important;
+    left:50%!important;
+    bottom:1.5%!important;
+    transform:translateX(-50%)!important;
+    width:auto!important;
+    margin:0!important;
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    justify-content:center!important;
+    gap:5px!important;
+  }
+  html.s9-phone-landscape #kits>.panel>.toolbar button{
+    min-height:25px!important;
+    height:25px!important;
+    padding:2px 8px!important;
+    font-size:7.5px!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+  }
+
+  /* Tactical / pre-match board: keep both side columns inside the artboard. */
+  html.s9-phone-landscape #prematch>.grid{
+    left:2.5%!important;
+    right:2.5%!important;
+    top:8%!important;
+    bottom:10%!important;
+    width:auto!important;
+    height:auto!important;
+    min-height:0!important;
+  }
+  html.s9-phone-landscape #prematch>.grid>.panel{
+    min-width:0!important;
+    min-height:0!important;
+    overflow:hidden!important;
+  }
+  html.s9-phone-landscape #prematch #v63TacticalXI{
+    max-height:68%!important;
+    overflow:hidden!important;
+  }
+
+  /* Do not allow late legacy rules to restore page scrolling / giant pages. */
+  html.s9-phone-landscape #setup,
+  html.s9-phone-landscape #season,
+  html.s9-phone-landscape #prematch,
+  html.s9-phone-landscape #kits,
+  html.s9-phone-landscape #match,
+  html.s9-phone-landscape #halftime,
+  html.s9-phone-landscape #postmatch,
+  html.s9-phone-landscape #cupsMenu,
+  html.s9-phone-landscape #mainMenu,
+  html.s9-phone-landscape #simpleMessage{
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    max-height:100%!important;
+    overflow:hidden!important;
+  }
+}

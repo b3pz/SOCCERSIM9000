@@ -1,16 +1,14 @@
-SERIEA 9000 SIM — V5.2 STRUCTURED FULL UI
-IL CAMPIONATO DEI CAMPIONI
-Sviluppato ed ideato da b3pZ
+PATCH V22 - TELEFONI / ANDROID LANDSCAPE
 
-Avvio locale: aprire index.html con Chrome.
-GitHub Pages: caricare TUTTO il contenuto della cartella mantenendo la struttura.
+Basata sulla V21 del messaggio "RUOTA IL TELEFONO".
 
-STRUTTURA
-assets/logo/       logo ufficiale
-assets/screens/    10 scenografie UI ufficiali
-assets/kits/       divise già disponibili dal prototipo
-data/              predisposta per database rose/squadre/competizioni
-assets/crests/     predisposta per stemmi separati
-docs/              note di sviluppo
+Cosa corregge:
+- mantiene il blocco obbligatorio quando il telefono e' verticale;
+- in orizzontale centra il gioco in un artboard 16:9, evitando lo stiramento sugli schermi molto larghi;
+- corregge soprattutto Scelta Divise su Galaxy/Android: pulsanti e conferma restano dentro lo schermo;
+- aggiunge una protezione per il pre-partita/formazione.
 
-La logica di gioco resta nel file index.html per non introdurre regressioni durante il passaggio alla struttura a cartelle.
+File da sovrascrivere/aggiungere:
+- index.html
+- css/v80-safari-iphone.css
+- css/v22-phone-landscape-fit.css
