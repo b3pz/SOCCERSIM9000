@@ -984,7 +984,7 @@ body[data-v10-cup-theme] #match .match-shell{
 #season.v51-europe-bg{
   background-image:
     linear-gradient(180deg,rgba(3,12,34,.18),rgba(3,12,34,.42)),
-    url('../assets/backgrounds_v10/bg_career_stadium.png')!important;
+    url('../assets/backgrounds_v10/bg_career_heritage.png')!important;
   background-size:cover!important;
   background-position:center center!important;
   background-repeat:no-repeat!important;
@@ -1035,7 +1035,7 @@ body[data-v10-cup-theme] #match .match-shell{
 #v10FinalEight{
   background-image:
     linear-gradient(180deg,rgba(3,12,34,.28),rgba(3,12,34,.50)),
-    url('../assets/backgrounds_v10/bg_career_stadium.png')!important;
+    url('../assets/backgrounds_v10/bg_career_heritage.png')!important;
   background-size:cover!important;background-position:center!important;
 }
 #v10FinalEight .v10-tournament-shell{

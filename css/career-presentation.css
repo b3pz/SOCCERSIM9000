@@ -1,6 +1,6 @@
 /* Career club selection: the same translucent treatment as national cups. */
 #setup.v72-team-mode{
-  background-image:url('../assets/backgrounds_v10/bg_career_stadium.png')!important;
+  background-image:url('../assets/backgrounds_v10/bg_career_heritage.png')!important;
   background-size:cover!important;background-position:center!important;
 }
 #setup.v72-team-mode::before{

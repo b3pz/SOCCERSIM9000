@@ -202,7 +202,6 @@
 }
 
 /* --- 4) Half-time / post-match: remove fouls and free-kicks rows --- */
-#halftime .v73-stats-grid > :nth-last-child(-n+6),
 #postmatch .v73-stats-grid > :nth-last-child(-n+6){
   display:none!important;
 }

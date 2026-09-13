@@ -11,7 +11,9 @@
       ['Tiri', s.shotsH || 0, s.shotsA || 0],
       ['Tiri in porta', s.onH || 0, s.onA || 0],
       ['Parate', s.savesH || 0, s.savesA || 0],
-      ["Calci d'angolo", s.cornersH || 0, s.cornersA || 0]
+      ["Calci d'angolo", s.cornersH || 0, s.cornersA || 0],
+      ["Falli", s.foulsH || 0, s.foulsA || 0],
+      ["Punizioni", s.freeH || 0, s.freeA || 0]
     ];
     return `<div class="v73-stats-grid v91-compact-stats">${rows.map(r => `<div class="v73-stat-cell v73-stat-home">${r[1]}</div><div class="v73-stat-cell v73-stat-label">${r[0]}</div><div class="v73-stat-cell v73-stat-away">${r[2]}</div>`).join('')}</div>`;
   }

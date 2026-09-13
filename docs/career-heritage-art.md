@@ -1,0 +1,8 @@
+# Sfondo carriera rétro
+
+Asset: `assets/backgrounds_v10/bg_career_heritage.png`.
+Generato con lo strumento integrato imagegen; originale conservato nella cartella generated_images di Codex. Usato nel menu principale, nell'avvio carriera, nella scelta squadra, nel riepilogo e nella scelta divise. Il logo Serie A resta un asset separato, centrato e non deformato.
+
+## Prompt finale
+
+Create a dedicated background artwork for the career mode and main menu of an Italian football management videogame about the 1990s and early 2000s. Landscape 16:9 high resolution. Rich vintage football magazine cover collage, painted photographic montage with printed paper grain, aged navy and warm cream, Italian tricolour cloth ribbons and subtle brass gold. Atmospheric sunlit Italian stadium packed with fans, authentic 1990s floodlight gantries and terraces, green pitch. At the LEFT EDGE a large vintage black and white leather football and folded pink sports newspapers with illegible tiny print, at the RIGHT EDGE stadium roof, flags and a manager's worn leather notebook with tactical sketches near the lower corner. Tricolour ribbon winds along bottom edge. Center 65 percent is a naturally less busy view of the stadium and warm sky, suitable for game UI overlay, but NOT blank solid blue. Distinctive retro sports-game box artwork, detailed tactile material, natural light, not modern flat vector illustration, not glossy futuristic dashboard. No large trophy because this is the league career identity. No text, no letters, no logos, no UI panels, no buttons, no watermark. Level horizon, coherent geometry, balanced front-facing composition. Artwork should resemble a premium nostalgic Italian football competition poster, vivid but not neon.

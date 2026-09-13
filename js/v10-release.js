@@ -556,6 +556,7 @@ function installOverrides(){
  const oldRender=renderSeasonView;
  renderSeasonView=function(v){
    const seasonEl=q('#season');
+   qa('#season [data-view]').forEach(button=>{button.classList.toggle('active',button.dataset.view===v);button.setAttribute('aria-pressed',String(button.dataset.view===v))});
    if(seasonEl){seasonEl.dataset.seasonView=v;seasonEl.classList.toggle('v51-calendar-bg',v==='calendar');seasonEl.classList.toggle('v51-europe-bg',v==='europe')}
    if(v==='calendar')syncCupCalendar(career);
    const due=v==='next'?dueCareerCup():null;

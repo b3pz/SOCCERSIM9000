@@ -40,3 +40,19 @@
  #match .s9-event-footer{padding-top:4px}
  #match #v7EventToast img{width:48px!important;height:48px!important}
 }
+
+/* Readable team identities even when both clubs share a dark primary colour. */
+#match #pitch .dot.teamdot{width:24px!important;height:24px!important;box-sizing:border-box!important;font:900 12px/1 Arial,sans-serif!important;color:#fff!important;text-shadow:0 1px 2px #000,1px 0 1px #000,-1px 0 1px #000,0 -1px 1px #000!important;box-shadow:0 2px 4px #0009!important}
+#match #pitch .dot.teamdot.home{border:3px solid #8feaff!important;border-radius:50%!important}
+#match #pitch .dot.teamdot.away{border:3px solid #ffd273!important;border-radius:5px!important}
+#match #pitch .dot.teamdot[data-role="GK"]{outline:2px solid #fff!important;outline-offset:2px!important}
+#match #pitch #ball{width:11px!important;height:11px!important;background:#fff!important;border:2px solid #101a26!important;box-shadow:0 0 0 3px #fff8,0 2px 5px #000!important;z-index:12!important}
+#pitchTeamLegend{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;justify-content:center;gap:18px;padding:6px 12px;background:#071b32ed;border:1px solid #b5c8dd77;border-radius:4px;z-index:15;pointer-events:none;max-width:90%;box-sizing:border-box}
+.pitch-team-key{display:flex;align-items:center;gap:7px;color:#fff;font:700 12px/1.2 Arial,sans-serif;min-width:0}
+.pitch-team-swatch{display:inline-block;flex-shrink:0;width:17px;height:17px;box-sizing:border-box;border:3px solid #8feaff;border-radius:50%}
+.pitch-team-swatch.away{border-color:#ffd273;border-radius:4px}
+@media(max-width:700px),(max-height:500px){
+ #match #pitch .dot.teamdot{width:21px!important;height:21px!important;font-size:11px!important;border-width:2px!important}
+ #pitchTeamLegend{bottom:5px;gap:10px;padding:4px 8px}
+ .pitch-team-key{font-size:10px;gap:5px}
+}

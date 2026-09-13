@@ -51,7 +51,17 @@
   setupPitch=function(){
     baseSetup();if(!current)return;
     carrier=null;possession='home';
+    let legend=document.getElementById('pitchTeamLegend');
+    if(!legend){legend=document.createElement('div');legend.id='pitchTeamLegend';document.getElementById('pitch').appendChild(legend);}
+    legend.replaceChildren();
     for(const side of ['home','away']){
+      const teamId=side==='home'?current.h:current.a;
+      const colors=getTeamColors(teamId);
+      const primary=colors[0]||'#254f99',secondary=colors[1]||'#ffffff';
+      const item=document.createElement('span'),swatch=document.createElement('i');
+      item.className='pitch-team-key '+side;swatch.className='pitch-team-swatch '+side;
+      swatch.style.background=`linear-gradient(90deg,${primary} 0 50%,${secondary} 50% 100%)`;
+      item.append(swatch,document.createTextNode(T(teamId).name));legend.appendChild(item);
       const st=career.teamStates[side==='home'?current.h:current.a];
       const rank={GK:0,DF:1,MF:2,AM:3,FW:4,ST:4};
       const players=st.lineup.map(id=>st.players.find(p=>p.id===id)).filter(Boolean).sort((a,b)=>(rank[a.pos]??2)-(rank[b.pos]??2));
@@ -66,7 +76,9 @@
         }
         d.dataset.role=player.pos;d.dataset.baseX=xFor(side,x);d.dataset.baseY=y;
         d.style.left=d.dataset.baseX+'%';d.style.top=y+'%';
-        d.textContent=String(st.lineup.indexOf(player.id)+1);d.title=player.name;
+        d.style.background=`linear-gradient(90deg,${primary} 0 50%,${secondary} 50% 100%)`;
+        d.textContent=String(st.lineup.indexOf(player.id)+1);d.title=T(teamId).name+' · '+player.name;
+        if(player.pos==='GK')d.textContent='P';
         d.setAttribute('aria-label',player.name);
       }
     }

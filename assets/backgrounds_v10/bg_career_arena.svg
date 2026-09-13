@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<defs>
+ <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#194f96"/><stop offset=".55" stop-color="#12386b"/><stop offset="1" stop-color="#06182f"/></linearGradient>
+ <radialGradient id="light"><stop stop-color="#fff8db" stop-opacity=".85"/><stop offset=".15" stop-color="#b7e2ff" stop-opacity=".5"/><stop offset="1" stop-color="#b7e2ff" stop-opacity="0"/></radialGradient>
+ <linearGradient id="grass" x2="0" y2="1"><stop stop-color="#237577"/><stop offset="1" stop-color="#092c43"/></linearGradient>
+ <pattern id="crowd" width="28" height="18" patternUnits="userSpaceOnUse"><path d="M3 8h8m8 5h5" stroke="#accee8" stroke-opacity=".35" stroke-width="2"/></pattern>
+ <pattern id="stripes" width="180" height="1080" patternUnits="userSpaceOnUse"><path d="M0 0h90v1080H0z" fill="#fff" opacity=".025"/></pattern>
+</defs>
+<path fill="url(#sky)" d="M0 0h1920v1080H0z"/>
+<path d="M-100 380Q960 720 2020 380V830H-100Z" fill="#102c50"/>
+<path d="M-100 380Q960 720 2020 380V830H-100Z" fill="url(#crowd)"/>
+<g fill="none" stroke="#73add1" stroke-opacity=".4"><path d="M-100 440Q960 760 2020 440"/><path d="M-100 510Q960 800 2020 510"/><path d="M-100 580Q960 840 2020 580"/></g>
+<path d="M0 825Q960 760 1920 825V1080H0Z" fill="url(#grass)"/>
+<path d="M0 825Q960 760 1920 825V1080H0Z" fill="url(#stripes)"/>
+<g fill="none" stroke="#afded2" stroke-opacity=".3" stroke-width="2"><path d="M340 840h1240l280 200H60Z"/><path d="M960 820v260"/><ellipse cx="960" cy="934" rx="170" ry="46"/></g>
+<g fill="url(#light)"><ellipse cx="180" cy="235" rx="520" ry="470"/><ellipse cx="1740" cy="235" rx="520" ry="470"/></g>
+<g fill="#fff8de"><path d="M36 218h300v9H36zM1584 218h300v9h-300z"/></g>
+<g stroke="#ebc873" fill="none"><path d="M0 65h630l110 40h1180" opacity=".65"/><path d="M0 1010h1920" opacity=".5"/><path d="M-110 1080L400 0M-85 1080L425 0" opacity=".12"/><path d="M1495 1080L2005 0M1520 1080L2030 0" opacity=".12"/></g>
+<path d="M80 975h70" stroke="#2baf85" stroke-width="5"/><path d="M150 975h70" stroke="#fff5d6" stroke-width="5"/><path d="M220 975h70" stroke="#d85b51" stroke-width="5"/>
+</svg>
