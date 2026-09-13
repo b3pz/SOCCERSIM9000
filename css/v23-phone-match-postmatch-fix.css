@@ -1,0 +1,189 @@
+/* SerieA 9000 SIM — V23 PHONE MATCH / POSTMATCH FIX
+   Loaded after V22. Only affects coarse-pointer phones in landscape.
+   Fixes: controls wrapping, action banner covering stats/controls,
+   tactics modal usability, and post-match scrolling/return button. */
+
+@media (orientation:landscape) and (max-height:700px) and (pointer:coarse){
+  /* MATCH: make the four vertical areas explicit. This prevents the sixth
+     control (Abbandona partita) from wrapping into the match content. */
+  html.s9-phone-landscape #match .match-shell{
+    display:grid!important;
+    grid-template-rows:13% 7% 9% minmax(0,71%)!important;
+    align-content:stretch!important;
+    overflow:hidden!important;
+  }
+  html.s9-phone-landscape #match .match-topbar,
+  html.s9-phone-landscape #match .match-tabs,
+  html.s9-phone-landscape #match .match-controls,
+  html.s9-phone-landscape #match .match-main-grid{
+    height:100%!important;
+    min-height:0!important;
+    max-height:100%!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Six controls = six real columns. The previous five-column grid pushed
+     ABBANDONA PARTITA onto an implicit second row over the statistics. */
+  html.s9-phone-landscape #match .match-controls{
+    display:grid!important;
+    grid-template-columns:
+      minmax(70px,.95fr)
+      minmax(112px,1.5fr)
+      minmax(34px,.45fr)
+      minmax(34px,.45fr)
+      minmax(34px,.45fr)
+      minmax(112px,1.35fr)!important;
+    grid-template-rows:1fr!important;
+    gap:3px!important;
+    padding:2px 3px!important;
+    overflow:hidden!important;
+    align-items:stretch!important;
+  }
+  html.s9-phone-landscape #match .match-controls>button,
+  html.s9-phone-landscape #match .match-controls>.v104-menu-back{
+    position:static!important;
+    inset:auto!important;
+    width:100%!important;
+    min-width:0!important;
+    height:100%!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:1px 3px!important;
+    font-size:clamp(6.5px,2vh,8px)!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    align-self:stretch!important;
+  }
+
+  html.s9-phone-landscape #match .match-main-grid{
+    padding:3px!important;
+    overflow:hidden!important;
+  }
+  html.s9-phone-landscape #match .match-stage,
+  html.s9-phone-landscape #match .match-history-panel{
+    min-height:0!important;
+    max-height:100%!important;
+    overflow:hidden!important;
+  }
+
+  /* When Overview / Statistics / Report is open, the same minute is already
+     displayed inside that panel. Remove the live action strip so it cannot
+     cover the first rows and give the report the full available height. */
+  html.s9-phone-landscape #match[data-match-view="overview"] #currentAction,
+  html.s9-phone-landscape #match[data-match-view="stats"] #currentAction,
+  html.s9-phone-landscape #match[data-match-view="report"] #currentAction{
+    display:none!important;
+  }
+  html.s9-phone-landscape #match[data-match-view="overview"] .match-stage,
+  html.s9-phone-landscape #match[data-match-view="stats"] .match-stage,
+  html.s9-phone-landscape #match[data-match-view="report"] .match-stage{
+    grid-template-rows:minmax(0,1fr) 9%!important;
+  }
+  html.s9-phone-landscape #match .v76-match-tab-panel{
+    min-height:0!important;
+    height:100%!important;
+    max-height:100%!important;
+    padding:5px 8px!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    -webkit-overflow-scrolling:touch!important;
+    overscroll-behavior:contain!important;
+    touch-action:pan-y!important;
+    box-sizing:border-box!important;
+  }
+  html.s9-phone-landscape #match .v76-tab-head{padding-bottom:4px!important;gap:6px!important}
+  html.s9-phone-landscape #match .v76-tab-minute{margin:3px 0 4px!important;font-size:8px!important}
+  html.s9-phone-landscape #match .v76-possession{margin:4px auto!important;height:9px!important}
+  html.s9-phone-landscape #match .v76-stats-table{margin:3px auto 0!important}
+  html.s9-phone-landscape #match .v76-stats-table>div{padding:3px 4px!important;font-size:8px!important;line-height:1.05!important}
+  html.s9-phone-landscape #match .v76-stats-table .home,
+  html.s9-phone-landscape #match .v76-stats-table .away{font-size:10px!important}
+
+  /* TACTICS / SUBSTITUTIONS: make the modal independently scrollable. */
+  html.s9-phone-landscape #tacticsModal{
+    overflow:hidden!important;
+    padding:2%!important;
+    box-sizing:border-box!important;
+  }
+  html.s9-phone-landscape #tacticsModal>.panel{
+    width:min(880px,94%)!important;
+    height:94%!important;
+    max-width:94%!important;
+    max-height:94%!important;
+    margin:auto!important;
+    padding:7px 10px 12px!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    -webkit-overflow-scrolling:touch!important;
+    overscroll-behavior:contain!important;
+    touch-action:pan-y!important;
+    box-sizing:border-box!important;
+  }
+  html.s9-phone-landscape #tacticsModal>.panel>h2{font-size:14px!important;margin:0 0 4px!important}
+  html.s9-phone-landscape #tacticsModal>.panel>.grid{gap:8px!important;align-items:start!important}
+  html.s9-phone-landscape #tacticsModal h3{font-size:10px!important;margin:5px 0 3px!important}
+  html.s9-phone-landscape #tacticsModal table{font-size:7.5px!important}
+  html.s9-phone-landscape #tacticsModal td,
+  html.s9-phone-landscape #tacticsModal th{padding:2px 3px!important}
+  html.s9-phone-landscape #tacticsModal button{min-height:24px!important;padding:2px 7px!important;font-size:8px!important}
+
+  /* POST MATCH: the screen stays inside the 16:9 artboard, but the report
+     itself scrolls vertically. Hide the generic Menu Principale shortcut;
+     the correct return path is the dedicated season/tournament button. */
+  html.s9-phone-landscape #postmatch.active{
+    overflow:hidden!important;
+    padding:0!important;
+  }
+  html.s9-phone-landscape #postmatch>.v104-menu-back{
+    display:none!important;
+  }
+  html.s9-phone-landscape #postmatch>.panel,
+  html.s9-phone-landscape #postmatch>.panel.v105-post-panel{
+    position:absolute!important;
+    left:5%!important;
+    right:5%!important;
+    top:4%!important;
+    bottom:4%!important;
+    transform:none!important;
+    width:auto!important;
+    height:auto!important;
+    max-width:none!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:10px 12px 48px!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    -webkit-overflow-scrolling:touch!important;
+    overscroll-behavior:contain!important;
+    touch-action:pan-y!important;
+    box-sizing:border-box!important;
+  }
+  html.s9-phone-landscape #postmatch>.panel>h2{font-size:16px!important;margin:0 0 5px!important}
+  html.s9-phone-landscape #postmatch .v105-post-score{margin:4px auto 7px!important;gap:8px!important;font-size:13px!important}
+  html.s9-phone-landscape #postmatch .v105-post-score strong{min-width:72px!important;padding:4px 8px!important;font-size:20px!important}
+  html.s9-phone-landscape #postmatch>.panel>.grid{grid-template-columns:.9fr 1.3fr!important;gap:7px!important}
+  html.s9-phone-landscape #postmatch>.panel>.grid>div{padding:6px!important}
+  html.s9-phone-landscape #postmatch .v105-number-row{padding:2px 3px!important;font-size:8px!important}
+  html.s9-phone-landscape #postmatch .v105-number-row b{font-size:9px!important}
+  html.s9-phone-landscape #postmatch .v105-events-grid{gap:4px!important}
+  html.s9-phone-landscape #postmatch .v105-events-grid section{padding:4px!important}
+  html.s9-phone-landscape #postmatch .v105-event-row{padding:2px 0!important;font-size:7.5px!important}
+  html.s9-phone-landscape #postmatch #returnSeason{
+    position:sticky!important;
+    left:auto!important;
+    right:auto!important;
+    bottom:0!important;
+    z-index:25!important;
+    display:block!important;
+    width:min(360px,78%)!important;
+    min-width:0!important;
+    min-height:28px!important;
+    margin:10px auto -36px!important;
+    padding:4px 10px!important;
+    font-size:9px!important;
+    box-shadow:0 -8px 22px rgba(2,8,22,.78)!important;
+  }
+}

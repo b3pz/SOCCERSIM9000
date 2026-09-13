@@ -28,7 +28,7 @@
     el.innerHTML=`<div class="s9-rotate-card">
       <img class="s9-rotate-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
       <span class="s9-rotate-icon" aria-hidden="true">↻</span>
-      <h2 class="s9-rotate-title">Ruota l'iPhone</h2>
+      <h2 class="s9-rotate-title">RUOTA IL TELEFONO</h2>
       <p class="s9-rotate-copy">SerieA 9000 SIM è progettato per essere giocato in orizzontale. Ruota il telefono per continuare.</p>
       <div class="s9-rotate-credit">Sviluppato ed ideato da b3pZ</div>
     </div>`;
