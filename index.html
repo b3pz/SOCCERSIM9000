@@ -673,8 +673,8 @@ main{max-width:none!important;padding:0!important}
 #cupsMenu .cup-card{border-color:#d4bd73!important;background:rgba(6,20,56,.86)!important}
 
 /* logo permanente piccolo nelle pagine interne */
-.v51-page-logo{display:block;width:min(360px,56vw);margin:0 auto 18px;filter:drop-shadow(0 7px 12px rgba(0,0,0,.55))}
-#match .v51-page-logo{width:min(250px,42vw);margin-bottom:8px}
+.v51-page-logo{display:block;width:min(300px,36vw);margin:0 0 14px 18px;filter:drop-shadow(0 7px 12px rgba(0,0,0,.55));position:relative;z-index:2}
+#match .v51-page-logo{width:min(220px,32vw);margin:0 0 10px 12px}
 
 @media(max-width:760px){
  .screen{padding:14px 8px!important;background-attachment:scroll!important;background-position:center top!important}
@@ -682,7 +682,7 @@ main{max-width:none!important;padding:0!important}
  .main-menu-grid{grid-template-columns:1fr!important}
  .main-menu-shell .big-menu-btn{min-height:92px!important}
  #setup .setup90,#setup .team-selector{margin:2vh auto!important;padding:12px!important}
- .v51-page-logo{width:min(300px,72vw)}
+ .v51-page-logo{width:min(220px,62vw);margin:0 auto 12px!important}
 }
 </style>
 
@@ -1792,10 +1792,6 @@ document.addEventListener("DOMContentLoaded",()=>{ collapseSetPieceMenus();
     start.setAttribute("role","button");
     start.setAttribute("tabindex","0");
     start.addEventListener("keydown",(e)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}});
-    document.addEventListener("keydown",(e)=>{
-      const visible=title.style.display!=="none" && getComputedStyle(title).display!=="none";
-      if(visible && (e.key==="Enter" || e.key===" ")){e.preventDefault();go();}
-    });
   }
 
   // make team arrows resilient on touch
@@ -2182,5 +2178,7 @@ renderTeamPicker();
 <script src="js/v10-release.js?v=12-1"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
 <script src="js/match-coherence.js?v=12-4"></script>
+
+<!-- Patch 15: logo SerieA 9000 SIM aggiornato, logo pagine interne spostato dal centro, sfondo Coppe sostituito con versione trofei/stadio approvata. -->
 </body>
 </html>
