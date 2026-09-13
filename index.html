@@ -1792,6 +1792,10 @@ document.addEventListener("DOMContentLoaded",()=>{ collapseSetPieceMenus();
     start.setAttribute("role","button");
     start.setAttribute("tabindex","0");
     start.addEventListener("keydown",(e)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}});
+    document.addEventListener("keydown",(e)=>{
+      const visible=title.style.display!=="none" && getComputedStyle(title).display!=="none";
+      if(visible && (e.key==="Enter" || e.key===" ")){e.preventDefault();go();}
+    });
   }
 
   // make team arrows resilient on touch
