@@ -320,16 +320,16 @@ function injectScreens(){
  if(q('#v10CupSetup'))return;
  const main=q('main');
  const html=`
- <section id="v10CupSetup" class="screen"><img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM"><div class="s9-team-picker">
+ <section id="v10CupSetup" class="screen"><div class="s9-team-picker">
  <header class="s9-picker-heading" id="v10SetupTitle">COPPA</header>
  <section class="s9-picker-grid">
  <aside class="s9-picker-side"><div id="v10PickerDescription"></div><details class="s9-picker-details"><summary>FORMATO TORNEO</summary><div id="v10FormatInfo"></div></details></aside>
  <article class="s9-picker-center"><div class="s9-picker-name" id="v10PickerName"></div><div class="s9-picker-year" id="v10PickerSeason"></div><div class="s9-picker-art"><button class="s9-picker-arrow" id="v10PrevTeam" aria-label="Squadra precedente">◀</button><div class="s9-picker-crest"><img id="v10PickerCrest" alt="Stemma"></div><button class="s9-picker-arrow" id="v10NextTeam" aria-label="Squadra successiva">▶</button></div><div class="s9-picker-kits"><figure><img id="v10PickerHome" alt="Prima divisa"><figcaption>PRIMA DIVISA</figcaption></figure><figure><img id="v10PickerAway" alt="Seconda divisa"><figcaption>SECONDA DIVISA</figcaption></figure></div></article>
  <aside class="s9-picker-side s9-picker-rating"><div id="v10PickerRating"></div><details class="s9-picker-details"><summary>SQUADRE DISPONIBILI</summary><div id="v10TeamList" class="v10-team-list"></div></details></aside>
  </section><footer class="s9-picker-actions"><button id="v10CupSetupBack">◀ COPPE</button><button class="primary" id="v10CreateCup">SORTEGGIA TORNEO ▶</button></footer></div></section>
- <section id="v10Tournament" class="screen"><img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM"><div class="v10-tournament-shell"><div class="v10-competition-head"><div class="v10-userclub" id="v10UserTeam"></div><div class="v10-title" id="v10TournamentTitle"></div><div class="v10-stage" id="v10TournamentStage"></div></div><div class="v10-tabs"><button data-v10tab="overview" class="active">PROSSIMA</button><button data-v10tab="groups">GIRONI</button><button data-v10tab="bracket">TABELLONE</button><button data-v10tab="results">RISULTATI</button></div><div id="v10TournamentContent"></div><div class="v10-actions"><button id="v10TournamentExit">◀ MENU COPPE</button><button class="primary" id="v10PlayNext">PREPARA PARTITA ▶</button></div></div></section>
- <section id="v10FinalEight" class="screen"><img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM"><div class="v10-tournament-shell"><div class="v10-competition-head"><div class="v10-userclub v106-fe-brand"><img src="assets/league/serie_a_league.png" alt="Serie A"><span>SERIE A · GIRONI A/B</span></div><div class="v10-title">FASE FINALE · SCUDETTO</div><div class="v10-stage" id="v10FEStage"></div></div><div class="v10-tabs"><button data-fetab="overview" class="active">PROSSIMA</button><button data-fetab="bracket">TABELLONE</button><button data-fetab="ranking">CLASSIFICA FINALE</button></div><div id="v10FEContent"></div><div class="v10-actions"><button id="v10FEBack">◀ STAGIONE</button><button class="primary" id="v10FEPlay">GIOCA ▶</button></div></div></section>
- <section id="v10Trophy" class="screen"><img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM"><div class="v10-shell"><div class="v10-champion"><div class="v10-title" id="v10TrophyTitle">CAMPIONE</div><img id="v10TrophyCrest" alt=""><div class="v10-champion-name" id="v10TrophyName"></div><div id="v10TrophyNote"></div><div class="v10-actions"><button class="primary" id="v10TrophyContinue">CONTINUA ▶</button></div></div></div></section>`;
+ <section id="v10Tournament" class="screen"><div class="v10-tournament-shell"><div class="v10-competition-head"><div class="v10-userclub" id="v10UserTeam"></div><div class="v10-title" id="v10TournamentTitle"></div><div class="v10-stage" id="v10TournamentStage"></div></div><div class="v10-tabs"><button data-v10tab="overview" class="active">PROSSIMA</button><button data-v10tab="groups">GIRONI</button><button data-v10tab="bracket">TABELLONE</button><button data-v10tab="results">RISULTATI</button></div><div id="v10TournamentContent"></div><div class="v10-actions"><button id="v10TournamentExit">◀ MENU COPPE</button><button class="primary" id="v10PlayNext">PREPARA PARTITA ▶</button></div></div></section>
+ <section id="v10FinalEight" class="screen"><div class="v10-tournament-shell"><div class="v10-competition-head"><div class="v10-userclub v106-fe-brand"><img src="assets/league/serie_a_league.png" alt="Serie A"><span>SERIE A · GIRONI A/B</span></div><div class="v10-title">FASE FINALE · SCUDETTO</div><div class="v10-stage" id="v10FEStage"></div></div><div class="v10-tabs"><button data-fetab="overview" class="active">PROSSIMA</button><button data-fetab="bracket">TABELLONE</button><button data-fetab="ranking">CLASSIFICA FINALE</button></div><div id="v10FEContent"></div><div class="v10-actions"><button id="v10FEBack">◀ STAGIONE</button><button class="primary" id="v10FEPlay">GIOCA ▶</button></div></div></section>
+ <section id="v10Trophy" class="screen"><div class="v10-shell"><div class="v10-champion"><div class="v10-title" id="v10TrophyTitle">CAMPIONE</div><img id="v10TrophyCrest" alt=""><div class="v10-champion-name" id="v10TrophyName"></div><div id="v10TrophyNote"></div><div class="v10-actions"><button class="primary" id="v10TrophyContinue">CONTINUA ▶</button></div></div></div></section>`;
  main.insertAdjacentHTML('beforeend',html);
 }
 function applyCompetitionTheme(key){
@@ -346,28 +346,28 @@ function applyCompetitionTheme(key){
 function competitionBrand(key){
  const brands={
   italia:{style:'italia',kicker:'COPPA NAZIONALE · ITALIA',setupTitle:'COPPA ITALIA',tournamentTitle:'COPPA ITALIA',cardTop:'COPPA NAZIONALE',cardTitle:'COPPA ITALIA',cardHook:'NOTTI ITALIANE',year:'1998·99',logo:'assets/competition_buttons/coppa_italia.png'},
-  cdc:{style:'cdc',kicker:'EUROPA DEI CAMPIONI',setupTitle:'COPPA DEI CAMPIONI',tournamentTitle:'COPPA DEI CAMPIONI',cardTop:'COPPA EUROPEA',cardTitle:'COPPA DEI CAMPIONI',cardHook:'NOBILTÀ CONTINENTALE',year:'1999',logo:'assets/competition_buttons/coppa_campioni.png'},
+  cdc:{style:'cdc',kicker:'EUROPA DEI CAMPIONI',setupTitle:'COPPA DEI CAMPIONI',tournamentTitle:'COPPA DEI CAMPIONI',cardTop:'COPPA EUROPEA',cardTitle:'COPPA DEI CAMPIONI',cardHook:'QUELLE NOTTI DI COPPA',year:'1999',logo:'assets/competition_buttons/coppa_campioni.png'},
   uefa:{style:'uefa',kicker:'EUROPA DELLE GRANDI PIAZZE',setupTitle:'COPPA UEFA',tournamentTitle:'COPPA UEFA',cardTop:'COPPA EUROPEA',cardTitle:'COPPA UEFA',cardHook:'MERCOLEDÌ DI COPPA',year:'1999',logo:'assets/competition_buttons/uefa_cup.png'},
   world:{style:'world',kicker:'COPPA DEL MONDO · 32 NAZIONALI',setupTitle:'FRANCIA 98',tournamentTitle:'FRANCIA 98',cardTop:'COPPA DEL MONDO',cardTitle:'FRANCIA 98',cardHook:'ESTATE MONDIALE',year:'1998',logo:'assets/competition_buttons/francia98.png'},
-  euro:{style:'euro',kicker:'CAMPIONATO EUROPEO · 16 NAZIONALI',setupTitle:'EURO 2000',tournamentTitle:'EURO 2000',cardTop:'CAMPIONATO EUROPEO',cardTitle:'EURO 2000',cardHook:'SFIDA EUROPEA',year:'2000',logo:'assets/competition_buttons/euro2000.png'}
+  euro:{style:'euro',kicker:'CAMPIONATO EUROPEO · 16 NAZIONALI',setupTitle:'EURO 2000',tournamentTitle:'EURO 2000',cardTop:'CAMPIONATO EUROPEO',cardTitle:'EURO 2000',cardHook:'ANCORA UN PALLONE',year:'2000',logo:'assets/competition_buttons/euro2000.png'}
  };
  return brands[key]||{style:key||'cup',kicker:'COPPA',setupTitle:FORMATS?.[key]?.name||'COPPA',tournamentTitle:FORMATS?.[key]?.name||'COPPA',cardTop:'COPPA',cardTitle:FORMATS?.[key]?.name||'COPPA',cardHook:'TORNEO',year:''};
 }
 function rebuildCupsMenu(){
  const shell=q('#cupsMenu .cups-shell');if(!shell)return;
  const cards=[
-  {key:'italia',desc:'32 italiane · eliminazione diretta',story:'La tradizione che unisce l’Italia. Dal primo turno alla finale, il sogno di alzare una coppa che ha scritto la storia del nostro calcio.'},
-  {key:'cdc',desc:'16 club · gironi + A/R',story:'Il sogno più grande. Le migliori squadre d’Europa si affrontano per entrare nella storia.'},
-  {key:'uefa',desc:'16 club · gironi + A/R',story:'L’Europa senza confini. Passione, trasferte e grandi sfide del mercoledì sera.'},
-  {key:'world',desc:'Formato Francia 98 · 32 nazionali',story:'Un’estate, il mondo intero. Trentadue nazionali e una sola strada verso la gloria.'},
-  {key:'euro',desc:'Formato Euro 2000 · 16 nazionali',story:'Nazioni, emozioni, una sola passione. Il continente si sfida per il titolo europeo.'}
+  {key:'italia',desc:'32 italiane · eliminazione diretta',story:'Lo stadio di provincia si riempie: stasera arriva una grande. Novanta minuti per farle tremare le gambe. La coppa comincia anche da qui.'},
+  {key:'cdc',desc:'16 club · gironi + A/R',story:'Parte la musica, si alza la sciarpa. Quelle notti le aspettavi tutta la settimana. Adesso sei tu a decidere chi scende in campo.'},
+  {key:'uefa',desc:'16 club · gironi + A/R',story:'La partita in TV, i compiti lasciati a metà. Un campo lontano, una maglia da riconoscere anche nella nebbia. Basta un gol e salta tutto il salotto.'},
+  {key:'world',desc:'Formato Francia 98 · 32 nazionali',story:'Le finestre aperte, le figurine sul tavolo, un urlo che arriva dal balcone accanto. È di nuovo Francia ’98. Stavolta, quel rigore lo giochi tu.'},
+  {key:'euro',desc:'Formato Euro 2000 · 16 nazionali',story:'L’estate del cucchiaio e del fiato sospeso fino all’ultimo pallone. Ci sono finali che fanno ancora male. Riparti da qui, con la tua nazionale.'}
  ].map(cfg=>({...cfg,...competitionBrand(cfg.key)}));
  let index=0;
  const saved=readStandaloneState();
  if(saved){const savedIndex=cards.findIndex(c=>c.key===saved.key);if(savedIndex>=0)index=savedIndex;}
  shell.innerHTML=`
-  <div class="v10-title">COPPE E TORNEI</div>
-  <div class="v10-subtitle">Scorri le competizioni e scegli il torneo da vivere.</div>
+  <div class="cups-heading"><img src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM"><h1 class="v10-title">COPPE E TORNEI</h1></div>
+  <div class="v10-subtitle">Ci sono partite che non hai mai dimenticato. Torna a giocarle.</div>
   <div class="v105-cup-carousel" tabindex="0" aria-label="Selezione coppe e tornei">
     <button class="v105-cup-nav v105-cup-prev" type="button" aria-label="Competizione precedente">◀</button>
     <div class="v105-cup-stage">
@@ -387,7 +387,7 @@ function rebuildCupsMenu(){
   <div class="v105-cup-position"><span id="v105CupCounter"></span><div class="v105-cup-dots" id="v105CupDots"></div></div>
   <div class="v10-actions">
     ${saved?`<button class="primary" id="v10ContinueCup">CONTINUA ${escapeHTML(saved.name||'COPPA')} ▶</button>`:''}
-    <button class="primary" id="v105OpenCup">SCEGLI QUESTA COPPA ▶</button>
+    <button class="primary" id="v105OpenCup">SCEGLI LA SQUADRA ▶</button>
     <button id="cupsBack">◀ MENU PRINCIPALE</button>
   </div>`;
  const feature=q('#v105CupFeature'), stage=q('#cupsMenu .v105-cup-stage');
@@ -413,7 +413,7 @@ function rebuildCupsMenu(){
  q('#cupsBack').onclick=()=>show('mainMenu');
  if(saved&&q('#v10ContinueCup'))q('#v10ContinueCup').onclick=continueStandalone;
  const carousel=q('#cupsMenu .v105-cup-carousel');
- carousel.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'){e.preventDefault();move(-1)}else if(e.key==='ArrowRight'){e.preventDefault();move(1)}else if(e.key==='Enter'||e.key===' '){e.preventDefault();openCurrent()}});
+ carousel.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'){e.preventDefault();move(-1)}else if(e.key==='ArrowRight'){e.preventDefault();move(1)}else if((e.key==='Enter'||e.key===' ') && e.target===carousel){e.preventDefault();openCurrent()}});
  let sx=0,sy=0;
  if(stage){
   stage.addEventListener('touchstart',e=>{const t=e.changedTouches&&e.changedTouches[0];if(t){sx=t.clientX;sy=t.clientY}},{passive:true});

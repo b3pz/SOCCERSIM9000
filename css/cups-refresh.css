@@ -1,0 +1,73 @@
+/* Tournament selection owns its viewport; only the card area scrolls. */
+#cupsMenu.screen {
+  position:fixed!important;inset:0!important;z-index:200!important;
+  width:100%!important;height:100dvh!important;min-height:0!important;
+  margin:0!important;padding:0!important;overflow:hidden!important;
+  background:#06132f url('../assets/screens/08_cups.png') center/cover no-repeat!important;
+}
+#cupsMenu::before {background:linear-gradient(180deg,#020a1880,#020a18b8)!important;}
+#cupsMenu::after,#cupsMenu .cups-shell::before {display:none!important;}
+#cupsMenu>.v51-page-logo,#v10CupSetup>.v51-page-logo {display:none!important;}
+#cupsMenu .cups-shell {
+  position:relative!important;inset:auto!important;transform:none!important;
+  display:grid!important;grid-template-rows:auto auto minmax(0,1fr) auto auto!important;
+  width:min(1140px,100%)!important;max-width:1140px!important;
+  height:100%!important;min-height:0!important;max-height:none!important;
+  margin:0 auto!important;padding:22px 28px max(18px,env(safe-area-inset-bottom))!important;
+  box-sizing:border-box!important;overflow:hidden!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;
+}
+#cupsMenu .cups-heading {display:flex;align-items:center;gap:28px;border-bottom:1px solid #d5b85f66;padding-bottom:14px;}
+#cupsMenu .cups-heading img {width:155px;height:auto;flex:none;}
+#cupsMenu .v10-title {font:700 clamp(22px,3vw,36px)/1.1 Arial,sans-serif!important;letter-spacing:.06em!important;margin:0!important;padding:0!important;border:0!important;text-align:left!important;}
+#cupsMenu .v10-subtitle {font:14px/1.5 Georgia,serif!important;margin:14px 0!important;text-transform:none!important;}
+#cupsMenu .v105-cup-carousel {min-height:0;grid-template-columns:48px minmax(0,1fr) 48px!important;gap:14px!important;overflow:auto;padding:5px;}
+#cupsMenu .v105-cup-stage {grid-template-columns:minmax(80px,.42fr) minmax(280px,1.8fr) minmax(80px,.42fr)!important;min-height:0!important;gap:12px!important;}
+#cupsMenu .v105-cup-feature {box-sizing:border-box;min-height:0!important;padding:20px!important;gap:9px!important;border-width:1px!important;border-radius:8px;text-transform:none!important;}
+#cupsMenu .v105-cup-logo-frame {width:100px!important;height:100px!important;flex-shrink:0;}
+#cupsMenu .v105-cup-feature .v10-cup-name {font-size:clamp(23px,2.5vw,32px)!important;}
+#cupsMenu .v105-cup-feature .v104-cup-hook {font-size:10px!important;}
+#cupsMenu .v105-cup-feature .v10-cup-desc {font:11px/1.4 Arial,sans-serif!important;color:#bac7d7!important;}
+#cupsMenu .v105-cup-story {font:normal 16px/1.5 Georgia,serif!important;text-transform:none!important;letter-spacing:0!important;color:#eee4d2!important;margin-top:3px!important;padding-top:12px!important;}
+#cupsMenu .v105-cup-side {min-height:210px!important;padding:10px!important;gap:12px;}
+#cupsMenu .v105-cup-side img {width:64px!important;height:64px!important;}
+#cupsMenu .v105-cup-side strong {font-size:13px!important;}
+#cupsMenu .v105-cup-nav {width:44px!important;height:64px!important;font-size:24px!important;}
+#cupsMenu .v105-cup-position {margin:12px 0!important;}
+#cupsMenu .v10-actions {position:relative!important;inset:auto!important;display:flex!important;flex-wrap:wrap;gap:10px!important;margin:0!important;padding:12px 0 0!important;border-top:1px solid #d5b85f66;background:transparent!important;}
+#cupsMenu .v10-actions button {min-height:46px!important;padding:12px 20px!important;font:700 12px/1.3 Arial,sans-serif!important;}
+#cupsMenu #v105OpenCup {order:-1;background:linear-gradient(#f3dfa4,#d0ad5c)!important;color:#0a182b!important;border:1px solid #ffebaf!important;box-shadow:0 4px 18px #0005!important;}
+#cupsMenu button:focus-visible {outline:2px solid #fff1c9!important;outline-offset:3px!important;}
+#cupsMenu .v105-cup-carousel:focus-visible {outline:2px solid #fff1c9!important;outline-offset:-2px!important;}
+#v10CupSetup .s9-picker-actions {position:relative!important;flex-shrink:0!important;z-index:5;padding:10px 0!important;background:#06142d!important;}
+@media(max-width:700px) {
+ #cupsMenu .cups-shell {padding:14px 12px max(12px,env(safe-area-inset-bottom))!important;}
+ #cupsMenu .cups-heading {gap:14px;padding-bottom:10px;}
+ #cupsMenu .cups-heading img {width:100px;}
+ #cupsMenu .v10-title {font-size:20px!important;}
+ #cupsMenu .v10-subtitle {font-size:12px!important;margin:12px 0!important;}
+ #cupsMenu .v105-cup-stage {grid-template-columns:1fr!important;}
+ #cupsMenu .v105-cup-side {display:none!important;}
+ #cupsMenu .v105-cup-carousel {grid-template-columns:32px minmax(0,1fr) 32px!important;gap:5px!important;}
+ #cupsMenu .v105-cup-nav {width:30px!important;height:52px!important;font-size:18px!important;}
+ #cupsMenu .v105-cup-feature {padding:16px 12px!important;}
+ #cupsMenu .v105-cup-story {font-size:14px!important;}
+ #cupsMenu .v10-actions button {flex:1 1 auto;padding:10px!important;}
+}
+@media(max-height:560px) and (min-width:701px) {
+ #cupsMenu .cups-shell {padding-top:10px!important;padding-bottom:10px!important;}
+ #cupsMenu .cups-heading {padding-bottom:8px;}
+ #cupsMenu .cups-heading img {width:110px;}
+ #cupsMenu .v10-title {font-size:24px!important;}
+ #cupsMenu .v10-subtitle {margin:6px 0!important;font-size:12px!important;}
+ #cupsMenu .v105-cup-feature {display:grid!important;grid-template-columns:80px 1fr;gap:6px 18px!important;padding:12px 16px!important;}
+ #cupsMenu .v105-cup-logo-frame {grid-column:1;grid-row:1 / span 5;width:76px!important;height:76px!important;}
+ #cupsMenu .v105-cup-feature>span:not(.v105-cup-logo-frame) {grid-column:2;}
+ #cupsMenu .v105-cup-feature .v10-cup-name {font-size:22px!important;}
+ #cupsMenu .v105-cup-story {font-size:13px!important;line-height:1.4!important;padding-top:6px!important;}
+ #cupsMenu .v105-cup-side {min-height:140px!important;}
+ #cupsMenu .v105-cup-position {margin:6px 0!important;}
+ #cupsMenu .v10-actions {padding-top:8px!important;}
+}
+/* Neutralize the legacy centered artboard transform on the screen itself. */
+#cupsMenu.screen {transform:none!important;translate:none!important;scale:none!important;max-width:none!important;max-height:none!important;}

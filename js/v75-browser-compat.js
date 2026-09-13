@@ -11,8 +11,8 @@
     const vw=Math.max(1, Math.round(vv ? vv.width : window.innerWidth));
     const vh=Math.max(1, Math.round(vv ? vv.height : window.innerHeight));
     const phoneLandscape=(vw>vh && vh<=600 && vw>=560 && vw<=1200);
-    const header=document.querySelector('header');
-    const hh=phoneLandscape ? 0 : Math.max(0, Math.round(header ? header.getBoundingClientRect().height : 58));
+    // Gameplay owns the full viewport; career context lives in the season panel.
+    const hh=0;
     const mainH=phoneLandscape ? vh : Math.max(260, vh-hh);
     let sw,sh;
     if(vw/mainH >= RATIO){ sh=mainH; sw=Math.round(sh*RATIO); }

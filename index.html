@@ -481,10 +481,13 @@ input,select{font-size:16px}
 function startSerieA9000(){
   try{
     var title=document.getElementById("titleScreen");
-    if(title){ title.style.display="none"; title.style.pointerEvents="none"; }
+    if(title && title.hidden) return;
+    if(title){ title.hidden=true; title.style.display="none"; title.style.pointerEvents="none"; }
     document.querySelectorAll(".screen").forEach(function(x){x.classList.remove("active");});
     var menu=document.getElementById("mainMenu");
     if(menu){ menu.style.display=""; menu.classList.add("active"); }
+    var firstAction=document.getElementById("careerModeBtn");
+    if(firstAction) firstAction.focus({preventScroll:true});
     window.scrollTo(0,0);
     try{ if(typeof audio==="function") audio(); }catch(e){}
     try{ if(typeof crowd==="function") crowd(.018,1.4); }catch(e){}
@@ -728,18 +731,28 @@ main{max-width:none!important;padding:0!important}
 <link rel="stylesheet" href="css/match-coherence.css?v=12-4">
 <link rel="stylesheet" href="css/career-presentation.css?v=13-1">
 <link rel="stylesheet" href="css/career-refresh.css?v=13-1">
+<link rel="stylesheet" href="css/title-intro.css?v=14-2">
+<link rel="stylesheet" href="css/cups-refresh.css?v=15-1">
+<link rel="stylesheet" href="css/game-brand.css?v=16-1">
+<link rel="stylesheet" href="css/halftime-refresh.css?v=17-1">
+<link rel="stylesheet" href="css/postmatch-refresh.css?v=18-1">
+<link rel="stylesheet" href="css/game-viewport.css?v=19-1">
+<link rel="stylesheet" href="css/career-entry.css?v=20-1">
 </head>
 <body>
-<header><div><h1>SERIEA 9000 SIM</h1><small id="headerSub">IL CAMPIONATO DEI CAMPIONI</small></div><div id="headerRight">—</div></header>
-<div id="titleScreen" class="title-screen intro-wait">
+<span id="headerSub" hidden></span>
+<div id="titleScreen" class="title-screen" role="dialog" aria-modal="true" aria-label="SerieA 9000 SIM">
+  <div class="intro-content">
+  <div class="intro-kicker">IL CALCIO DEGLI ANNI ’90 E 2000</div>
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
-  <button class="press-start" id="pressStart" type="button" onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM">PREMI START</button>
-  <div class="title-footer">IL CALCIO DEGLI ANNI ’90 E 2000<br><span class="credit-b3pz">Sviluppato ed ideato da b3pZ</span></div>
+  <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
+  </div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b></span></div>
 </div>
 <main>
 
 <section id="mainMenu" class="screen active">
-<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
+
   <div class="main-menu-shell">
     <div class="menu-kicker">SERIEA 9000 SIM</div>
     <div class="menu-title">MENU PRINCIPALE</div>
@@ -770,7 +783,7 @@ main{max-width:none!important;padding:0!important}
 </section>
 
 <section id="cupsMenu" class="screen">
-<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
+
   <div class="cups-shell">
     <div class="cups-title">MODALITÀ COPPE</div>
 
@@ -857,7 +870,7 @@ main{max-width:none!important;padding:0!important}
 </section>
 
 <section id="season" class="screen">
-<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
+
 <div class="grid">
 <div class="panel">
 <div class="v106-league-brand" aria-label="Serie A · Gironi A e B">
@@ -866,6 +879,7 @@ main{max-width:none!important;padding:0!important}
 </div>
 <h2>RIEPILOGO STAGIONE</h2>
 <div id="managerSummary"></div>
+<div id="headerRight" class="season-date"></div>
 <div class="toolbar" style="margin-top:12px">
 <button data-view="next" class="active">Prossima partita</button>
 <button data-view="results">Risultati</button>
@@ -885,7 +899,7 @@ main{max-width:none!important;padding:0!important}
 </section>
 
 <section id="prematch" class="screen">
-<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
+
 <div id="v63TacticalXI" aria-hidden="true"></div>
 <div class="grid">
 <div class="panel">
@@ -913,7 +927,7 @@ main{max-width:none!important;padding:0!important}
 
 
 <section id="kits" class="screen">
-<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
+
   <div class="panel">
     <h2>SCELTA DIVISE</h2>
     <div class="muted">Scegli le divise con cui le due squadre scenderanno in campo.</div>
@@ -945,7 +959,7 @@ main{max-width:none!important;padding:0!important}
 </section>
 
 <section id="match" class="screen">
-<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
+
 <div class="match-shell">
   <div class="match-topbar">
     <div class="clock-box"><div id="halfLabel">1° TEMPO</div><div id="matchMinute">00'</div></div>
@@ -994,7 +1008,7 @@ main{max-width:none!important;padding:0!important}
 </section>
 
 <section id="halftime" class="screen">
-<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
+
 <div class="panel hero">
 <h2>INTERVALLO</h2>
 <div id="halftimeScore"></div>
@@ -1008,7 +1022,7 @@ main{max-width:none!important;padding:0!important}
 </section>
 
 <section id="postmatch" class="screen">
-<img class="v51-page-logo" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM">
+
 <div class="panel">
 <h2>ANALISI POST-PARTITA</h2>
 <div id="postScore"></div>
@@ -1780,18 +1794,32 @@ $("#closeTactics").onclick=()=>{let st=career.teamStates[career.user];st.formati
 <div class="scanline"></div>
 <script>
 document.addEventListener("DOMContentLoaded",()=>{ collapseSetPieceMenus();
-  const introTitle=document.getElementById("titleScreen");
-  if(introTitle){ setTimeout(()=>{ introTitle.classList.remove("intro-wait"); introTitle.classList.add("ready"); },2000); }
   const qs=(s)=>document.querySelector(s);
   const start=qs("#pressStart");
   const title=qs("#titleScreen");
   if(start && title){
-    const go=()=>startSerieA9000();
-    start.addEventListener("click",go,{passive:true});
-    start.addEventListener("touchend",()=>{ startSerieA9000(); },{passive:true});
-    start.setAttribute("role","button");
-    start.setAttribute("tabindex","0");
-    start.addEventListener("keydown",(e)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}});
+    const content=title.querySelector('.intro-content');
+    const revealStart=()=>{
+      if(title.hidden || !start.disabled)return;
+      start.disabled=false;
+      title.classList.add('start-ready');
+      start.focus({preventScroll:true});
+    };
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      revealStart();
+    }else{
+      content.addEventListener('animationend',(e)=>{
+        if(e.target===content && e.animationName==='intro-arrive')revealStart();
+      });
+      // Fallback if an animation is cancelled or its end event is missed.
+      setTimeout(revealStart,1200);
+    }
+    document.addEventListener("keydown",(e)=>{
+      if(!title.hidden && !start.disabled && !e.repeat && (e.key==="Enter" || e.key===" ")){
+        e.preventDefault();
+        startSerieA9000();
+      }
+    });
   }
 
   // make team arrows resilient on touch
@@ -1835,15 +1863,6 @@ document.addEventListener("DOMContentLoaded",()=>{
     }
     window.scrollTo({top:0,behavior:"instant"});
   };
-
-  const title=$m("#titleScreen");
-  const press=$m("#pressStart");
-
-  // Il vecchio handler nasconde il title; questo completa il passaggio al menu.
-  if(press){
-    const toMenu=()=>startSerieA9000();
-    press.addEventListener("click",toMenu);
-  }
 
   const career=$m("#careerModeBtn");
   const cups=$m("#cupsModeBtn");
@@ -2164,18 +2183,18 @@ renderTeamPicker();
 </script>
 
 <script src="js/save-manager.js?v=10-final-3"></script>
-<script src="js/save-integration.js?v=11-1"></script>
+<script src="js/save-integration.js?v=20-1"></script>
 <script src="js/match-popups.js?v=11-4"></script>
 <script src="js/v7-release.js?v=11-4"></script>
 <script src="js/v71-final-polish.js?v=10-final-3"></script>
 <script src="js/v72-publication-ui.js?v=10-final-3"></script>
 <script src="js/v73-alignment-fix.js?v=11-1"></script>
-<script src="js/v75-browser-compat.js?v=10-final-3"></script>
+<script src="js/v75-browser-compat.js?v=19-1"></script>
 <script src="js/v76-match-ui.js?v=11-4"></script>
 <script src="js/v80-safari-iphone.js?v=10-final-3"></script>
 <script src="js/v91-final-touches.js?v=12-1"></script>
 <script src="js/v10-data.js?v=11-1"></script>
-<script src="js/v10-release.js?v=12-1"></script>
+<script src="js/v10-release.js?v=16-1"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
 <script src="js/match-coherence.js?v=12-4"></script>
 

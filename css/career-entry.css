@@ -1,0 +1,23 @@
+#s9CareerModal [data-career-view][hidden] {display:none!important;}
+#s9CareerModal[data-view="choice"] .s9-save-panel {width:min(780px,94vw)!important;}
+#s9CareerModal[data-view="contract"] .s9-save-panel {width:min(780px,94vw)!important;}
+#s9CareerModal .s9-choice-intro {color:#cbd8e6;font:16px/1.5 Georgia,serif;margin:8px 0 26px;}
+#s9CareerModal .s9-career-choices {display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+#s9CareerModal .s9-career-choices button {display:flex;flex-direction:column;align-items:flex-start;gap:16px;padding:26px;min-height:150px;text-align:left;border:1px solid #c9ad6b;background:linear-gradient(145deg,#173f70,#0a1c37);color:#f9ebc6;}
+#s9CareerModal .s9-career-choices strong {font:700 22px/1.2 Arial,sans-serif;}
+#s9CareerModal .s9-career-choices span {font:14px/1.5 Georgia,serif;text-transform:none;color:#d5deea;}
+#s9CareerModal .s9-contract-club {font:700 18px/1.5 Arial,sans-serif;color:#e4c47b;margin-bottom:12px;}
+#s9CareerModal .s9-contract-letter {font:16px/1.6 Georgia,serif;color:#ece5d5;text-transform:none;padding:8px 0 18px;}
+#s9CareerModal .s9-contract-letter p {margin:0 0 12px;}
+#s9CareerModal .s9-contract-letter>span {display:block;text-align:right;color:#c9b47e;font-style:italic;}
+#s9CareerModal label {display:block;font:700 11px/1.5 Arial,sans-serif;letter-spacing:.1em;color:#e4c47b;margin:10px 0;}
+#s9CareerModal #s9ContractName {box-sizing:border-box;width:100%;min-height:48px;background:#071327;color:#fff0ce;border:1px solid #bba26c;padding:10px 14px;font:italic 22px/1.2 Georgia,serif;margin-bottom:20px;}
+#s9CareerModal #s9SignContract {background:linear-gradient(#f1db9f,#c5a157)!important;color:#08172a!important;}
+#s9CareerModal [data-career-view="load"] h3 {margin-top:22px;}
+#s9CareerModal button:focus-visible,#s9CareerModal input:focus-visible {outline:2px solid #fff0bb;outline-offset:3px;}
+@media(max-width:600px) {
+ #s9CareerModal .s9-career-choices {grid-template-columns:1fr;}
+ #s9CareerModal .s9-career-choices button {min-height:110px;padding:18px;gap:10px;}
+ #s9CareerModal .s9-contract-letter {font-size:14px;}
+ #s9CareerModal .s9-actions button {flex:1;}
+}

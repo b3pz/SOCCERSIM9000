@@ -1121,18 +1121,6 @@ body:not([data-v10-cup-theme]) #prematch::after{
 #cupsMenu .v105-cup-dots{display:flex;gap:7px}.v105-cup-dots span{display:block;width:22px;height:3px;background:#7f8ba0}.v105-cup-dots span.active{background:#e0bd61;box-shadow:0 0 8px #e0bd6180}
 #cupsMenu .v10-actions{justify-content:center!important;gap:10px!important;margin-top:2px!important}
 
-/* Intro scelta: l'immagine contiene già logo e START. Il bottone HTML resta sopra come area cliccabile/accessibile. */
-#titleScreen{background-image:url('../assets/screens/01_title_screen.png')!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important}
-#titleScreen::before{background:linear-gradient(180deg,rgba(2,7,18,.02),rgba(2,7,18,.05))!important}
-#titleScreen .title-logo-img,#titleScreen .title-footer{display:none!important}
-#titleScreen .press-start{
-  display:block!important;position:absolute!important;left:50%!important;top:69%!important;transform:translate(-50%,-50%)!important;
-  width:min(320px,34vw)!important;height:76px!important;margin:0!important;padding:0!important;
-  background:transparent!important;border:0!important;box-shadow:none!important;color:transparent!important;text-shadow:none!important;
-  cursor:pointer!important;z-index:20!important;
-}
-#titleScreen .press-start:focus-visible{outline:2px solid rgba(245,216,137,.9)!important;outline-offset:5px!important;border-radius:4px!important}
-
 @media(max-width:900px){
  #cupsMenu .v105-cup-stage{grid-template-columns:105px minmax(270px,1fr) 105px;gap:10px;min-height:400px}
  #cupsMenu .v105-cup-feature{min-height:390px;padding:16px}
@@ -1147,7 +1135,6 @@ body:not([data-v10-cup-theme]) #prematch::after{
  #cupsMenu .v105-cup-logo-frame{width:112px!important;height:112px!important}
  #cupsMenu .v105-cup-carousel{grid-template-columns:42px minmax(0,1fr) 42px!important}
  #cupsMenu .v105-cup-story{font-size:12px!important}
- #titleScreen .press-start{top:69%!important;width:48vw!important;height:58px!important}
 }
 @media(max-height:600px) and (min-width:650px){
  #cupsMenu .cups-shell{padding:10px 18px!important}
