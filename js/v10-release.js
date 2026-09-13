@@ -356,18 +356,72 @@ function competitionBrand(key){
 function rebuildCupsMenu(){
  const shell=q('#cupsMenu .cups-shell');if(!shell)return;
  const cards=[
-  {key:'italia',desc:'32 italiane · eliminazione diretta'},
-  {key:'cdc',desc:'16 club · gironi + A/R'},
-  {key:'uefa',desc:'16 club · gironi + A/R'},
-  {key:'world',desc:'Formato Francia 98 · 32 nazionali'},
-  {key:'euro',desc:'Formato Euro 2000 · 16 nazionali'}
+  {key:'italia',desc:'32 italiane · eliminazione diretta',story:'La tradizione che unisce l’Italia. Dal primo turno alla finale, il sogno di alzare una coppa che ha scritto la storia del nostro calcio.'},
+  {key:'cdc',desc:'16 club · gironi + A/R',story:'Il sogno più grande. Le migliori squadre d’Europa si affrontano per entrare nella storia.'},
+  {key:'uefa',desc:'16 club · gironi + A/R',story:'L’Europa senza confini. Passione, trasferte e grandi sfide del mercoledì sera.'},
+  {key:'world',desc:'Formato Francia 98 · 32 nazionali',story:'Un’estate, il mondo intero. Trentadue nazionali e una sola strada verso la gloria.'},
+  {key:'euro',desc:'Formato Euro 2000 · 16 nazionali',story:'Nazioni, emozioni, una sola passione. Il continente si sfida per il titolo europeo.'}
  ].map(cfg=>({...cfg,...competitionBrand(cfg.key)}));
- shell.innerHTML=`<div class="v10-title">COPPE E TORNEI</div><div class="v10-subtitle">Tornei indipendenti dalla Carriera. Ogni nuovo torneo propone un sorteggio diverso.</div><div class="v10-cup-grid">
- ${cards.map(x=>`<button class="v10-cup-btn v104-cup-card v104-cup-${x.style}" data-v10cup="${x.key}"><span class="v104-cup-topline">${x.cardTop}</span><span class="v104-cup-logo-frame"><img class="v104-cup-logo" src="${x.logo}" alt="${x.cardTitle}"></span><span class="v10-cup-name">${x.cardTitle}</span><span class="v104-cup-hook">${x.cardHook}</span><span class="v10-cup-desc">${x.desc}</span></button>`).join('')}</div><div class="v10-actions"><button id="cupsBack">◀ MENU PRINCIPALE</button></div>`;
+ let index=0;
  const saved=readStandaloneState();
- if(saved){const actions=shell.querySelector('.v10-actions');actions.insertAdjacentHTML('afterbegin',`<button class="primary" id="v10ContinueCup">CONTINUA ${saved.name||'COPPA'} ▶</button>`);q('#v10ContinueCup').onclick=continueStandalone;}
- q('#cupsBack').onclick=()=>show('mainMenu');qa('[data-v10cup]').forEach(b=>b.onclick=()=>openCupSetup(b.dataset.v10cup));
+ if(saved){const savedIndex=cards.findIndex(c=>c.key===saved.key);if(savedIndex>=0)index=savedIndex;}
+ shell.innerHTML=`
+  <div class="v10-title">COPPE E TORNEI</div>
+  <div class="v10-subtitle">Scorri le competizioni e scegli il torneo da vivere.</div>
+  <div class="v105-cup-carousel" tabindex="0" aria-label="Selezione coppe e tornei">
+    <button class="v105-cup-nav v105-cup-prev" type="button" aria-label="Competizione precedente">◀</button>
+    <div class="v105-cup-stage">
+      <div class="v105-cup-side v105-cup-side-left" aria-hidden="true"></div>
+      <button class="v105-cup-feature" id="v105CupFeature" type="button" aria-label="Apri competizione selezionata">
+        <span class="v104-cup-topline" id="v105CupTopline"></span>
+        <span class="v104-cup-logo-frame v105-cup-logo-frame"><img class="v104-cup-logo" id="v105CupLogo" alt=""></span>
+        <span class="v10-cup-name" id="v105CupName"></span>
+        <span class="v104-cup-hook" id="v105CupHook"></span>
+        <span class="v10-cup-desc" id="v105CupDesc"></span>
+        <span class="v105-cup-story" id="v105CupStory"></span>
+      </button>
+      <div class="v105-cup-side v105-cup-side-right" aria-hidden="true"></div>
+    </div>
+    <button class="v105-cup-nav v105-cup-next" type="button" aria-label="Competizione successiva">▶</button>
+  </div>
+  <div class="v105-cup-position"><span id="v105CupCounter"></span><div class="v105-cup-dots" id="v105CupDots"></div></div>
+  <div class="v10-actions">
+    ${saved?`<button class="primary" id="v10ContinueCup">CONTINUA ${escapeHTML(saved.name||'COPPA')} ▶</button>`:''}
+    <button class="primary" id="v105OpenCup">SCEGLI QUESTA COPPA ▶</button>
+    <button id="cupsBack">◀ MENU PRINCIPALE</button>
+  </div>`;
+ const feature=q('#v105CupFeature'), stage=q('#cupsMenu .v105-cup-stage');
+ const render=()=>{
+  const c=cards[index], prev=cards[(index-1+cards.length)%cards.length], next=cards[(index+1)%cards.length];
+  q('#v105CupTopline').textContent=c.cardTop;
+  const logo=q('#v105CupLogo');logo.src=c.logo;logo.alt=c.cardTitle;
+  q('#v105CupName').textContent=c.cardTitle;
+  q('#v105CupHook').textContent=c.cardHook;
+  q('#v105CupDesc').textContent=c.desc;
+  q('#v105CupStory').textContent=c.story;
+  q('#v105CupCounter').textContent=`${index+1} / ${cards.length}`;
+  const dots=q('#v105CupDots');dots.innerHTML=cards.map((_,i)=>`<span class="${i===index?'active':''}"></span>`).join('');
+  const paintSide=(sel,item)=>{const el=q(sel);el.innerHTML=`<img src="${item.logo}" alt=""><strong>${item.cardTitle}</strong>`;};
+  paintSide('.v105-cup-side-left',prev);paintSide('.v105-cup-side-right',next);
+  feature.dataset.v10cup=c.key;
+  shell.dataset.v105Cup=c.style;
+ };
+ const move=(dir)=>{index=(index+dir+cards.length)%cards.length;render();};
+ q('.v105-cup-prev').onclick=()=>move(-1);q('.v105-cup-next').onclick=()=>move(1);
+ const openCurrent=()=>openCupSetup(cards[index].key);
+ feature.onclick=openCurrent;q('#v105OpenCup').onclick=openCurrent;
+ q('#cupsBack').onclick=()=>show('mainMenu');
+ if(saved&&q('#v10ContinueCup'))q('#v10ContinueCup').onclick=continueStandalone;
+ const carousel=q('#cupsMenu .v105-cup-carousel');
+ carousel.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'){e.preventDefault();move(-1)}else if(e.key==='ArrowRight'){e.preventDefault();move(1)}else if(e.key==='Enter'||e.key===' '){e.preventDefault();openCurrent()}});
+ let sx=0,sy=0;
+ if(stage){
+  stage.addEventListener('touchstart',e=>{const t=e.changedTouches&&e.changedTouches[0];if(t){sx=t.clientX;sy=t.clientY}},{passive:true});
+  stage.addEventListener('touchend',e=>{const t=e.changedTouches&&e.changedTouches[0];if(!t)return;const dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.2)move(dx>0?-1:1)},{passive:true});
+ }
+ render();
 }
+
 function formatInfo(key){
  const m={
   italia:'32 italiane. Sedicesimi, Ottavi e Quarti a gara secca con rigori diretti in caso di parità. Semifinali A/R; parità complessiva → supplementari Golden Goal → rigori. Finale secca con Golden Goal e rigori.',
