@@ -2,19 +2,4 @@
 body .screen > img.v51-page-logo[src*="seriea9000_logo"] {
   display:none!important;
 }
-/* Intro remains a staged entrance, now anchored to the left of the scene. */
-#titleScreen {align-items:flex-start;padding-left:clamp(20px,5vw,80px);padding-right:20px;}
-#titleScreen .intro-content {align-items:flex-start;width:min(740px,85vw);text-align:left;}
-#titleScreen .intro-kicker {margin-left:0;letter-spacing:.18em;}
-#titleScreen .title-logo-img {width:min(740px,80vw,140vh)!important;max-width:100%;margin-left:-7%;}
-#titleScreen #pressStart {align-self:flex-start;}
-#s9RotateDevice .s9-rotate-logo {display:block;margin-left:0!important;margin-right:auto!important;}
-@media(max-width:600px) {
- #titleScreen {padding-left:24px;}
- #titleScreen .intro-content {width:100%;}
- #titleScreen .title-logo-img {width:92vw!important;max-width:none;}
- #titleScreen .intro-kicker {font-size:8px;letter-spacing:.12em;}
-}
-@media(max-height:500px) {
- #titleScreen .title-logo-img {width:min(65vw,110vh)!important;}
-}
+/* Intro centrata (l'ancoraggio a sinistra di una versione precedente e' stato tolto su richiesta). */

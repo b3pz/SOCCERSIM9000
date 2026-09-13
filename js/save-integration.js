@@ -57,7 +57,14 @@ function openContract(){
  const club=T($('#managerTeam').value);
  $('#s9ContractClub').textContent=club.name+' · Stagione 1998/99';
  $('#s9ContractName').value=$('#managerName').value;
- $('#s9CareerModal').classList.add('open');$('#s9ContractName').focus();
+ $('#s9CareerModal').classList.add('open');
+ // v10.4 — su schermi bassi (telefono orizzontale) il focus automatico sul
+ // campo nome faceva scorrere il pannello per portarlo in vista, nascondendo
+ // la lettera dall'inizio. focus({preventScroll:true}) evita lo scorrimento
+ // automatico del browser, poi si riporta il pannello in cima a mano.
+ $('#s9ContractName').focus({preventScroll:true});
+ const panel=document.querySelector('#s9CareerModal .s9-save-panel');
+ if(panel)panel.scrollTop=0;
 }
 async function renderList(){ensureUI();const box=$('#s9CareerList'),list=await S9Save.listCareers();box.innerHTML=list.length?'':`<div class="s9-empty">Nessuna carriera salvata.</div>`;for(const r of list){const el=document.createElement('div');el.className='s9-save-card';let club=null;try{club=typeof T==='function'?T(r.clubId):null}catch(e){}const clubLabel=club?`${club.name} ${club.season}`:(r.clubId||'Carriera');const manager=r.managerName||r.saveData?.manager||'Manager';const crest=club?`assets/crests/italian/${club.id}.png`:'';el.innerHTML=`<div class="s9-save-main">${crest?`<img class="s9-club-crest" src="${crest}" alt="">`:''}<div><b>${esc(manager)} · ${esc(clubLabel)}</b><small>Stagione ${Number(r.seasonYear)||1998}/${String((r.seasonYear+1)%100).padStart(2,'0')} · Giornata ${Number(r.matchday)||0}<br>Ultimo salvataggio: ${new Date(r.updatedAt).toLocaleString('it-IT')}</small></div></div><div class="s9-card-actions"><button data-a="load">CONTINUA</button><button data-a="export">ESPORTA</button><button data-a="delete">ELIMINA</button></div>`;el.querySelector('[data-a=load]').onclick=async()=>{try{const rec=await S9Save.getCareer(r.careerId);if(!rec)return;career=window.S9V10?.normalizeCareer?S9V10.normalizeCareer(rec.saveData):rec.saveData;document.querySelector('#s9CareerModal').classList.remove('open');renderSeason();show('season')}catch(err){alert('Impossibile caricare la carriera: '+err.message)}};el.querySelector('[data-a=export]').onclick=()=>S9Save.exportCareer(r.careerId);el.querySelector('[data-a=delete]').onclick=async()=>{if(confirm('Eliminare questa carriera?')){await S9Save.deleteCareer(r.careerId);renderList()}};box.appendChild(el);}}
 function openCareerMenu(){ensureUI();setCareerView('choice');$('#s9CareerModal').classList.add('open');$('#s9NewCareer').focus();}
