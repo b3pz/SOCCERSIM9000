@@ -1,9 +1,10 @@
 /* Match presentation: one animation clock, live lineups and football actions. */
 (function(){
   'use strict';
-  const api=window.S9MatchVisual={event:null};
+  const api=window.S9MatchVisual={event:null,attacking:false,get carrier(){return carrier}};
   const clamp=(n,a=3,b=97)=>Math.max(a,Math.min(b,n));
-  const pos=el=>({x:parseFloat(el.style.left)||50,y:parseFloat(el.style.top)||50});
+  const coordinate=value=>Number.isFinite(parseFloat(value))?parseFloat(value):50;
+  const pos=el=>({x:coordinate(el.style.left),y:coordinate(el.style.top)});
   const ball=()=>document.getElementById('ball');
   const dots=side=>Array.from(document.querySelectorAll('#pitch .dot.'+side));
   const field=side=>dots(side).filter(d=>d.dataset.role!=='GK');
@@ -18,7 +19,7 @@
     el.textContent=text;
   }
   // Pause applies to players and ball, including a ball in flight.
-  async function move(targets,ms=650,loft=false){
+  async function move(targets,ms=650,loft=false,realTime=false){
     const match=current,unique=new Map();
     targets.forEach(t=>{if(t.el)unique.set(t.el,t)});
     const motions=[...unique.values()].map(t=>({...t,start:pos(t.el)}));
@@ -27,7 +28,7 @@
       let elapsed=0,last=null;
       function frame(now){
         if(current!==match||match._finished){resolve();return;}
-        if(last!==null&&!paused)elapsed+=Math.min(50,now-last)*Math.max(1,speed);
+        if(last!==null&&!paused)elapsed+=Math.min(50,now-last)*(realTime?1:api.attacking&&window.S9Match3D?.mode!=='2d'?(Number(speed)>=4?1:Number(speed)>=2?1.15:1):Math.max(1,speed));
         last=now;const progress=Math.min(1,elapsed/ms);
         motions.forEach(t=>{
           t.el.style.left=(t.start.x+(t.x-t.start.x)*progress)+'%';
@@ -90,14 +91,14 @@
     if(!from)return;
     if(!carrier){const p=pos(from);b.style.left=p.x+'%';b.style.top=p.y+'%';}
     label(cross?'CROSS IN AREA':'PASSAGGIO');
-    await move([...shape(side,target,[receiver,from]),{el:receiver,...target},{el:b,...target}],cross?850:600,cross);
+    await move([...shape(side,target,[receiver,from]),{el:receiver,...target},{el:b,...target}],api.attacking?(cross?1100:900):950,cross);
     carrier=receiver;possession=side;
   }
   api.openPlay=async function(minute){
     const side=possession,players=field(side);if(players.length<2)return;
     if(!carrier||!players.includes(carrier))carrier=null;
     const receiver=players.filter(d=>d!==carrier)[minute%(players.length-1)];
-    const cross=minute%7===0;
+    const cross=false; // Quiet circulation reserves crosses and forward runs for highlights.
     if(cross){
       const winger=carrier||players[0],wide={x:xFor(side,74),y:minute%2?12:88};
       label('AZIONE SULLA FASCIA');
@@ -115,22 +116,59 @@
       }
     }
   };
+  api.hold=async ms=>move([],ms,false,true);
+  api.kickoff=async side=>{
+    possession=side;carrier=null;
+    const player=field(side).slice(-1)[0];if(!player)return;
+    player.style.left=xFor(side,49)+'%';player.style.top='50%';
+    if(ball()){ball().style.left='50%';ball().style.top='50%';}
+    carrier=player;label('CALCIO D’INIZIO');await move([],450);
+  };
   animAttack=async function(side,outcome){
     const players=field(side);if(players.length<2)return;
-    const e=api.event||{};const shooter=find(side,e.player?.id)||players[players.length-1];
+    const e=api.event||{},match=current;
+    const shooter=find(side,e.player?.id)||players[players.length-1];
     const support=find(side,e.assist?.id)||players.find(d=>d!==shooter);
-    carrier=null;
-    await pass(side,support,{x:xFor(side,62),y:28});
-    await pass(side,shooter,{x:xFor(side,81),y:50},current.minute%2===0);
-    const keeper=dots(opposite(side)).find(d=>d.dataset.role==='GK');
-    const y=outcome==='miss'?26:outcome==='post'?40:46+Math.random()*8;
-    const target={x:xFor(side,outcome==='save'?94:outcome==='post'?98:101),y};
-    label('TIRO');
-    await move([...shape(side,target,[shooter,keeper]),{el:keeper,x:xFor(side,95),y:clamp(y,42,58)},{el:ball(),...target}],500);
-    if(outcome==='save'){
-      label('PARATA');await move([{el:ball(),x:xFor(side,91),y:clamp(y+5)}],240);
-      possession=opposite(side);carrier=null;
-    }
+    const third=players.find(d=>d!==shooter&&d!==support)||support;
+    const seed=Array.from(String(e.player?.id||side)).reduce((n,c)=>n+c.charCodeAt(0),current.minute);
+    const pattern=seed%4,wide=seed%2?20:80;
+    const at=(x,y)=>({x:xFor(side,x),y});
+    api.attacking=true;carrier=null;
+    try{
+      label(['COSTRUZIONE CENTRALE','APERTURA SULLA FASCIA','RIPARTENZA','COMBINAZIONE AL LIMITE'][pattern]);
+      const start=at(pattern===2?35:46,pattern===1?wide:52);
+      await move([...shape(side,start,[third]),{el:third,...start},{el:ball(),...start}],850);
+      carrier=third;await move([],250);
+      if(pattern===0){
+        await pass(side,support,at(62,42));await pass(side,shooter,at(76,51));
+      }else if(pattern===1){
+        await pass(side,support,at(66,wide));
+        label('AVANZAMENTO SULLA FASCIA');await move([...shape(side,at(78,wide),[support]),{el:support,...at(78,wide)},{el:ball(),...at(78,wide)}],1000);
+        await pass(side,shooter,at(84,50),true);
+      }else if(pattern===2){
+        await pass(side,support,at(58,65));
+        label('INSERIMENTO');await move([{el:shooter,...at(75,48)}],600);
+        await pass(side,shooter,at(82,48));
+      }else{
+        await pass(side,shooter,at(71,46));await pass(side,support,at(76,58));await pass(side,shooter,at(81,50));
+      }
+      if(current!==match||match._finished)return;
+      const keeper=dots(opposite(side)).find(d=>d.dataset.role==='GK');
+      const nearest=field(opposite(side)).sort((a,b)=>Math.abs(pos(a).x-pos(shooter).x)-Math.abs(pos(b).x-pos(shooter).x)).slice(0,2);
+      label('PREPARA IL TIRO');
+      await move(nearest.map((d,i)=>({el:d,x:pos(shooter).x+(right(side)?3:-3),y:pos(shooter).y+(i?4:-4)})),380);
+      // World goal mouth: z 30.34–37.66 (44.62–55.38 percent).
+      const y=outcome==='miss'?(seed%2?35:65):outcome==='post'?44.62:47+(seed%7);
+      const target=at(outcome==='save'?95:outcome==='goal'?101:100,y);
+      label('TIRO');
+      await move([{el:keeper,...at(96,clamp(y,45,55))},{el:ball(),...target}],720);
+      if(outcome==='save'){
+        label('PARATA');await move([{el:ball(),...at(96,clamp(y,45,55))}],300);possession=opposite(side);carrier=null;
+      }else if(outcome==='post'){
+        label('PALO');await move([{el:ball(),...at(91,39)}],450);carrier=null;
+      }else{label(outcome==='goal'?'RETE!':'TIRO FUORI');carrier=null;}
+      await move([],650);
+    }finally{api.attacking=false;}
   };
   api.offside=async function(e){
     const side=e.side,attacker=find(side,e.player?.id);if(!attacker)return;

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 360" role="img" aria-label="Brasile 2002">
+<title>Brasile 2002</title>
+<defs><linearGradient id="navy" x2="0" y2="1"><stop stop-color="#253d5c"/><stop offset="1" stop-color="#091a31"/></linearGradient><clipPath id="shield"><path d="M150 22L271 59L252 240Q240 300 150 337Q60 300 48 240L29 59Z"/></clipPath></defs>
+<path d="M150 12L282 52L262 244Q250 312 150 349Q50 312 38 244L18 52Z" fill="url(#navy)" stroke="#c8aa62" stroke-width="8"/>
+<g clip-path="url(#shield)"><path d="M23 67H278V108H23Z" fill="#26834a"/><path d="M23 108H278V129H23Z" fill="#f8d84d"/><path d="M23 129H278V150H23Z" fill="#2450a0"/></g>
+<path d="M150 28L265 64L247 235Q236 291 150 325Q64 291 53 235L35 64Z" fill="none" stroke="#dfcc9388" stroke-width="2"/>
+<text x="150" y="216" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="61" fill="#fff1ce">BRA</text>
+<text x="150" y="253" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="25" fill="#f3ead7">Brasile</text>
+<path d="M108 272H192" stroke="#c8aa62" stroke-width="2"/>
+<text x="150" y="300" text-anchor="middle" font-family="Arial,sans-serif" font-size="23" fill="#dfc783">2002</text>
+</svg>

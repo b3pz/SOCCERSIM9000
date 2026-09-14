@@ -383,7 +383,7 @@ input,select{font-size:16px}
   padding:13px;font-size:clamp(28px,5vw,48px);font-weight:900;
   letter-spacing:2px;margin:0 auto 22px
 }
-.main-menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.main-menu-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 .big-menu-btn{
   min-height:170px;display:flex;flex-direction:column;justify-content:center;align-items:center;
   background:linear-gradient(180deg,#173b87,#0d245d);color:#fff;border:4px solid #fff;
@@ -728,7 +728,7 @@ main{max-width:none!important;padding:0!important}
 <link rel="stylesheet" href="css/v10-release.css?v=10-final-3">
 <link rel="stylesheet" href="css/v102-hotfix.css?v=10-final-3">
 <link rel="stylesheet" href="css/v104-professional-layout.css?v=13-1">
-<link rel="stylesheet" href="css/match-coherence.css?v=12-4">
+<link rel="stylesheet" href="css/match-coherence.css?v=12-5">
 <link rel="stylesheet" href="css/career-presentation.css?v=13-1">
 <link rel="stylesheet" href="css/career-refresh.css?v=13-1">
 <link rel="stylesheet" href="css/title-intro.css?v=14-2">
@@ -740,6 +740,8 @@ main{max-width:none!important;padding:0!important}
 <link rel="stylesheet" href="css/career-entry.css?v=20-1">
 <link rel="stylesheet" href="css/v22-phone-landscape-fit.css?v=22-1">
 <link rel="stylesheet" href="css/v23-phone-match-postmatch-fix.css?v=23-1">
+<link rel="stylesheet" href="css/match-3d.css?v=2">
+<link rel="stylesheet" href="css/competition-exhibition.css?v=1">
 </head>
 <body>
 <div id="s9RotateDevice" aria-live="polite" aria-label="Ruota il telefono per continuare">
@@ -1444,22 +1446,60 @@ function mentalityMult(m){return m==="Offensivo"?1.08:m==="Difensivo"?.94:1}
 function lineupPower(id){let t=T(id),s=career.teamStates[id],ps=s.players.filter(p=>s.lineup.includes(p.id));return avg(ps.map(p=>p.overall*moraleMult(p.morale)))*.7+t.strength*.3}
 function poisson(l){let L=Math.exp(-l),k=0,p=1;do{k++;p*=Math.random()}while(p>L);return k-1}
 function attackers(id){let s=career.teamStates[id],ps=s.players.filter(p=>s.lineup.includes(p.id)),f=ps.filter(p=>["ST","FW","AM","MF"].includes(p.pos));return f.length?f:ps}
-function buildMatch(h,a){
- let hp=lineupPower(h)*mentalityMult(career.teamStates[h].mentality),ap=lineupPower(a)*mentalityMult(career.teamStates[a].mentality);
- let hg=Math.min(6,poisson(Math.max(.3,1.15+(hp-ap)/18+.18))),ag=Math.min(6,poisson(Math.max(.25,1.00+(ap-hp)/18)));
- let ev=[];
- const goalEv=(id,count,side)=>{for(let i=0;i<count;i++){let scorer=pick(attackers(id)),pool=attackers(id).filter(x=>x.id!==scorer.id),ass=pool.length?pick(pool):null;ev.push({min:rand(5,89),type:"goal",side,player:scorer,assist:ass})}}
- goalEv(h,hg,"home");goalEv(a,ag,"away");
- for(let i=0;i<rand(7,12);i++){let side=Math.random()<.5?"home":"away",id=side==="home"?h:a;ev.push({min:rand(3,89),type:"chance",side,player:pick(attackers(id))})}
- for(let i=0;i<rand(2,5);i++){let side=Math.random()<.5?"home":"away",id=side==="home"?h:a;ev.push({min:rand(8,88),type:Math.random()<.1?"red":"yellow",side,player:pick(career.teamStates[id].players)})}
- for(let i=0;i<rand(5,9);i++){let side=Math.random()<.5?"home":"away",id=side==="home"?h:a;ev.push({min:rand(2,89),type:"foul",side,player:pick(career.teamStates[id].players)})}
- return {h,a,scoreH:0,scoreA:0,minute:0,events:ev.sort((x,y)=>x.min-y.min),stats:{shotsH:0,shotsA:0,onH:0,onA:0},keyEvents:[]}
+// Shot quality belongs to the engine; presentation only reads the stored outcome.
+function shotQuality(p){
+ const st=p?.stats||{},base=p?.overall||70;
+ return (Number(st.shooting??base)*.5+Number(st.technique??base)*.2+Number(st.positioning??base)*.3)*moraleMult(p?.morale??50)*(.82+.18*(p?.fitness??100)/100);
 }
+function keeperQuality(id){
+ const st=career.teamStates[id],p=st.players.find(p=>p.pos==='GK'&&st.lineup.includes(p.id));
+ return p?((p.stats?.defending??p.overall)*.55+(p.stats?.positioning??p.overall)*.45)*(.85+.15*(p.fitness??100)/100):45;
+}
+function weightedAttacker(id){
+ const ps=attackers(id).filter(p=>p.pos!=='GK');
+ const weight=p=>Math.max(1,shotQuality(p)-35)*(['ST','FW'].includes(p.pos)?2:p.pos==='AM'?1.4:.7);
+ let r=Math.random()*ps.reduce((n,p)=>n+weight(p),0);
+ return ps.find(p=>(r-=weight(p))<=0)||ps[ps.length-1];
+}
+function nonGoalOutcome(p,keeper,posts=0){
+ const on=Math.max(.28,Math.min(.68,.46+(shotQuality(p)-keeper)*.004));
+ const r=Math.random(),post=.025/(1+posts*3);
+ return r<post?'post':r<post+on?'save':'miss';
+}
+function buildMatch(h,a){
+ const hp=lineupPower(h)*mentalityMult(career.teamStates[h].mentality),ap=lineupPower(a)*mentalityMult(career.teamStates[a].mentality);
+ const attack=id=>avg(attackers(id).filter(p=>p.pos!=='GK').map(shotQuality));
+ const hg=Math.min(6,poisson(Math.max(.25,1.16+(hp-ap)/22+(attack(h)-keeperQuality(a))*.014)));
+ const ag=Math.min(6,poisson(Math.max(.2,1.02+(ap-hp)/22+(attack(a)-keeperQuality(h))*.014)));
+ const ev=[],goalMinutes=[];
+ const goalEv=(id,count,side)=>{for(let i=0;i<count;i++){
+  const scorer=weightedAttacker(id),pool=attackers(id).filter(x=>x.id!==scorer.id&&x.pos!=='GK');
+  let min=rand(4,89);for(let tries=0;tries<30&&goalMinutes.some(m=>Math.abs(m-min)<3);tries++)min=rand(4,89);
+  goalMinutes.push(min);ev.push({min,type:'goal',outcome:'goal',side,player:scorer,assist:pool.length?pick(pool):null});
+ }};
+ goalEv(h,hg,'home');goalEv(a,ag,'away');
+ const share=Math.max(.22,Math.min(.78,.5+(hp-ap)/110));let posts=0;
+ const chances=rand(4,7)+(Math.random()<.12?rand(1,3):0);
+ for(let i=0;i<chances;i++){
+  const min=rand(4,88),lead=ev.filter(e=>e.min<min&&e.side==='home').length-ev.filter(e=>e.min<min&&e.side==='away').length;
+  const chase=min>55?Math.max(-.06,Math.min(.06,-lead*.025)):0;
+  const side=Math.random()<share+chase?'home':'away',id=side==='home'?h:a,player=weightedAttacker(id);
+  const outcome=nonGoalOutcome(player,keeperQuality(side==='home'?a:h),posts);if(outcome==='post')posts++;
+  ev.push({min,type:'chance',outcome,side,player});
+ }
+ const foulers=id=>career.teamStates[id].players.filter(p=>p.pos!=='GK'&&career.teamStates[id].lineup.includes(p.id));
+ for(const type of ['card','foul'])for(let i=0,n=type==='card'?rand(1,4):rand(2,4);i<n;i++){
+  const side=Math.random()<.5?'home':'away',pool=foulers(side==='home'?h:a);if(!pool.length)continue;
+  ev.push({min:rand(5,88),type:type==='card'?(Math.random()<.04?'red':'yellow'):'foul',side,player:pick(pool)});
+ }
+ return {h,a,scoreH:0,scoreA:0,minute:0,events:ev.sort((x,y)=>x.min-y.min),stats:{shotsH:0,shotsA:0,onH:0,onA:0},keyEvents:[]};
+}
+
 function setupPitch(){
  let p=$("#pitch"); if(!p||!current)return;
  p.querySelectorAll(".dot,#ball").forEach(x=>x.remove());
 
- const secondHalf = current.minute>=45 || current.half===2;
+ const secondHalf = current.half===2;
  const homeColors=getTeamColors(current.h), awayColors=getTeamColors(current.a);
 
  function addTeam(side,teamId,colors){
@@ -1594,15 +1634,22 @@ async function doEvent(e){
 
  if(e.type==="chance"){
    let team=T(e.side==="home"?current.h:current.a);
-   const r=Math.random(), outcome=r<.48?"save":r<.82?"miss":"post";
+   const outcome=e.outcome||nonGoalOutcome(e.player,keeperQuality(e.side==='home'?current.a:current.h));
+   e.outcome=outcome;
    log(`${e.min}' OCCASIONE ${team.name} - ${e.player.name}`,e.side);showPitchImportant();
    await animAttack(e.side,outcome);
    if(e.side==="home"){current.stats.shotsH++;if(outcome==="save")current.stats.onH++}
    else{current.stats.shotsA++;if(outcome==="save")current.stats.onA++}
-   if(outcome==="save"){log(`${e.min}' PARATA DEL PORTIERE!`,e.side);await ov(S9Popups.html('save',{detail:'Il portiere ferma il tiro.'}),1800);}
+   if(outcome==="save"){
+     log(`${e.min}' PARATA DEL PORTIERE!`,e.side);
+     if(window.S9Match3D&&S9Match3D.mode!=="2d"){
+       if(window.v7ShowEvent)v7ShowEvent('save','PARATA!',`${e.player.name} trova la risposta del portiere`,1500);
+       await wait(650);
+     }else await ov(S9Popups.html('save',{detail:'Il portiere ferma il tiro.'}),1800);
+   }
    else if(outcome==="post")log(`${e.min}' PALO!`,e.side);
    else log(`${e.min}' TIRO FUORI.`,e.side);
-   await wait(1050);
+   await wait(window.S9Match3D&&S9Match3D.mode!=="2d"?700:1050);
    setupPitch();hidePitch();
  }
 
@@ -1616,7 +1663,11 @@ async function doEvent(e){
  if(e.type==="yellow"||e.type==="red"){
    log(`${e.min}' ${e.type==="red"?"ESPULSIONE":"AMMONIZIONE"} - ${e.player.name}`,e.side);showPitchImportant();
    current.keyEvents.push(`${e.min}' ${e.type==="red"?"Rosso":"Giallo"} ${e.player.name}`);
-   await ov(S9Popups.html(e.type,{player:e.player.name,detail:e.secondYellow?'Seconda ammonizione.':''}),1400);hidePitch();
+   if(window.S9Match3D&&S9Match3D.mode!=="2d"){
+     if(window.v7ShowEvent)v7ShowEvent(e.type,e.type==="red"?'ESPULSIONE':'AMMONIZIONE',e.player.name+(e.secondYellow?' · seconda ammonizione':e.keeperReason==='time-wasting'?' · perdita di tempo':''),1700);
+     await wait(e.type==="red"?900:650);
+   }else await ov(S9Popups.html(e.type,{player:e.player.name,detail:e.secondYellow?'Seconda ammonizione.':''}),1400);
+   hidePitch();
  }
 
  if(e.type==="goal"){
@@ -1638,12 +1689,20 @@ async function doEvent(e){
    current.keyEvents.push(`${e.min}' GOL ${e.player.name}${e.assist?" (assist "+e.assist.name+")":""}`);
    {
    const tc=getTeamColors(e.side==="home"?current.h:current.a);
-   await ov(S9Popups.html('goal',{player:e.player.name,detail:e.assist?'Assist: '+e.assist.name:'',footer:`${T(current.h).name} ${current.scoreH} - ${current.scoreA} ${T(current.a).name}`}),2800);
+   if(window.S9Match3D&&S9Match3D.mode!=="2d"){
+     if(window.v7ShowEvent)v7ShowEvent('goal','GOOOL!',e.player.name,1000);
+     // La partita non riparte finche' la cinematica di esultanza non e' finita,
+     // indipendentemente da 1x/2x/4x.
+     if(S9Match3D.celebrate)await S9Match3D.celebrate(e.side,e.player?.id);
+   }else{
+     await ov(S9Popups.html('goal',{player:e.player.name,detail:e.assist?'Assist: '+e.assist.name:'',footer:`${T(current.h).name} ${current.scoreH} - ${current.scoreA} ${T(current.a).name}`}),2800);
+   }
  }
 
-   let ds=[...document.querySelectorAll(".dot."+e.side)].slice(-4);
-   ds.forEach((d,i)=>{d.style.left="50%";d.style.top=(38+i*8)+"%"});
-   await wait(1100);setupPitch();hidePitch();log(`${e.min+1}' Si riparte dal centro.`,"neutral");
+
+   if(window.S9Match3D&&window.S9Match3D.mode!=="2d")await new Promise(r=>setTimeout(r,260));
+   else await wait(1100);
+   setupPitch();if(window.S9MatchVisual?.kickoff)await S9MatchVisual.kickoff(e.side==='home'?'away':'home');hidePitch();log(`${e.min+1}' Si riparte dal centro.`,"neutral");
  } 
 }
 
@@ -1732,6 +1791,7 @@ async function launchMatch(){
  career.round++;
  }
  current._finished=true;current._running=false;
+ if(window.S9Exhibition)S9Exhibition.complete();
  $("#postScore").innerHTML=`<h2>${T(current.h).name} ${current.scoreH} - ${current.scoreA} ${T(current.a).name}</h2>`;
  $("#postStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}<br>Modulo: ${career.teamStates[career.user].formation}<br>Atteggiamento: ${career.teamStates[career.user].mentality}`;
  $("#postEvents").innerHTML=current.keyEvents.length?current.keyEvents.map(x=>`<div class="card">${x}</div>`).join(""):"Nessun evento chiave.";
@@ -2196,7 +2256,7 @@ renderTeamPicker();
 <script src="js/save-manager.js?v=10-final-3"></script>
 <script src="js/save-integration.js?v=20-1"></script>
 <script src="js/match-popups.js?v=11-4"></script>
-<script src="js/v7-release.js?v=11-4"></script>
+<script src="js/v7-release.js?v=12"></script>
 <script src="js/v71-final-polish.js?v=10-final-3"></script>
 <script src="js/v72-publication-ui.js?v=10-final-3"></script>
 <script src="js/v73-alignment-fix.js?v=11-1"></script>
@@ -2204,10 +2264,17 @@ renderTeamPicker();
 <script src="js/v76-match-ui.js?v=11-4"></script>
 <script src="js/v80-safari-iphone.js?v=23-1"></script>
 <script src="js/v91-final-touches.js?v=12-1"></script>
-<script src="js/v10-data.js?v=11-1"></script>
-<script src="js/v10-release.js?v=16-1"></script>
+<script src="js/v10-data.js?v=3d-1"></script>
+<script src="js/v10-release.js?v=3d-3"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
-<script src="js/match-coherence.js?v=12-4"></script>
+<script src="js/match-coherence.js?v=13"></script>
+<script src="js/kit-profiles.js?v=1"></script>
+<script src="js/football-3d.js?v=1"></script>
+<script src="js/kit-presentation.js?v=1"></script>
+<script src="js/match-3d.js?v=7"></script>
+<script src="js/competition-presentation.js?v=1"></script>
+<script src="js/trophy-ceremony.js?v=1"></script>
+<script src="js/exhibition.js?v=1"></script>
 
 <!-- Patch 15: logo SerieA 9000 SIM aggiornato, logo pagine interne spostato dal centro, sfondo Coppe sostituito con versione trofei/stadio approvata. -->
 </body>

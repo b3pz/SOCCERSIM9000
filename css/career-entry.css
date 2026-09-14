@@ -21,3 +21,60 @@
  #s9CareerModal .s9-contract-letter {font-size:14px;}
  #s9CareerModal .s9-actions button {flex:1;}
 }
+
+/* v10.7 — su finestre desktop non altissime, il pannello di formazione
+   (campo + lista giocatori) puo' essere piu' alto dello schermo visibile,
+   spingendo il bottone "SCEGLI DIVISE" sotto il bordo — l'utente non vede
+   ne' il bottone ne' un modo ovvio per scorrere fino a trovarlo. Reso
+   "appiccicato" in fondo al pannello scorrevole, cosi' resta sempre
+   raggiungibile.
+*/
+#prematch{overflow-y:auto!important;max-height:100vh!important;max-height:100dvh!important;padding-bottom:70px!important;}
+#prematch .toolbar:has(#startMatch){
+ position:fixed!important;left:0!important;right:0!important;bottom:0!important;
+ background:rgba(8,20,45,.96)!important;
+ padding:12px 16px!important;margin:0!important;
+ justify-content:center!important;
+ box-shadow:0 -8px 16px rgba(0,0,0,.45)!important;
+ z-index:9999!important;
+}
+/* v10.5 — su telefono in orizzontale lo schermo e' molto piu' allungato
+   (fino a 2.2:1) di come il gioco e' stato disegnato (vicino a 16:9 sui
+   test originali) — stirare tutto su quella forma estrema faceva perdere
+   le proporzioni vere ("perde il senso del gioco"). Invece di stirare, il
+   gioco resta in un formato massimo 16:9, centrato, con barre piene ai
+   lati (come al cinema).
+   Nota tecnica: html.s9-phone-landscape body>main{width:100vw!important}
+   (in v80-safari-iphone.css) ha la stessa specificita' di una semplice
+   regola body>main — per vincere serve ripetere ESATTAMENTE lo stesso
+   selettore qui, ultimo file caricato, cosi' l'ordine di caricamento
+   decide invece della specificita' pari.
+*/
+html{background:#05070c!important;}
+.s9-stadium-carousel{display:flex;align-items:center;gap:14px;justify-content:center;}
+.s9-stadium-arrow{min-width:44px;min-height:44px;font-size:18px;background:linear-gradient(145deg,#1a4a80,#0c2444)!important;border:1px solid #c9ad6b;color:#f9ebc6;cursor:pointer;border-radius:6px;}
+.s9-stadium-arrow:hover{background:linear-gradient(145deg,#22609e,#123058)!important;}
+.s9-stadium-card{flex:1;max-width:320px;text-align:center;background:linear-gradient(145deg,#173f70,#0a1c37);border:1px solid #c9ad6b;border-radius:8px;padding:14px 18px;}
+.s9-stadium-name{font:700 20px/1.2 Arial,sans-serif;color:#f9ebc6;}
+.s9-stadium-counter{font:12px/1.5 Arial,sans-serif;color:#9fb2cc;letter-spacing:.08em;margin-top:4px;}
+@media (min-aspect-ratio:16/9){
+ html.s9-phone-landscape body{
+  max-width:calc(100vh * 16 / 9)!important;
+  max-width:calc(100dvh * 16 / 9)!important;
+  left:50%!important;right:auto!important;
+  transform:translateX(-50%)!important;
+  margin:0!important;
+  box-shadow:0 0 60px rgba(0,0,0,.6)!important;
+  overflow-x:hidden!important;
+ }
+ html.s9-phone-landscape body>main{
+  width:calc(100vh * 16 / 9)!important;
+  width:calc(100dvh * 16 / 9)!important;
+  left:0!important;right:0!important;
+ }
+ html.s9-phone-landscape body>.screen,html.s9-phone-landscape body>main>.screen{
+  position:absolute!important;
+  left:0!important;right:0!important;
+  width:auto!important;max-width:none!important;
+ }
+}

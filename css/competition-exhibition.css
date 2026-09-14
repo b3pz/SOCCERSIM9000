@@ -1,0 +1,33 @@
+/* v10.6 — Amichevole e' ora una scheda alla pari di Carriera/Coppe,
+   niente piu' bisogno di uno stile blu che la distingueva come "minore". */
+#friendlyModeBtn{font-weight:900!important}
+#exhibitionSetup{overflow-y:auto!important;background:radial-gradient(ellipse at top,#264d63,#081529 70%)!important;color:#f5ecd3;padding:40px 18px}
+.s9-exhibition-shell{max-width:950px;margin:0 auto;padding:28px;background:#0b2039e8;border:1px solid #c4a967;border-radius:10px}
+.s9-exhibition-kicker{font-size:11px;letter-spacing:.18em;color:#dbc17e;font-weight:bold}
+.s9-exhibition-shell h1{font-size:clamp(25px,4vw,40px);margin:10px 0}
+.s9-exhibition-shell p{line-height:1.5;color:#d6deea}
+.s9-exhibition-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:24px 0}
+.s9-exhibition-grid label{display:flex;flex-direction:column;gap:8px;font-weight:700;color:#e9d495;min-width:0}
+.s9-exhibition-grid select,.s9-exhibition-grid input:not([type=checkbox]){box-sizing:border-box;width:100%;min-height:44px;border:1px solid #718397;background:#102c45;color:#fff5df;padding:10px;border-radius:5px;font:inherit}
+.s9-exhibition-grid .s9-wide{grid-column:1/-1}
+.s9-exhibition-grid .s9-final-choice{flex-direction:row;align-items:center}
+.s9-final-choice input{width:20px;height:20px;flex-shrink:0;accent-color:#d3b264}
+.s9-exhibition-note{font-size:12px}
+.s9-exhibition-actions{display:flex;justify-content:space-between;gap:14px;margin-top:22px}
+#exhibitionError{color:#ffc5bd;min-height:20px}
+.s9-competition-banner{position:absolute;right:12px;top:12px;max-width:calc(100% - 220px);text-align:right;padding:6px 9px;border:1px solid var(--competition-accent,#d4b465);background:var(--competition-dark,#102a47);color:#fff5d5;font:700 10px/1.3 Arial;z-index:20;pointer-events:none}
+#match .radio-strip{background:var(--competition-dark,#162b46)!important;color:var(--competition-accent,#dfbf71)!important}
+#match #pitch{border-color:var(--competition-accent,#dfbf71)!important}
+#match .s9-event-kicker,#match .s9-event-copy h2,#match .s9-event-footer{color:var(--competition-accent,#dfbf71)!important}
+#match #v7EventToast{border-color:var(--competition-accent,#dfbf71)!important;background:var(--competition-dark,#162b46)!important}
+#match .s9-event-card{border-color:var(--competition-accent,#dfbf71)!important}
+#trophyCeremony[hidden]{display:none!important}
+#trophyCeremony{position:fixed;inset:0;z-index:100000;background:#030916f5;display:flex;align-items:center;justify-content:center;padding:14px;color:#fff1cb;box-sizing:border-box}
+.s9-ceremony-panel{width:min(1050px,100%);max-height:100%;overflow:auto;text-align:center;background:var(--competition-dark,#11223c);border:1px solid var(--competition-accent,#e6bf65);border-radius:10px;padding:16px;box-sizing:border-box;box-shadow:0 12px 80px #000}
+.s9-ceremony-kicker{font:700 11px Arial;letter-spacing:.14em;color:var(--competition-accent,#d9bb73)}
+.s9-ceremony-panel h2{font-size:clamp(24px,4vw,42px)!important;color:#fff3d5!important;margin:8px 0!important}
+.s9-ceremony-competition{font-weight:800;color:var(--competition-accent,#d9bb73)}
+.s9-ceremony-panel canvas{display:block;width:100%;height:clamp(200px,49vh,500px);margin:12px 0;border-radius:5px}
+.s9-ceremony-caption{font-size:12px;margin:8px 0;color:#e8e4d6}
+@media(max-width:600px){.s9-exhibition-grid{grid-template-columns:1fr;gap:12px}.s9-exhibition-shell{padding:16px}.s9-exhibition-actions{flex-wrap:wrap}.s9-competition-banner{top:5px;font-size:8px;max-width:calc(100% - 160px)}}
+@media(max-height:500px){#exhibitionSetup{padding:14px}.s9-exhibition-shell{padding:18px}.s9-ceremony-panel{padding:9px}.s9-ceremony-panel h2{font-size:22px!important;margin:3px!important}.s9-ceremony-panel canvas{height:50vh;min-height:130px;margin:5px 0}.s9-ceremony-caption{margin:4px 0}.s9-competition-banner{font-size:8px;top:5px}}

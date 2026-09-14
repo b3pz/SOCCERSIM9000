@@ -14,10 +14,15 @@
     const el=ensureToast(),img=el.querySelector('img');
     const event=S9Popups.events[kind];if(!event)return;
     img.src='assets/events/'+event.asset;img.alt=event.alt;el.dataset.eventKind=kind;
-    el.querySelector('.v7-event-title').textContent=title||'';
+    const is3D=window.S9Match3D&&S9Match3D.mode!=='2d';
+    const parent=is3D?document.getElementById('pitch'):document.getElementById('match');
+    if(parent&&el.parentNode!==parent)parent.appendChild(el);
+    el.querySelector('.v7-event-title').textContent=(is3D?String(current?.minute||0)+"′  ":'')+(title||'');
     el.querySelector('.v7-event-sub').textContent=sub||'';
     clearTimeout(toastTimer); el.classList.add('show');
-    toastTimer=setTimeout(()=>el.classList.remove('show'),(duration||1700)/Math.max(1,typeof speed==='number'?speed:1));
+    const presentation=window.S9Match3D?.mode;
+    const timeScale=(presentation&&presentation!=='2d')?1:Math.max(1,typeof speed==='number'?speed:1);
+    toastTimer=setTimeout(()=>el.classList.remove('show'),(duration||1700)/timeScale);
   };
 
   /* Every important commentary event gets a visual cue. */
@@ -25,7 +30,12 @@
     const originalLog=window.log;
     window.log=function(txt,side){
       const out=originalLog.apply(this,arguments); const k=eventKind(txt);
-      if(k) window.v7ShowEvent(k[0],k[1],String(txt).replace(/^\d+'\s*/,''),k[0]==='goal'?2300:1500);
+      if(k){
+        let sub=String(txt).replace(/^\d+'\s*/,'');
+        if(['post','miss'].includes(k[0])&&window.S9MatchVisual?.event?.player)sub=S9MatchVisual.event.player.name;
+        sub=sub.replace(/^(FUORIGIOCO|FALLO|PALO!|TIRO FUORI\.?|CAMBIO|SOSTITUZIONE)\s*[-:]?\s*/i,'').trim();
+        window.v7ShowEvent(k[0],k[1],sub,k[0]==='goal'?2300:1500);
+      }
       return out;
     };
     try{ log=window.log; }catch(e){}
@@ -38,9 +48,9 @@
       const m=originalBuildMatch.apply(this,arguments);
       const rnd=(lo,hi)=>Math.floor(Math.random()*(hi-lo+1))+lo;
       const pickOne=arr=>arr[Math.floor(Math.random()*arr.length)];
-      for(let i=0;i<rnd(2,5);i++){
+      for(let i=0;i<rnd(1,3);i++){
         const side=Math.random()<.5?'home':'away',id=side==='home'?h:a,st=career?.teamStates?.[id];
-        const pool=(st?.players||[]).filter(p=>st.lineup.includes(p.id)&&p.pos!=='GK'); if(pool.length) m.events.push({min:rnd(6,88),type:'offside',side,player:pickOne(pool)});
+        const pool=(st?.players||[]).filter(p=>st.lineup.includes(p.id)&&['MF','AM','ST','FW'].includes(p.pos)); if(pool.length) m.events.push({min:rnd(6,88),type:'offside',side,player:pickOne(pool)});
       }
       const oppId=(career&&career.user===h)?a:h, oppSide=oppId===h?'home':'away';
       const n=rnd(1,3), used=new Set();

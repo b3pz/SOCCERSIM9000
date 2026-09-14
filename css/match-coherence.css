@@ -56,3 +56,37 @@
  #pitchTeamLegend{bottom:5px;gap:10px;padding:4px 8px}
  .pitch-team-key{font-size:10px;gap:5px}
 }
+
+
+/* V10.12 — in 3D gli esiti restano leggibili senza coprire il pallone. */
+#match[data-presentation="3d"] #v7EventToast,
+#match[data-presentation="highlights"] #v7EventToast{
+  left:auto!important;
+  right:18px!important;
+  top:86px!important;
+  transform:translateY(-8px) scale(.97)!important;
+  min-width:0!important;
+  width:min(360px,calc(100% - 36px))!important;
+  padding:10px 14px!important;
+  gap:11px!important;
+  opacity:0;
+}
+#match[data-presentation="3d"] #v7EventToast.show,
+#match[data-presentation="highlights"] #v7EventToast.show{
+  opacity:1!important;
+  transform:translateY(0) scale(1)!important;
+}
+#match[data-presentation="3d"] #v7EventToast img,
+#match[data-presentation="highlights"] #v7EventToast img{
+  width:56px!important;height:56px!important;flex:0 0 56px!important;
+}
+#match[data-presentation="3d"] #v7EventToast .v7-event-title,
+#match[data-presentation="highlights"] #v7EventToast .v7-event-title{
+  font-size:clamp(18px,1.7vw,26px)!important;
+}
+@media(max-width:700px){
+  #match[data-presentation="3d"] #v7EventToast,
+  #match[data-presentation="highlights"] #v7EventToast{
+    right:8px!important;top:72px!important;width:min(310px,calc(100% - 16px))!important;
+  }
+}
