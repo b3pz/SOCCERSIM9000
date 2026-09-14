@@ -9,7 +9,7 @@
   const afcCodes=new Set(['KOR','JPN','KSA','AUS']);
   nationalTeams.forEach(t=>{if(!t.confed)t.confed=uefaCodes.has(t.country)?'UEFA':conmebolCodes.has(t.country)?'CONMEBOL':cafCodes.has(t.country)?'CAF':afcCodes.has(t.country)?'AFC':'CONCACAF';});
   window.V10_FOREIGN_TEAMS=foreignTeams;
-  nationalTeams.forEach(t=>{t.crest=`assets/crests/national/coherent/${t.id}.svg`;});
+  nationalTeams.forEach(t=>{t.crest=`assets/crests/national/${t.id}.png`;});
   window.V10_NATIONAL_TEAMS=nationalTeams;
   const italianIds=teams.map(t=>t.id);
   const foreignIds=foreignTeams.map(t=>t.id);
@@ -25,6 +25,6 @@
   const oldKitPath=kitPath;
   kitPath=function(teamId,kind){if(nationalIds.includes(teamId))return `assets/kits/national/${kind}/${teamId}.png`;if(foreignIds.includes(teamId))return `assets/kits/foreign/${kind}/${teamId}.png`;return oldKitPath(teamId,kind);};
   try{window.kitPath=kitPath;}catch(e){}
-  function crestPathV10(id){const t=T(id);if(!t)return '';if(nationalIds.includes(id))return `assets/crests/national/coherent/${id}.svg`;if(foreignIds.includes(id))return `assets/crests/foreign/${id}.png`;return CREST_ASSETS[id]||`assets/crests/italian/${id}.png`;}
+  function crestPathV10(id){const t=T(id);if(!t)return '';if(t.crest)return t.crest;if(nationalIds.includes(id))return `assets/crests/national/${id}.png`;if(foreignIds.includes(id))return `assets/crests/foreign/${id}.png`;return CREST_ASSETS[id]||`assets/crests/italian/${id}.png`;}
   window.S9V10_DATA={foreignTeams,nationalTeams,italianIds,foreignIds,nationalIds,crestPath:crestPathV10};
 })();

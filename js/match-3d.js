@@ -22,7 +22,7 @@ function beginHighlight(side){highlightState=attackInfo(side)}
 function followedCamera(now,ball){
  const c=followCamera,dt=c.last?Math.min(.08,(now-c.last)/1000):.033;c.last=now;
  const active=highlightState?1:0;
- c.blend+=(active-c.blend)*(1-Math.exp(-dt/1.1));
+ c.blend+=(active-c.blend)*(1-Math.exp(-dt/.65));
  const velocity=clamp((ball.x-c.ballX)/dt,-22,22);
  c.lead+=(velocity*.12-c.lead)*(1-Math.exp(-dt/.5));
  c.ballX=ball.x;c.ballZ=ball.z;
@@ -35,9 +35,11 @@ function followedCamera(now,ball){
  };
  step('x',desiredX,1.8);step('z',desiredZ,.65);
  const widening=Math.pow(Math.abs(ball.x-52.5)/52.5,3)*4+Math.max(0,1-Math.abs(ball.x-52.5)/16)*2;
- const span=35-c.blend*8+widening;
- return {eye:[c.x,38-c.blend*8,c.z+76-c.blend*15],target:[c.x,.7,c.z],fov:43,
-  bounds:[[c.x-span,0,-3+c.blend*12],[c.x+span,0,-3+c.blend*12],[c.x-span,3.5,71-c.blend*12],[c.x+span,3.5,71-c.blend*12]],spanX:span};
+ // Nelle azioni salienti (blend->1) la telecamera si stringe molto di piu' di
+ // prima: meno campo inquadrato, meno altezza, meno distanza dal pallone.
+ const span=35-c.blend*15+widening;
+ return {eye:[c.x,38-c.blend*14,c.z+76-c.blend*32],target:[c.x,.7,c.z],fov:43,
+  bounds:[[c.x-span,0,-3+c.blend*18],[c.x+span,0,-3+c.blend*18],[c.x-span,3.5,71-c.blend*18],[c.x+span,3.5,71-c.blend*18]],spanX:span};
 }
 function makeCelebrationState(side,scorerId){
  const info=attackInfo(side),all=playerDots.filter(d=>d.classList.contains(side)&&d.dataset.role!=='GK');
@@ -88,9 +90,108 @@ window.animAttack=async function(side,outcome){
  return oldAnimAttack.apply(this,arguments);
 };
 animAttack=window.animAttack;
-const positions=new Map(),boards=new Map();
-const api=window.S9Match3D={get mode(){return mode},get eventActive(){return eventActive},get celebrating(){return !!celebrationState},waitCelebration:waitForCelebration,celebrate,setMode};
+const positions=new Map(),boards=new Map(),crowds=new Map(),identityBoards=new Map(),crestBoards=new Map();
+const api=window.S9Match3D={get mode(){return mode},get eventActive(){return eventActive},get celebrating(){return !!celebrationState},waitCelebration:waitForCelebration,celebrate,setMode,crowdTexture,stadiumIdentityTexture,stadiumCrestTexture};
 const graphics=window.S9Football3D;
+// Texture "folla": generata una volta per tribuna e messa in cache (stesso
+// pattern di `boards` sopra per i cartelloni), cosi' non si ridisegna ogni
+// frame. Tre varianti (indice 0/1/2, una per tribuna) cosi' le tre non sono
+// fotocopie identiche l'una dell'altra.
+function crowdTexture(brand,stadiumStyle,standIndex){
+ const variant=((standIndex%3)+3)%3;
+ const key=[variant,brand.dark,brand.accent,stadiumStyle.seats].join('|');
+ if(crowds.has(key))return crowds.get(key);
+ const cv=document.createElement('canvas');cv.width=768;cv.height=64;
+ const cx=cv.getContext('2d');
+ const bg=[stadiumStyle.seats,brand.dark,'#20304a'][variant]||stadiumStyle.seats;
+ cx.fillStyle=bg;cx.fillRect(0,0,cv.width,cv.height);
+ const palette=[brand.accent,'#e8d9b0','#d94f4f','#4f7fd9','#e6e6e6','#8a8a8a','#c98a3a'];
+ for(let row=0;row<7;row++){
+  const y=4+row*8.4;
+  for(let i=0;i<110;i++){
+   const x=(i*7+row*3.1+variant*2.4)%cv.width;
+   cx.fillStyle=palette[(x*13+row*29+variant*11)%palette.length|0];
+   cx.fillRect(x,y+(i%3),3,3);
+  }
+ }
+ crowds.set(key,cv);
+ return cv;
+}
+function crestSource(id){
+ return window.S9V10_DATA?.crestPath?.(id)||window.CREST_ASSETS?.[id]||T(id)?.crest||'';
+}
+// Maxischermo dello stadio: usa gli stemmi dei club che appartengono davvero
+// all'impianto. Il canvas viene memorizzato e aggiornato solo quando termina il
+// caricamento delle immagini, quindi non aggiunge lavoro ai frame della gara.
+function stadiumIdentityTexture(identity,stadiumStyle,onReady){
+ if(!identity?.clubs?.length)return null;
+ const key=identity.venue+'|'+identity.clubs.map(c=>c.id).join('|');
+ let entry=identityBoards.get(key);
+ if(!entry){
+  const canvas=document.createElement('canvas');canvas.width=960;canvas.height=224;
+  entry={canvas,images:new Map(),pending:0,listeners:new Set()};identityBoards.set(key,entry);
+  const redraw=()=>{
+   const c=canvas.getContext('2d'),clubs=identity.clubs;
+   const bg=c.createLinearGradient(0,0,960,224);bg.addColorStop(0,'#050a12');bg.addColorStop(.55,'#102038');bg.addColorStop(1,'#050a12');c.fillStyle=bg;c.fillRect(0,0,960,224);
+   c.strokeStyle=stadiumStyle?.accent||'#d8dde5';c.lineWidth=8;c.strokeRect(4,4,952,216);
+   clubs.forEach((club,index)=>{
+    const segment=960/clubs.length,x=segment*index,colors=club.colors||['#23344c','#e8edf2'];
+    c.fillStyle=colors[0];c.fillRect(x+12,164,segment-24,38);c.fillStyle=colors[1];c.fillRect(x+12,194,segment-24,8);
+    const image=entry.images.get(club.id);
+    if(image?.complete&&image.naturalWidth){
+     const maxW=clubs.length>1?105:180,maxH=clubs.length>1?118:154,ratio=Math.min(maxW/image.naturalWidth,maxH/image.naturalHeight);
+     c.drawImage(image,x+(clubs.length>1?42:55)+(maxW-image.naturalWidth*ratio)/2,30+(maxH-image.naturalHeight*ratio)/2,image.naturalWidth*ratio,image.naturalHeight*ratio);
+    }
+    c.fillStyle='#f5f1e7';c.textAlign='left';c.textBaseline='middle';
+    c.font='900 '+(clubs.length>1?32:46)+'px Arial';c.fillText(club.name.toUpperCase(),x+(clubs.length>1?165:280),95,segment-(clubs.length>1?185:315));
+    c.fillStyle='#c8d2df';c.font='700 18px Arial';c.fillText(clubs.length>1?'CLUB DI CASA':'SQUADRA DI CASA',x+(clubs.length>1?165:280),132,segment-(clubs.length>1?185:315));
+   });
+   c.fillStyle='#f0d38a';c.textAlign='center';c.font='800 17px Arial';c.fillText(identity.venue.toUpperCase(),480,20);
+  };
+  redraw();
+  for(const club of identity.clubs){
+   const src=crestSource(club.id);if(!src)continue;
+   const image=new Image();entry.images.set(club.id,image);entry.pending++;
+   image.onload=image.onerror=()=>{entry.pending=Math.max(0,entry.pending-1);redraw();if(!entry.pending){for(const fn of entry.listeners)fn();entry.listeners.clear();}};
+   image.src=src;
+  }
+ }
+ if(onReady&&entry.pending)entry.listeners.add(onReady);
+ return entry.canvas;
+}
+function stadiumCrestTexture(club,onReady){
+ if(!club)return null;
+ let entry=crestBoards.get(club.id);
+ if(!entry){
+  const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;
+  entry={canvas,pending:true,listeners:new Set()};crestBoards.set(club.id,entry);
+  const c=canvas.getContext('2d'),colors=club.colors||['#23344c','#e8edf2'];
+  const paint=image=>{
+   c.clearRect(0,0,256,256);c.fillStyle=colors[0];c.fillRect(0,0,256,256);c.fillStyle=colors[1];
+   c.beginPath();c.moveTo(256,0);c.lineTo(256,256);c.lineTo(0,256);c.closePath();c.fill();
+   c.fillStyle='rgba(4,9,16,.72)';c.fillRect(12,12,232,232);c.strokeStyle='#f1d589';c.lineWidth=7;c.strokeRect(12,12,232,232);
+   if(image?.naturalWidth){const ratio=Math.min(188/image.naturalWidth,188/image.naturalHeight);c.drawImage(image,128-image.naturalWidth*ratio/2,128-image.naturalHeight*ratio/2,image.naturalWidth*ratio,image.naturalHeight*ratio)}
+  };
+  paint();const src=crestSource(club.id);
+  if(src){const image=new Image();image.onload=()=>{entry.pending=false;paint(image);for(const fn of entry.listeners)fn();entry.listeners.clear()};image.onerror=()=>{entry.pending=false;for(const fn of entry.listeners)fn();entry.listeners.clear()};image.src=src}else entry.pending=false;
+ }
+ if(onReady&&entry.pending)entry.listeners.add(onReady);
+ return entry.canvas;
+}
+function marathonTower(s,x,z,scale=1){
+ const concrete='#c9c1a9',shadow='#756f65',glass='#25313a';
+ s.box([x,13.5*scale,z],[3.3*scale,27*scale,3.4*scale],concrete);
+ s.box([x-2.35*scale,11.5*scale,z],[.55*scale,23*scale,3.8*scale],shadow);
+ s.box([x+2.35*scale,11.5*scale,z],[.55*scale,23*scale,3.8*scale],shadow);
+ for(let y=4.4;y<23;y+=4.4){
+  s.box([x,y*scale,z+1.8*scale],[5.4*scale,.42*scale,2.2*scale],concrete);
+  const flip=Math.round(y/4.4)%2===0?-1:1;
+  s.face([[x-2.05*flip*scale,(y-3.7)*scale,z+3*scale],[x-1.55*flip*scale,(y-3.7)*scale,z+3*scale],[x+2.05*flip*scale,y*scale,z+3*scale],[x+1.55*flip*scale,y*scale,z+3*scale]],shadow);
+ }
+ for(const y of [6.4,11.8,17.2,22.6])s.box([x,y*scale,z-1.76*scale],[1.55*scale,2.2*scale,.12*scale],glass);
+ s.box([x,27.5*scale,z],[6.4*scale,1.15*scale,4.6*scale],concrete);
+ s.box([x,29.5*scale,z],[.5*scale,3.2*scale,.5*scale],shadow);
+}
 function kitSource(side){return kitPath(side==='home'?current.h:current.a,selectedKits[side])}
 function setMode(value){
  if(!MODES.includes(value))return;const changed=mode!==value;mode=value;
@@ -162,11 +263,97 @@ function drawField(s,p,w,h,closeUp){
  const brand=window.S9Competition?.active()||{name:'SERIE A',accent:'#d5b35f',dark:'#142f57'};
  const stadiumStyle=window.S9Competition?.stadiumStyle()||{tiers:4,seats:'#385572',track:false};
  if(!closeUp){
-  for(let tier=0;tier<stadiumStyle.tiers;tier++)s.box([52.5,tier*1.6-1,-10-tier*3],[124,1.5,3],tier%2?stadiumStyle.seats:brand.dark);
+  // v11 — prima il primo anello di spalti stava a y=tier*1.6-1: per tier 0
+  // significava un'altezza NEGATIVA, cioe' lo spalto affondava sotto il
+  // livello del campo ed era di fatto invisibile ("tribune a terra"). Ora la
+  // base del primo anello sta esattamente sul terreno, e ci sono gradinate
+  // anche dietro le due porte (prima esisteva solo il fondo opposto alla
+  // telecamera), cosi' lo stadio si legge come chiuso anche da lontano.
+  const setback=stadiumStyle.setback||0,left=-8-setback,right=113+setback,back=-10-setback;
+  const tierBox=(cx,cz,dx,dz,recedeX,recedeZ,standIndex)=>{const crowd=crowdTexture(brand,stadiumStyle,standIndex);for(let tier=0;tier<(standIndex?stadiumStyle.endTiers||stadiumStyle.tiers:stadiumStyle.tiers);tier++)s.box([cx+(recedeX||0)*tier,.75+tier*1.6,cz+(recedeZ||0)*tier],[dx,1.5,dz],tier%2?stadiumStyle.seats:brand.dark,0,crowd)};
+  tierBox(52.5,back,124,3,0,-3,0);      // tribuna principale, di fronte alla telecamera (anelli via via piu' arretrati)
+  tierBox(left,34,3,88,-2.4,0,1);        // curva sinistra, dietro una porta
+  tierBox(right,34,3,88,2.4,0,2);        // curva destra, dietro l'altra porta
+  // Le due curve hanno il lato rivolto verso il campo lungo l'asse x, non z:
+  // box() applica la texture solo alla faccia locale z+1 (vedi crowdTexture),
+  // quindi qui la folla va disegnata come faccia aggiuntiva con s.face(),
+  // sullo stesso lato interno e sugli stessi anelli colorati di sopra.
+  const curvaCrowd=(cx,dzC,cz,dz,recedeX,standIndex,inward)=>{
+   const crowd=crowdTexture(brand,stadiumStyle,standIndex);
+   for(let tier=0;tier<(stadiumStyle.endTiers||stadiumStyle.tiers);tier++){
+    const tx=cx+recedeX*tier,ty=.75+tier*1.6,faceX=tx+inward*(dzC/2+.02);
+    s.face([[faceX,ty-.75,cz-dz/2],[faceX,ty-.75,cz+dz/2],[faceX,ty+.75,cz+dz/2],[faceX,ty+.75,cz-dz/2]],stadiumStyle.seats,crowd);
+   }
+  };
+  curvaCrowd(left,3,34,88,-2.4,1,1);
+  curvaCrowd(right,3,34,88,2.4,2,-1);
   if(stadiumStyle.track)s.box([52.5,-.45,34],[132,.2,94],'#985d4f');
+  // V108: silhouette dello stadio differenziata dal nome reale. Non sono
+  // fotografie: cambiano davvero tetto, anelli e dettagli del modello 3D.
+  const topY=.75+(stadiumStyle.tiers-1)*1.6+1.05,roof=stadiumStyle.roof||'partial',accent=stadiumStyle.accent||'#d9dde5';
+  if(roof==='ring'||roof==='continuous'||roof==='closed'){
+    s.box([52.5,topY+1.05,-13],[126,.35,5],accent);
+    s.box([52.5,topY+1.05,81],[126,.35,5],accent);
+    s.box([-11,topY+1.05,34],[5,.35,92],accent);
+    s.box([116,topY+1.05,34],[5,.35,92],accent);
+  }else if(roof==='steep'||roof==='classic'||roof==='partial'){
+    s.box([52.5,topY+1.1,-13],[122,.38,5],accent);
+    if(roof!=='partial')s.box([52.5,topY+.7,81],[118,.30,4],accent);
+  }else if(roof==='arch'){
+    s.box([52.5,topY+1.0,-13],[124,.32,5],accent);
+    for(let i=0;i<9;i++){
+      const x=12+i*10.2,y=topY+1.7+Math.sin(i*Math.PI/8)*4.2;
+      s.box([x,y,-14],[.45,1.2,.45],accent);
+    }
+  }else if(roof==='towers'){
+    for(const x of [-9,114])for(const z of [-9,77]){
+      s.box([x,topY+2.4,z],[3.2,7.2,3.2],'#b9c0c8');
+      s.box([x,topY+5.9,z],[4.2,.35,4.2],accent);
+    }
+    s.box([52.5,topY+1.1,-13],[118,.34,5],accent);
+  }
+  if(stadiumStyle.corners==='closed')for(const x of [left+2,right-2]){
+   for(let tier=0;tier<(stadiumStyle.endTiers||2);tier++)s.box([x,.75+tier*1.6,back+2],[14,1.5,3],stadiumStyle.seats,x<0?-.7:.7,crowdTexture(brand,stadiumStyle,2));
+  }
+  const lightRows=stadiumStyle.landmark==='torre-maratona'?[back-5]:[back-5,78+setback];
+  for(const x of [left-3,right+3])for(const z of lightRows){
+   s.box([x,8,z],[.35,16,.35],'#b8c2cd');s.box([x,16.4,z],[4,1.6,.5],'#263543');
+   s.face([[x-1.8,15.8,z+.28],[x+1.8,15.8,z+.28],[x+1.8,17,z+.28],[x-1.8,17,z+.28]],'#fff2cc');
+  }
+  if(stadiumStyle.landmark==='torre-maratona')marathonTower(s,52.5,back-7);
+  const stadiumIdentity=window.S9Competition?.stadiumIdentity?.();
+  if(canvas&&stadiumIdentity){
+   const clubNames=stadiumIdentity.clubs.map(club=>club.name).join(' e ');
+   const label='Partita in 3D allo '+stadiumIdentity.venue+(clubNames?' · stadio di '+clubNames:'');
+   if(canvas.getAttribute('aria-label')!==label)canvas.setAttribute('aria-label',label);
+  }
+  const identityTexture=stadiumIdentityTexture(stadiumIdentity,stadiumStyle);
+  if(identityTexture){
+   const identityX=stadiumStyle.landmark==='torre-maratona'?29:52.5;
+   const identityY=Math.max(6.2,topY+1.2);
+   s.box([identityX,identityY,back+1.85],[stadiumStyle.landmark==='torre-maratona'?31:38,9,.5],'#07111f',0,identityTexture);
+   stadiumIdentity.clubs.slice(0,2).forEach((club,index)=>{
+    const positions=stadiumIdentity.clubs.length>1?[16,89]:[stadiumStyle.landmark==='torre-maratona'?79:84];
+    const crestTexture=stadiumCrestTexture(club);
+    if(crestTexture)s.box([positions[index],8.1,back+1.9],[10.5,11,.56],club.colors?.[0]||'#14233a',0,crestTexture);
+   });
+  }
   for(const x of [0,105])for(const z of [0,68]){s.box([x,.8,z],[.12,1.6,.12],'#e4e9de');s.box([x+.4,1.4,z],[.8,.4,.08],brand.accent)}
-  let board=boards.get(brand.name);if(!board){board=document.createElement('canvas');board.width=640;board.height=48;const bc=board.getContext('2d');bc.fillStyle=brand.dark;bc.fillRect(0,0,640,48);bc.fillStyle=brand.accent;bc.font='bold 23px Arial';bc.textAlign='center';bc.fillText(brand.name,320,32);boards.set(brand.name,board)}
+  const boardText=(window.S9Competition?.adBoardText?.()||brand.name).toUpperCase();
+  let board=boards.get(boardText);if(!board){
+   board=document.createElement('canvas');board.width=960;board.height=64;
+   const bc=board.getContext('2d');bc.fillStyle=brand.dark;bc.fillRect(0,0,960,64);
+   bc.fillStyle='rgba(255,255,255,.08)';bc.fillRect(0,4,960,8);bc.fillRect(0,52,960,8);
+   bc.fillStyle=brand.accent;let size=30;bc.textAlign='center';bc.textBaseline='middle';
+   do{bc.font='bold '+size+'px Arial'}while(size-->16&&bc.measureText(boardText).width>860);
+   bc.fillText(boardText,480,33);
+   boards.set(boardText,board)
+  }
+  // Cartelloni pubblicitari a bordo campo su tutti e tre i lati visibili:
+  // prima c'era solo quello davanti alla tribuna principale.
   s.face([[13,.1,-3],[92,.1,-3],[92,3,-3],[13,3,-3]],brand.dark,board);
+  s.face([[-3,.1,10],[-3,.1,58],[-3,3,58],[-3,3,10]],brand.dark,board);
+  s.face([[108,.1,58],[108,.1,10],[108,3,10],[108,3,58]],brand.dark,board);
  }
  s.flush();
  const turf=graphics.scene(ctx,p);
@@ -195,6 +382,10 @@ function drawField(s,p,w,h,closeUp){
   rect(0,13.84,16.5,40.32);rect(88.5,13.84,16.5,40.32);rect(0,24.84,5.5,18.32);rect(99.5,24.84,5.5,18.32);
   line(Array.from({length:65},(_,i)=>[52.5+Math.cos(i*Math.PI/32)*9.15,.04,34+Math.sin(i*Math.PI/32)*9.15]));
   for(const x of [11,52.5,94]){const v=p([x,.05,34]);ctx.fillStyle='#e7eedf';ctx.beginPath();ctx.arc(v.x,v.y,1.8,0,Math.PI*2);ctx.fill()}
+  // Quarto di cerchio ai 4 angoli (raggio 1m, zona di battuta del corner):
+  // prima mancavano del tutto, il campo finiva a spigolo vivo.
+  for(const [cx,cz,sx,sz] of [[0,0,1,1],[105,0,-1,1],[0,68,1,-1],[105,68,-1,-1]])
+   line(Array.from({length:9},(_,i)=>[cx+sx*Math.cos(i*Math.PI/16),.04,cz+sz*Math.sin(i*Math.PI/16)]),Math.max(1,w/900));
  }
  for(const x of (closeUp?[closeUp.goalX]:[0,105])){
   const back=x===0?-2:107;
@@ -207,6 +398,7 @@ function render(now){
  frameId=0;
  if(!document.getElementById('match')?.classList.contains('active')||document.hidden)return;
  frameId=requestAnimationFrame(render);
+ if(typeof refreshTacticsPitch==='function')refreshTacticsPitch();
  if(mode==='2d'||!ctx||!current||canvas.offsetWidth===0){visualLast=0;return;}
  if(now-lastTime<32)return;lastTime=now;
  const w=Math.round(canvas.clientWidth),h=Math.round(canvas.clientHeight);if(!w||!h)return;
@@ -220,6 +412,11 @@ function render(now){
  const bounds=cameraState.bounds.map(raw);
  // Include the actual ball in the safe frame during long passes, including its height.
  if(!celebration){for(const dx of [-7,7])for(const dz of [-6,6])bounds.push(raw([ballPos.x+dx,ballPos.lift+2,ballPos.z+dz]));}
+ const venueStyle=window.S9Competition?.stadiumStyle?.();
+ if(!celebration&&!highlightState&&venueStyle?.landmarkHeight){
+  const setback=venueStyle.setback||0;
+  bounds.push(raw([52.5,venueStyle.landmarkHeight,-17-setback]));
+ }
  const minX=Math.min(...bounds.map(p=>p.x)),maxX=Math.max(...bounds.map(p=>p.x)),minY=Math.min(...bounds.map(p=>p.y)),maxY=Math.max(...bounds.map(p=>p.y));
  const zoom=Math.max(.1,Math.min((w-28)/(maxX-minX),(h-65)/(maxY-minY)));
  const p=point=>{const v=raw(point);return {x:w/2+(v.x-(minX+maxX)/2)*zoom,y:h/2+12+(v.y-(minY+maxY)/2)*zoom,z:v.z}};

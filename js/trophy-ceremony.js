@@ -77,24 +77,60 @@ async function next(){
  dialog.querySelector('.s9-ceremony-competition').textContent=brand.name;
  dialog.querySelector('.s9-ceremony-caption').textContent=item.exhibition?'Premiazione di esibizione · nessun titolo aggiunto all’albo d’oro':item.key==='finaleight'?'Campione d’Italia · Final Eight conclusa':'La coppa è vostra';
  dialog.hidden=false;dialog.querySelector('button').focus();
- const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,start=performance.now();
+ const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;let elapsed=0,last=null;
+ dialog.querySelector('button').textContent=reduced?'CONTINUA ▶':'SALTA INTRODUZIONE ▶';
+ const venueStyle=S9Competition.stadiumStyle(item.stadium);
  function draw(now){
   if(active!==item)return;
-  const t=reduced?9:Math.min(12,(now-start)/1000),lift=Math.max(0,Math.min(1,(t-1.8)/2));
+  if(last!==null&&!document.hidden)elapsed+=Math.min(80,now-last);last=now;
+  const t=reduced?12:Math.min(12,elapsed/1000);
+  if(t>=12)dialog.querySelector('button').textContent='CONTINUA ▶';
   const w=canvas.clientWidth||900,h=canvas.clientHeight||470,ratio=Math.min(devicePixelRatio||1,1.5);
   if(canvas.width!==Math.round(w*ratio)||canvas.height!==Math.round(h*ratio)){canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio)}context.setTransform(ratio,0,0,ratio,0,0);
-  const bg=context.createLinearGradient(0,0,0,h);bg.addColorStop(0,brand.dark);bg.addColorStop(1,'#061421');context.fillStyle=bg;context.fillRect(0,0,w,h);
-  const sway=reduced?0:Math.sin(t*.2)*.6;
-  const p=G.camera([sway,4.2,12.5],[0,1.6,0],w,h,w/h<1.2?65:44),scene=G.scene(context,p);
-  scene.box([0,-.1,0],[10,.2,4],brand.dark);scene.box([0,.06,-.7],[3,.13,2],brand.accent);
-  for(let i=0;i<10;i++){
-   const x=(i<5?i-5:i-4)*.82,z=-.75+(i%2)*.32;
-   G.player(scene,x,z,kit,reduced?0:t*3+i,0,1,'',false,lift*.6);
+  const bg=context.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#07182a');bg.addColorStop(.52,'#14324d');bg.addColorStop(1,'#0a2419');context.fillStyle=bg;context.fillRect(0,0,w,h);
+  const handoff=Math.max(0,Math.min(1,(t-1.0)/1.9));
+  const lift=Math.max(0,Math.min(1,(t-3.0)/1.8));
+  const arrival=Math.max(0,Math.min(1,t/1.6));
+  const sway=reduced?0:Math.sin(t*.18)*.22;
+  const reveal=Math.min(1,t/2.4),hero=Math.max(0,Math.min(1,(t-4.6)/3));
+  const p=G.camera([2.4*(1-reveal)+sway,3.6-hero*.35,(11-reveal*1.2-hero*1.4)*Math.max(1,.78/(w/h))],[.5*(1-reveal),1.15+hero*.5,.15],w,h,w/h<1.2?62:43),scene=G.scene(context,p);
+  const stadiumStyle=venueStyle;
+  // Stadio e campo: la premiazione usa le stesse caratteristiche dello stadio della partita.
+  for(let tier=0;tier<stadiumStyle.tiers;tier++)scene.box([0,1.0+tier*1.42,-10.4-tier*2.15],[20,1.3,2.8],brand.dark,0,S9Match3D.crowdTexture(brand,stadiumStyle,tier%3));
+  if(stadiumStyle.track)scene.box([0,-.08,.1],[15,.05,9.2],'#985d4f');
+  for(let i=-8;i<8;i++)scene.box([i*.82,-.035,.1],[.8,.03,7.2],i%2?'#2e7847':'#368651');
+  scene.box([0,-.018,.1],[.10,.035,7.1],'#eef4e6');
+  // cerchio di centrocampo approssimato con piccoli segmenti 3D
+  for(let i=0;i<28;i++){const a=i*Math.PI*2/28;scene.box([Math.cos(a)*1.48,.01,.1+Math.sin(a)*1.48],[.18,.035,.06],'#edf2e5',-a)}
+  // tappeto basso di premiazione, dentro il campo
+  scene.box([0,.035,.65],[4.2,.08,1.55],brand.accent);
+  scene.box([0,.095,.65],[3.45,.10,1.1],'#d9c58d');
+  const squad=[[-3.25,-.25],[-2.55,-.65],[-1.85,-.82],[-1.12,-.92],[-.42,-.98],[.55,-.98],[1.22,-.90],[1.92,-.80],[2.62,-.58],[3.22,-.20],[-2.45,.55],[2.45,.55]];
+  squad.forEach((pos,i)=>{
+    const x=pos[0]*(1.34-.34*arrival),z=pos[1]+(1-arrival)*(1.5+(i%3)*.15);
+    G.player(scene,x,z,kit,reduced?0:t*2.4+i*.32,0,1.18,'',false,lift>.45?.55:.18);
+  });
+  // Capitano al centro: riceve la coppa e la alza.
+  G.player(scene,0,.62,kit,reduced?0:t*2.2,0,1.30,'',false,.18+lift*.82);
+  // Addetto alla premiazione: figura distinta in abito scuro, a destra del capitano.
+  const officialX=2.05-.38*handoff;
+  scene.box([officialX,.82,.72],[.58,1.18,.36],'#202735');
+  scene.box([officialX,1.53,.72],[.34,.36,.31],'#c89572');
+  scene.box([officialX,1.12,.47],[.70,.16,.18],'#202735',-.25);
+  // La coppa passa fisicamente dall'addetto al capitano, poi sale sopra la testa.
+  const trophyX=2.0*(1-handoff)+.10*handoff;
+  const trophyY=1.48 + lift*1.65;
+  const trophyZ=.56-.10*handoff;
+  trophy(scene,item.key,trophyX,trophyY,trophyZ,.82);
+  scene.flush();
+  if(lift>.35){
+   for(let i=0;i<(w<600?70:140);i++){
+    const x=(i*97.3)%w,y=reduced?(i*63)%h:((t*68+i*37)%(h+80))-40;
+    context.fillStyle=i%4===0?brand.accent:i%4===1?'#fff0c1':i%4===2?'#ffffff':'#d5e5ff';
+    context.save();context.translate(x,y);context.rotate(i*.43+t);context.fillRect(-2,-6,4,12);context.restore();
+   }
   }
-  G.player(scene,0,.65,kit,0,0,1,'',false,lift);
-  trophy(scene,item.key,0,1.17+lift*1.25,1.02,.7);scene.flush();
-  if(lift>.8){for(let i=0;i<95;i++){const x=(i*139.7)%w,y=reduced?(i*73)%h:((t*52+i*41)% (h+40))-20;context.fillStyle=i%3===0?brand.accent:i%3===1?'#fff0c1':'#ffffff';context.save();context.translate(x,y);context.rotate(i+t);context.fillRect(-2,-4,4,8);context.restore()}}
-  context.fillStyle=brand.accent;context.font='bold '+Math.max(11,w/65)+'px Arial';context.textAlign='center';context.fillText(brand.name,w/2,h-15);
+  if(t>4.5){context.fillStyle='rgba(4,14,30,.72)';context.fillRect(w*.18,h-56,w*.64,36);context.fillStyle='#fff1c9';context.font='900 '+Math.max(14,w/58)+'px Arial';context.textAlign='center';context.fillText(item.exhibition?'CAMPIONI DELLA FINALE':'LA COPPA È VOSTRA',w/2,h-32)}
   if(!reduced&&t<12)frame=requestAnimationFrame(draw);
  }
  frame=requestAnimationFrame(draw);

@@ -27,7 +27,7 @@ function sample(a,n){return shuffle(a).slice(0,n)}
 function teamLabel(id){const t=T(id);return t?`${t.name} ${t.season}`:id}
 function isNational(id){return V10.nationalIds.includes(id)}
 function isForeign(id){return V10.foreignIds.includes(id)}
-function crestFor(id){return isNational(id)?`assets/crests/national/coherent/${id}.svg`:isForeign(id)?`assets/crests/foreign/${id}.png`:`assets/crests/italian/${id}.png`}
+function crestFor(id){const t=T(id);if(t?.crest)return t.crest;return isNational(id)?`assets/crests/national/${id}.png`:isForeign(id)?`assets/crests/foreign/${id}.png`:`assets/crests/italian/${id}.png`}
 function kitFor(id,kind){return isNational(id)?`assets/kits/national/${kind}/${id}.png`:isForeign(id)?`assets/kits/foreign/${kind}/${id}.png`:`assets/kits/italian/${kind}/${id}.png`}
 function fmtScore(r){return `${r.hg}–${r.ag}`}
 
@@ -264,7 +264,7 @@ function cancelTournamentPrematch(){
  if(!V10.matchContext)return false;
  if(V10.matchContext.mode!=='standalone')restoreCareerAfterCup();
  const mode=V10.matchContext.mode;V10.matchContext=null;if(mode!=='standalone')applyCompetitionTheme('');
- if(mode==='finaleight')show('v10FinalEight');else if(mode==='careerCup'){renderSeasonView('europe');show('season')}else show('v10Tournament');
+ if(mode==='finaleight')show('v10FinalEight');else if(mode==='careerCup'){renderSeasonView('europe')}else show('v10Tournament');
  return true;
 }
 
@@ -528,6 +528,23 @@ function dueCareerCup(){
  return Object.values(career.v10Cups||{}).filter(s=>!s.completed&&s.user===career.user&&nextUserTournamentMatch(s)&&cupSlot(s)<=career.round).sort((a,b)=>cupSlot(a)-cupSlot(b))[0]||null;
 }
 V10.dueCareerCup=dueCareerCup;
+V10.calendarCupMatches=function(){
+ const games=[];
+ for(const s of Object.values(career.v10Cups||{})){
+  if(s.user!==career.user)continue;
+  const played=[...(s.results||[]),...Object.values(s.roundHistory||{}).flat().flatMap(t=>t.legs||[])].filter(r=>r.h===career.user||r.a===career.user);
+  const next=s.completed?null:nextUserTournamentMatch(s);
+  (CUP_SLOTS[s.key]||[]).forEach((slot,i)=>{
+   const result=played[i],match=result||(i===playedCupMatches(s)?next:null);
+   if(!match&&(s.completed||i<playedCupMatches(s)))return;
+   const date=new Date(career.leagueDates[slot-1]);date.setDate(date.getDate()+3);
+   games.push({date,h:match?.h,a:match?.a,label:s.name,score:result?`${result.hg}–${result.ag}`:'',next:!!next&&i===playedCupMatches(s)});
+  });
+ }
+ return games;
+};
+V10.careerCupBracketHTML=key=>{const s=career.v10Cups[key];return s?`${s.groups?renderGroups(s):''}${renderBracket(s)}`:''};
+
 function syncCupCalendar(c){
  if(!c.v10Cups)return;
  c.honours=c.honours||{};for(const s of Object.values(c.v10Cups)){const key=s.key==='italia'?'coppaItalia':s.key;c.honours[key]=c.honours[key]||[];if(s.completed&&!c.honours[key].some(h=>h.year===c.seasonYear))c.honours[key].push({year:c.seasonYear,team:s.champion})}
@@ -543,7 +560,7 @@ function syncCupCalendar(c){
 }
 function careerCupSummary(state){
  const userIn=state.participants.includes(career.user),m=userIn?nextUserTournamentMatch(state):null;
- return `<div class="euro-card"><h3>${state.name}</h3><div class="euro-stage">${state.completed?'CONCLUSA':stageLabel(state.phase)}</div>${state.completed?`<h2>🏆 ${teamLabel(state.champion)}</h2>`:userIn?(m?`<div class="euro-match">Prossima: ${teamLabel(m.h)} vs ${teamLabel(m.a)}</div><button class="primary" data-careercup="${state.key}" ${cupSlot(state)>career.round?'disabled':''}>${v4FmtDate(cupDate(state))} · GIOCA PROSSIMA ▶</button>`:`<div class="euro-match">In attesa del turno successivo.</div>`):`<div class="euro-match">La tua squadra non partecipa. Competizione simulata.</div>`}<details><summary>Tabellone / risultati</summary>${state.groups?renderGroups(state):''}${renderBracket(state)}</details></div>`;
+ return `<div class="euro-card"><h3>${state.name}</h3><div class="euro-stage">${state.completed?'CONCLUSA':stageLabel(state.phase)}</div>${state.completed?`<h2>🏆 ${teamLabel(state.champion)}</h2>`:userIn?(m?`<div class="euro-match">Prossima: ${teamLabel(m.h)} vs ${teamLabel(m.a)}</div><button class="primary" data-careercup="${state.key}" ${cupSlot(state)>career.round?'disabled':''}>${v4FmtDate(cupDate(state))} · GIOCA PROSSIMA ▶</button>`:`<div class="euro-match">In attesa del turno successivo.</div>`):`<div class="euro-match">La tua squadra non partecipa. Competizione simulata.</div>`}<button type="button" data-cup-bracket="${state.key}">APRI TABELLONE / RISULTATI ▸</button></div>`;
 }
 function renderCareerCups(){
  const c=q('#seasonContent');if(!career.v10Cups)initCareerCups(career,career.qualified);
@@ -640,7 +657,7 @@ function installOverrides(){
    if(ctx.mode!=='standalone')restoreCareerAfterCup();
    processTournamentResult(ctx.state,ctx.match,res);V10.matchContext=null;current=null;
    if(ctx.mode==='standalone'){saveStandaloneState();renderTournament();show('v10Tournament')}
-   else if(ctx.mode==='careerCup'){applyCompetitionTheme('');syncCupCalendar(career);persistCareerV10();renderSeason();renderSeasonView('europe');show('season')}
+   else if(ctx.mode==='careerCup'){applyCompetitionTheme('');syncCupCalendar(career);persistCareerV10();renderSeason();renderSeasonView('europe')}
    else{applyCompetitionTheme('');finalizeFinalEightIfNeeded();persistCareerV10();renderFinalEight();show('v10FinalEight')}
  };
  q('#backSeason').onclick=()=>{if(!cancelTournamentPrematch())show('season')};
@@ -1014,12 +1031,18 @@ try{
 
 /* Tactics/change tables show individual live fatigue. Unavailable bench players cannot enter. */
 try{
+ // v12 — da riga di tabella grezza a card cliccabile: ogni card si etichetta
+ // da sola (OVR/MOR/VEL/TEC/PAS/COND), cosi' non serve piu' un <thead>
+ // condiviso e la lista si legge anche su schermi stretti.
  playerRow=function(p,kind){
    const fit=liveFitness(p),blocked=unavailable(p),status=blocked?statusText(p):(p.yellowStreak===2?'DIFFIDA':'');
-   return `<tr class="selectable ${blocked?'v103-unavailable':''}" data-${kind}="${p.id}" data-v103-player="${p.id}">
-   <td><span class="rolebadge">${roleGroup(p.pos)}</span></td>
-   <td><b class="player-click" data-profile="${p.id}">${p.name}</b><div class="smallstat">${p.pos} · <span class="v103-fitness ${fitnessClass(fit)}">COND ${fit}%</span>${status?` · <span class="v103-status">${status}</span>`:''}</div></td>
-   <td>${p.overall}</td><td>${p.morale}</td><td>${p.stats?.speed??'—'}</td><td>${p.stats?.technique??'—'}</td><td>${p.stats?.passing??'—'}</td></tr>`;
+   return `<div class="s9-tactic-player selectable ${blocked?'v103-unavailable':''}" data-${kind}="${p.id}" data-v103-player="${p.id}" tabindex="${blocked?'-1':'0'}"${blocked?' aria-disabled="true"':''}>
+   <span class="s9-tactic-role">${roleGroup(p.pos)}</span>
+   <span class="s9-tactic-name"><b class="player-click" data-profile="${p.id}">${p.name}</b><small>${p.pos}${status?` · <span class="v103-status">${status}</span>`:''}</small></span>
+   <span class="s9-tactic-stats">
+     <em>OVR</em><b>${p.overall}</b><em>MOR</em><b>${p.morale}</b><em>VEL</em><b>${p.stats?.speed??'—'}</b><em>TEC</em><b>${p.stats?.technique??'—'}</b><em>PAS</em><b>${p.stats?.passing??'—'}</b><em class="v103-fitness ${fitnessClass(fit)}">COND</em><b class="v103-fitness ${fitnessClass(fit)}">${fit}%</b>
+   </span>
+   </div>`;
  };
  const oldBindSubRowsV103=bindSubRows;
  bindSubRows=function(){

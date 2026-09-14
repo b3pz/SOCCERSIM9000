@@ -72,6 +72,11 @@
   }
 
   function crestPath(id){
+    try{
+      const t=typeof T==='function'?T(id):null;
+      if(t?.crest)return t.crest;
+      if(window.S9V10_DATA?.crestPath){const p=window.S9V10_DATA.crestPath(id);if(p)return p;}
+    }catch(e){}
     return `assets/crests/italian/${id}.png`;
   }
 

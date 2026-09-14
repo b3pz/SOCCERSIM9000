@@ -124,17 +124,61 @@
     if(ball()){ball().style.left='50%';ball().style.top='50%';}
     carrier=player;label('CALCIO D’INIZIO');await move([],450);
   };
+  // Tratto finale condiviso tra azione aperta e palle inattive: rifinitura,
+  // posizione del portiere e risoluzione dell'esito (gol/parata/palo/fuori).
+  async function resolveShot(side,shooter,outcome,seed,at,match){
+    if(current!==match||match._finished)return;
+    const keeper=dots(opposite(side)).find(d=>d.dataset.role==='GK');
+    const nearest=field(opposite(side)).sort((a,b)=>Math.abs(pos(a).x-pos(shooter).x)-Math.abs(pos(b).x-pos(shooter).x)).slice(0,2);
+    label('PREPARA IL TIRO');
+    await move(nearest.map((d,i)=>({el:d,x:pos(shooter).x+(right(side)?3:-3),y:pos(shooter).y+(i?4:-4)})),380);
+    // World goal mouth: z 30.34–37.66 (44.62–55.38 percent).
+    const y=outcome==='miss'?(seed%2?35:65):outcome==='post'?44.62:47+(seed%7);
+    const target=at(outcome==='save'?95:outcome==='goal'?101:100,y);
+    label('TIRO');
+    await move([{el:keeper,...at(96,clamp(y,45,55))},{el:ball(),...target}],720);
+    if(outcome==='save'){
+      label('PARATA');await move([{el:ball(),...at(96,clamp(y,45,55))}],300);possession=opposite(side);carrier=null;
+    }else if(outcome==='post'){
+      label('PALO');await move([{el:ball(),...at(91,39)}],450);carrier=null;
+    }else{label(outcome==='goal'?'RETE!':'TIRO FUORI');carrier=null;}
+    await move([],650);
+  }
   animAttack=async function(side,outcome){
     const players=field(side);if(players.length<2)return;
     const e=api.event||{},match=current;
     const shooter=find(side,e.player?.id)||players[players.length-1];
-    const support=find(side,e.assist?.id)||players.find(d=>d!==shooter);
-    const third=players.find(d=>d!==shooter&&d!==support)||support;
     const seed=Array.from(String(e.player?.id||side)).reduce((n,c)=>n+c.charCodeAt(0),current.minute);
-    const pattern=seed%4,wide=seed%2?20:80;
     const at=(x,y)=>({x:xFor(side,x),y});
     api.attacking=true;carrier=null;
     try{
+      // Palla inattiva: niente costruzione dal basso, la palla parte
+      // direttamente dalla bandierina d'angolo o dal punto di punizione,
+      // con il battitore designato dalla tattica della squadra.
+      if(e.source==='corner'||e.source==='freekick'){
+        const taker=find(side,e.taker?.id)||shooter;
+        if(e.source==='corner'){
+          const flag=at(100,seed%2?3:97);
+          label('CALCIO D’ANGOLO');
+          await move([...shape(side,flag,[taker]),{el:taker,...flag},{el:ball(),...flag}],700);
+          carrier=taker;await move([],200);
+          const box=at(88,47+seed%7);
+          label('CROSS IN AREA');
+          await move([...shape(side,box,[taker,shooter]),{el:shooter,...box}],750);
+          await move([{el:ball(),...box}],550,true);
+          carrier=shooter;
+        }else{
+          const spot=at(78,seed%2?28:72);
+          label('PUNIZIONE');
+          await move([...shape(side,spot,[taker]),{el:taker,...spot},{el:ball(),...spot}],700);
+          carrier=taker;await move([],350);
+        }
+        await resolveShot(side,shooter,outcome,seed,at,match);
+        return;
+      }
+      const support=find(side,e.assist?.id)||players.find(d=>d!==shooter);
+      const third=players.find(d=>d!==shooter&&d!==support)||support;
+      const pattern=seed%4,wide=seed%2?20:80;
       label(['COSTRUZIONE CENTRALE','APERTURA SULLA FASCIA','RIPARTENZA','COMBINAZIONE AL LIMITE'][pattern]);
       const start=at(pattern===2?35:46,pattern===1?wide:52);
       await move([...shape(side,start,[third]),{el:third,...start},{el:ball(),...start}],850);
@@ -152,22 +196,7 @@
       }else{
         await pass(side,shooter,at(71,46));await pass(side,support,at(76,58));await pass(side,shooter,at(81,50));
       }
-      if(current!==match||match._finished)return;
-      const keeper=dots(opposite(side)).find(d=>d.dataset.role==='GK');
-      const nearest=field(opposite(side)).sort((a,b)=>Math.abs(pos(a).x-pos(shooter).x)-Math.abs(pos(b).x-pos(shooter).x)).slice(0,2);
-      label('PREPARA IL TIRO');
-      await move(nearest.map((d,i)=>({el:d,x:pos(shooter).x+(right(side)?3:-3),y:pos(shooter).y+(i?4:-4)})),380);
-      // World goal mouth: z 30.34–37.66 (44.62–55.38 percent).
-      const y=outcome==='miss'?(seed%2?35:65):outcome==='post'?44.62:47+(seed%7);
-      const target=at(outcome==='save'?95:outcome==='goal'?101:100,y);
-      label('TIRO');
-      await move([{el:keeper,...at(96,clamp(y,45,55))},{el:ball(),...target}],720);
-      if(outcome==='save'){
-        label('PARATA');await move([{el:ball(),...at(96,clamp(y,45,55))}],300);possession=opposite(side);carrier=null;
-      }else if(outcome==='post'){
-        label('PALO');await move([{el:ball(),...at(91,39)}],450);carrier=null;
-      }else{label(outcome==='goal'?'RETE!':'TIRO FUORI');carrier=null;}
-      await move([],650);
+      await resolveShot(side,shooter,outcome,seed,at,match);
     }finally{api.attacking=false;}
   };
   api.offside=async function(e){
