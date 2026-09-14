@@ -1,5 +1,0 @@
-/* One game mark in the header, never floating over a screen's content. */
-body .screen > img.v51-page-logo[src*="seriea9000_logo"] {
-  display:none!important;
-}
-/* Intro centrata (l'ancoraggio a sinistra di una versione precedente e' stato tolto su richiesta). */
