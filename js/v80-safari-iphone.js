@@ -44,8 +44,18 @@
 
     root.style.setProperty('--s9-vw',w+'px');
     root.style.setProperty('--s9-vh',h+'px');
+    /* FIX 2026-09: 's9-phone-portrait'/'s9-phone-landscape' used to be toggled here,
+       forcing position:fixed layout via CSS. That system now permanently conflicts
+       with the newer 's9-responsive' layer (js/presentation.js), which is always
+       active and uses position:relative for the same elements. With both active at
+       once, visuals render from one rule set while the actual clickable box model
+       comes from the other, so buttons look fine but do not respond to touch. The
+       newer 's9-responsive' layer plus the plain @media(orientation:portrait) CSS
+       guard already covers phone layout, so these classes are intentionally no
+       longer added. Viewport custom properties are still kept in sync below in case
+       other rules read them.
     root.classList.toggle('s9-phone-portrait',portrait);
-    root.classList.toggle('s9-phone-landscape',landscape);
+    root.classList.toggle('s9-phone-landscape',landscape); */
     root.dataset.s9Viewport=`${w}x${h}`;
     root.dataset.s9Orientation=portrait?'portrait':(landscape?'landscape':'desktop');
 
@@ -55,10 +65,8 @@
     if(landscape){
       root.style.setProperty('--v75-head-h','0px');
       root.style.setProperty('--v75-main-h',h+'px');
-      root.classList.add('v75-phone-landscape');
+      /* FIX 2026-09: same conflict as above — see note. */
       try{window.scrollTo(0,0);}catch(_e){}
-    }else{
-      root.classList.remove('v75-phone-landscape');
     }
   }
 

@@ -24,7 +24,10 @@
     root.style.setProperty('--v75-main-h',mainH+'px');
     root.style.setProperty('--v75-stage-w',sw+'px');
     root.style.setProperty('--v75-stage-h',sh+'px');
-    root.classList.toggle('v75-phone-landscape',phoneLandscape);
+    /* FIX 2026-09: 'v75-phone-landscape' is no longer toggled here — it forces
+       position:fixed layout that conflicts with the always-on 's9-responsive'
+       layer added later (js/presentation.js), causing visible-but-unclickable
+       buttons on phones. See matching note in js/v80-safari-iphone.js. */
     root.classList.toggle('v75-short', sh<650);
     root.classList.toggle('v75-very-short', sh<560);
     root.dataset.v75Viewport=`${vw}x${vh}`;
