@@ -6271,7 +6271,15 @@ html.s9-responsive .scanline{pointer-events:none;opacity:.12}
 html.s9-responsive :is(.prototype-note,.s9-view-hint,.v110-logo-runner){animation:none!important}
 @media(max-width:900px), (pointer:coarse){
  html.s9-responsive,html.s9-responsive body{position:relative!important;inset:auto!important;width:100%!important;max-width:none!important;height:100dvh!important;min-height:0!important;margin:0!important;padding:0!important;transform:none!important;overflow:hidden!important;touch-action:manipulation}
- html.s9-responsive body>:not(#s9RotateDevice):not(script){visibility:visible!important;pointer-events:auto!important}
+ /* FIX 2026-09: this rule's specificity (boosted by :not(#s9RotateDevice), which
+    counts as an ID-level selector) was accidentally beating the dedicated
+    ".scanline{pointer-events:none!important}" fix further down this file, at equal
+    !important weight specificity wins, so the decorative fixed-position scanline
+    overlay (z-index 9999, full-viewport) kept pointer-events:auto and silently
+    swallowed every tap/click on mobile, at every screen, with nothing else visibly
+    wrong. Excluding .scanline here as well is the actual fix; the dedicated rule
+    lower in the file now applies. */
+ html.s9-responsive body>:not(#s9RotateDevice):not(script):not(.scanline){visibility:visible!important;pointer-events:auto!important}
  html.s9-responsive body>main{position:relative!important;inset:auto!important;width:100%!important;height:100dvh!important;max-width:none!important;transform:none!important;margin:0!important;padding:0!important;overflow:hidden!important}
  html.s9-responsive body>main>.screen.active{position:absolute!important;inset:0!important;width:100%!important;height:100dvh!important;min-width:0!important;min-height:0!important;max-height:none!important;max-width:none!important;transform:none!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))!important;box-sizing:border-box!important}
  html.s9-responsive :is(button,[role="button"],select){touch-action:manipulation}
