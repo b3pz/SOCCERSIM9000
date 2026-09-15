@@ -708,8 +708,8 @@ main{max-width:none!important;padding:0!important}
 @media(max-height:500px){#mainMenu #cupsModeBtn .cups-mode-icon{width:40px!important;height:36px!important}}
 </style>
 
-<link rel="stylesheet" href="css/game.css?v=presentation-2">
-<link rel="stylesheet" href="css/v106-match-experience.css?v=1">
+<link rel="stylesheet" href="css/game.css?v=match-intro-2">
+<link rel="stylesheet" href="css/v106-match-experience.css?v=2">
 </head>
 <body>
 <div id="s9RotateDevice" aria-live="polite" aria-label="Ruota il telefono per continuare">
@@ -1242,7 +1242,7 @@ function renderSeasonView(v){
   $("#goPrematch").onclick=()=>openPrematch(g);
  }
  if(v==="results"){
-  c.innerHTML="<h2>RISULTATI</h2>"+(career.results.length?career.results.slice().reverse().map(r=>`<div class="card">${T(r.h).name} ${r.hg} - ${r.ag} ${T(r.a).name} <span class="muted">G${r.round}</span></div>`).join(""):"Nessuna partita giocata.");
+  c.innerHTML="<h2>RISULTATI</h2>"+(career.results.length?career.results.slice().reverse().map(r=>`<div class="card">${T(r.h).name} ${T(r.h).season} ${r.hg} - ${r.ag} ${T(r.a).name} ${T(r.a).season} <span class="muted">G${r.round}</span></div>`).join(""):"Nessuna partita giocata.");
  }
  if(v==="table"){
   c.innerHTML="<h2>CLASSIFICA</h2><table><tr><th>#</th><th>Squadra</th><th>Pt</th><th>G</th><th>GF</th><th>GS</th></tr>"+
@@ -1299,12 +1299,9 @@ function renderV63TacticalXI(){
  const box=document.getElementById("v63TacticalXI");
  if(!box || !career?.teamStates?.[career.user])return;
  const st=career.teamStates[career.user];
- const ps=st.players.filter(p=>st.lineup.includes(p.id));
- const by=(...roles)=>ps.filter(p=>roles.includes(p.pos));
- let ordered=[];
- const gk=by("GK"); const df=by("DF"); const mf=by("MF","AM"); const fw=by("ST","FW");
- ordered=[...gk,...df,...mf,...fw].slice(0,11);
- for(const p of ps)if(ordered.length<11&&!ordered.some(x=>x.id===p.id))ordered.push(p);
+ // L'ordine della formazione è l'ordine degli undici slot tattici. Quando
+ // entra una riserva mantiene lo slot esatto del giocatore sostituito.
+ const ordered=st.lineup.map(id=>st.players.find(p=>p.id===id)).filter(Boolean).slice(0,11);
  const f=st.formation||"4-4-1-1";
  const layouts={
   "4-4-1-1":[[10,50],[24,12],[24,37],[24,63],[24,88],[50,14],[50,38],[50,62],[50,86],[72,50],[89,50]],
@@ -1316,15 +1313,15 @@ function renderV63TacticalXI(){
   "4-3-3":[[10,50],[24,12],[24,37],[24,63],[24,88],[50,24],[50,50],[50,76],[88,18],[88,50],[88,82]]
  };
  const pos=layouts[f]||layouts["4-4-1-1"];
- box.innerHTML=ordered.map((p,i)=>{const [x,y]=pos[i]||[50,50];const short=p.name.split(" ").slice(-1)[0];return `<div class="v63-player" style="left:${x}%;top:${y}%"><div class="v63-dot">${i+1}</div><div class="v63-name">${short}</div></div>`}).join("");
+ box.innerHTML=ordered.map((p,i)=>{const [x,y]=pos[i]||[50,50],shirt=st.players.findIndex(x=>x.id===p.id)+1;const short=p.name.split(" ").slice(-1)[0];return `<div class="v63-player" style="left:${x}%;top:${y}%"><div class="v63-dot" title="Numero di maglia ${shirt}">${shirt}</div><div class="v63-name">${short}</div></div>`}).join("");
 }
 
 function renderPrematchLineup(){
  let st=career.teamStates[career.user];
- let ps=st.players.filter(p=>st.lineup.includes(p.id));
+ let ps=st.lineup.map(id=>st.players.find(p=>p.id===id)).filter(Boolean);
  $("#lineupPreview").innerHTML=ps.map(p=>`
    <div class="lineup-row-v33 player-click" data-player-card="${p.id}">
-     <div class="lineup-player-main"><b>${p.name}</b> · ${p.pos}</div>
+     <div class="lineup-player-main"><b>N° ${st.players.findIndex(x=>x.id===p.id)+1} · ${p.name}</b> · ${p.pos}</div>
      ${moraleBadge(p.morale)}
      <span class="lineup-ovr">OVR ${p.overall}</span>
    </div>`).join("");
@@ -1703,7 +1700,7 @@ async function doEvent(e){
      // indipendentemente da 1x/2x/4x.
      if(S9Match3D.celebrate)await S9Match3D.celebrate(e.side,e.player?.id);
    }else{
-     await ov(S9Popups.html('goal',{player:e.player.name,detail:e.assist?'Assist: '+e.assist.name:'',footer:`${T(current.h).name} ${current.scoreH} - ${current.scoreA} ${T(current.a).name}`}),2800);
+     await ov(S9Popups.html('goal',{player:e.player.name,detail:e.assist?'Assist: '+e.assist.name:'',footer:`${T(current.h).name} ${T(current.h).season} ${current.scoreH} - ${current.scoreA} ${T(current.a).name} ${T(current.a).season}`}),2800);
    }
  }
 
@@ -1718,8 +1715,8 @@ function updateScore(){
  if(!current)return;
  const ht=T(current.h),at=T(current.a);
  const hn=$("#homeTeamName"),an=$("#awayTeamName"),hs=$("#homeScoreNum"),as=$("#awayScoreNum");
- if(hn)hn.textContent=ht.name;
- if(an)an.textContent=at.name;
+ if(hn)hn.textContent=`${ht.name} ${ht.season}`;
+ if(an)an.textContent=`${at.name} ${at.season}`;
  if(hs)hs.textContent=current.scoreH;
  if(as)as.textContent=current.scoreA;
  const mi=$("#matchMinute");if(mi)mi.textContent=String(current.minute||0).padStart(2,"0")+"'";
@@ -1780,15 +1777,25 @@ async function launchMatch(){
  if(!current?.fixture||current._running)return;
  current._running=true;
  const sb=$("#startMatch");if(sb){sb.disabled=true;sb.textContent="CARICAMENTO..."}
- let g=current.fixture;let userHome=g[0]===career.user;current=buildMatch(g[0],g[1]);current._running=true;current.half=1;setupPitch();show("match");updateScore();hidePitch();
+ let g=current.fixture;let userHome=g[0]===career.user;
+ let coinToss=null;
+ if(window.S9MatchIntro){
+  try{coinToss=await S9MatchIntro.play({h:g[0],a:g[1],key:S9Competition?.key?.()||'seriea',stadium:S9V10?.matchContext?.stadium||teamMeta[g[0]]?.stadium||S9Competition?.stadium?.()})}
+  catch(e){console.warn("Introduzione pre-partita",e)}
+ }
+ current=buildMatch(g[0],g[1]);current._running=true;current.half=1;current.coinToss=coinToss;setupPitch();show("match");updateScore();hidePitch();
  const hist=$("#commentary");if(hist)hist.innerHTML="";
- log(`00' CALCIO D'INIZIO - ${T(current.h).name} contro ${T(current.a).name}`,"neutral");
+ if(coinToss){
+  const winner=coinToss.winner==='home'?current.h:current.a,kickoff=coinToss.kickoffSide==='home'?current.h:current.a,field=coinToss.fieldSide==='home'?current.h:current.a;
+  log(`00' SORTEGGIO - ${T(winner).name} ${T(winner).season} sceglie ${coinToss.choice==='ball'?'palla':'campo'}. ${T(field).name} ${T(field).season} verso ${coinToss.fieldEnd}.`,"neutral");
+  log(`00' CALCIO D'INIZIO - ${T(kickoff).name} ${T(kickoff).season}`,"neutral");
+ }else log(`00' CALCIO D'INIZIO - ${T(current.h).name} ${T(current.h).season} contro ${T(current.a).name} ${T(current.a).season}`,"neutral");
  try{crowd(.035,2.5)}catch(e){console.warn("audio",e)}
  paused=false;
- await wait(500);
+ if(window.S9MatchVisual?.kickoff)await S9MatchVisual.kickoff(coinToss?.kickoffSide||'home');else await wait(500);
  await playHalf(1,45);
  paused=true;
- $("#halftimeScore").innerHTML=`<h2>${T(current.h).name} ${current.scoreH} - ${current.scoreA} ${T(current.a).name}</h2>`;
+ $("#halftimeScore").innerHTML=`<h2>${T(current.h).name} ${T(current.h).season} ${current.scoreH} - ${current.scoreA} ${T(current.a).name} ${T(current.a).season}</h2>`;
  $("#halftimeStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}`;
  show("halftime"); await new Promise(r=>halfResolver=r); paused=false;show("match");await playHalf(46,90);log("90' FINE PARTITA");
  if(window.S9V10?.finishPlayedTie)await S9V10.finishPlayedTie();
@@ -1800,7 +1807,7 @@ async function launchMatch(){
  }
  current._finished=true;current._running=false;
  if(window.S9Exhibition)S9Exhibition.complete();
- $("#postScore").innerHTML=`<h2>${T(current.h).name} ${current.scoreH} - ${current.scoreA} ${T(current.a).name}</h2>`;
+ $("#postScore").innerHTML=`<h2>${T(current.h).name} ${T(current.h).season} ${current.scoreH} - ${current.scoreA} ${T(current.a).name} ${T(current.a).season}</h2>`;
  $("#postStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}<br>Modulo: ${career.teamStates[career.user].formation}<br>Atteggiamento: ${career.teamStates[career.user].mentality}`;
  $("#postEvents").innerHTML=current.keyEvents.length?current.keyEvents.map(x=>`<div class="card">${x}</div>`).join(""):"Nessun evento chiave.";
  show("postmatch"); if(!window.S9V10?.matchContext&&career?.careerId)S9Save.putCareer(career).catch(e=>console.warn("Save:",e)); if(sb){sb.disabled=false;sb.textContent="SCEGLI DIVISE ▶"}
@@ -2200,9 +2207,9 @@ function renderHubNext(){
  const crest=id=>CREST_ASSETS[id]?`<img src="${CREST_ASSETS[id]}" alt="">`:`<span>${T(id).name.substring(0,2).toUpperCase()}</span>`;
  el.innerHTML=`<div class="hub-kicker"><img class="hub-comp-logo" src="assets/league/serie_a_league.png" alt="">SERIE A · GIRONE ${career.userGroup} · GIORNATA ${career.round+1}</div>
  <div class="hub-fixture">
-  <div class="hub-team">${crest(g[0])}<b>${h.name}</b></div>
+  <div class="hub-team">${crest(g[0])}<b>${h.name} ${h.season}</b></div>
   <div class="hub-vs">VS</div>
-  <div class="hub-team">${crest(g[1])}<b>${a.name}</b></div>
+  <div class="hub-team">${crest(g[1])}<b>${a.name} ${a.season}</b></div>
  </div>
  <div class="hub-date">${v4FmtDate(d)}</div>
  <button class="primary" id="hubGoPrematch">PREPARA PARTITA</button>`;
@@ -2212,7 +2219,7 @@ function renderHubStandings(){
  const el=$("#hubStandings"),group=hubGroupShown||career.userGroup,rows=v4Standings(group).slice(0,7);
  el.innerHTML=`<div class="hub-kicker">CLASSIFICA · GIRONE ${group}<button class="hub-group-toggle" id="hubGroupToggle" type="button">Girone ${group==="A"?"B":"A"} ▸</button></div>
  <table class="hub-standings-table"><tr><th>#</th><th>Squadra</th><th>Pt</th><th>G</th></tr>
- ${rows.map((r,i)=>`<tr class="${i<4?"qualify ":""}${r.t.id===career.user?"user-row":""}"><td>${i+1}</td><td>${r.t.name}</td><td><b>${r.s.pts}</b></td><td>${r.s.p}</td></tr>`).join("")}
+ ${rows.map((r,i)=>`<tr class="${i<4?"qualify ":""}${r.t.id===career.user?"user-row":""}"><td>${i+1}</td><td>${r.t.name} ${r.t.season}</td><td><b>${r.s.pts}</b></td><td>${r.s.p}</td></tr>`).join("")}
  </table>`;
  $("#hubGroupToggle").onclick=()=>{hubGroupShown=group==="A"?"B":"A";renderHubStandings()};
 }
@@ -2254,7 +2261,7 @@ function v4CalendarGridHTML(){
 function renderSeasonView(v){
  const c=$("#seasonContent");
  if(v==="results"){
-   c.innerHTML="<h2>RISULTATI</h2>"+(career.results.length?career.results.slice().reverse().map(r=>`<div class="card">${T(r.h).name} ${r.hg} - ${r.ag} ${T(r.a).name} <span class="muted">G${r.round} · Girone ${r.group||"?"}</span></div>`).join(""):"Nessuna partita giocata.");
+   c.innerHTML="<h2>RISULTATI</h2>"+(career.results.length?career.results.slice().reverse().map(r=>`<div class="card">${T(r.h).name} ${T(r.h).season} ${r.hg} - ${r.ag} ${T(r.a).name} ${T(r.a).season} <span class="muted">G${r.round} · Girone ${r.group||"?"}</span></div>`).join(""):"Nessuna partita giocata.");
  }
  if(v==="table"){
    c.innerHTML=`<div class="zone-legend">🟩 PRIME 4: accesso ai PLAYOFF SCUDETTO. Le 8 qualificate determineranno 4 posti Coppa dei Campioni + 4 posti Coppa UEFA.</div>
@@ -2276,7 +2283,7 @@ function renderSeasonView(v){
    const key=v==="scorers"?"goals":"assists",title=v==="scorers"?"MARCATORI":"ASSIST";
    const list=Object.values(career.pstats).filter(p=>p[key]>0).sort((a,b)=>b[key]-a[key]).slice(0,20);
    c.innerHTML=list.length?(`<h2>${title}</h2><table><tr><th>#</th><th>Giocatore</th><th>Squadra</th><th>${title}</th></tr>`+
-   list.map((p,i)=>`<tr><td>${i+1}</td><td>${p.name}</td><td>${T(p.team)?.name||"—"}</td><td><b>${p[key]}</b></td></tr>`).join("")+"</table>"):
+   list.map((p,i)=>{const pt=T(p.team);return`<tr><td>${i+1}</td><td>${p.name}</td><td>${pt?pt.name+' '+pt.season:"—"}</td><td><b>${p[key]}</b></td></tr>`}).join("")+"</table>"):
    `<h2>${title}</h2><p class="muted">Ancora nessun dato.</p>`;
  }
 }
@@ -2370,26 +2377,28 @@ renderTeamPicker();
 <script src="js/v72-publication-ui.js?v=10-final-3"></script>
 <script src="js/v73-alignment-fix.js?v=11-1"></script>
 <script src="js/v75-browser-compat.js?v=19-1"></script>
-<script src="js/v76-match-ui.js?v=11-4"></script>
+<script src="js/v76-match-ui.js?v=team-season-1"></script>
 <script src="js/v80-safari-iphone.js?v=23-1"></script>
 <script src="js/v91-final-touches.js?v=12-1"></script>
 <script src="js/v10-data.js?v=3d-1"></script>
 <script src="js/v10-release.js?v=presentation-2"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
-<script src="js/match-coherence.js?v=13"></script>
+<script src="js/match-coherence.js?v=fluid-actions-1"></script>
 <script src="js/kit-profiles.js?v=1"></script>
 <script src="js/asset-quality.js?v=1"></script>
 <script src="js/football-3d.js?v=1"></script>
 <script src="js/kit-presentation.js?v=1"></script>
-<script src="js/match-3d.js?v=stadium-identity-3"></script>
+<script src="js/match-3d.js?v=broadcast-tv-2"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
-<script src="js/trophy-ceremony.js?v=presentation-2"></script>
+<script src="js/match-intro.js?v=cinematic-tv-5"></script>
+<script src="js/trophy-ceremony.js?v=finale-cinematic-1"></script>
 <script src="js/exhibition.js?v=stadium-identity-2"></script>
 <script src="js/v106-match-experience.js?v=presentation-2"></script>
-<script src="js/v107-cup-polish.js?v=presentation-2"></script>
-<script src="js/v108-complete-match-flow.js?v=1"></script>
-<script src="js/v110-prematch-ceremony.js?v=presentation-2"></script>
+<script src="js/v107-cup-polish.js?v=team-season-1"></script>
+<script src="js/v108-complete-match-flow.js?v=team-season-1"></script>
+<script src="js/v110-prematch-ceremony.js?v=team-season-1"></script>
 <script src="js/presentation.js?v=presentation-2"></script>
+<script src="js/tactics-redesign.js?v=slot-order-1"></script>
 
 <!-- Patch 15: logo SerieA 9000 SIM aggiornato, logo pagine interne spostato dal centro, sfondo Coppe sostituito con versione trofei/stadio approvata. -->
 </body>

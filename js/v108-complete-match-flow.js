@@ -3,7 +3,7 @@
 const $=s=>document.querySelector(s);
 let penaltyOverlay=null;
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
-function teamName(id){return (typeof T==='function'&&T(id)?.name)||id;}
+function teamName(id){const team=typeof T==='function'?T(id):null;return team?`${team.name} ${team.season}`:id;}
 function activePlayers(teamId){
  const st=career?.teamStates?.[teamId];
  if(!st)return [];

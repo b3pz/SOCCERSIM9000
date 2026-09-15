@@ -9,7 +9,11 @@
   const dots=side=>Array.from(document.querySelectorAll('#pitch .dot.'+side));
   const field=side=>dots(side).filter(d=>d.dataset.role!=='GK');
   const opposite=side=>side==='home'?'away':'home';
-  const right=side=>(side==='home')!==(current.half===2);
+  const right=side=>{
+    const homeFirst=current?.coinToss?.homeAttacksRight??true;
+    const homeRight=current?.half===2?!homeFirst:homeFirst;
+    return side==='home'?homeRight:!homeRight;
+  };
   const xFor=(side,x)=>right(side)?x:100-x;
   const find=(side,id)=>dots(side).find(d=>d.dataset.pid===id);
   let possession='home',carrier=null;
@@ -31,8 +35,11 @@
         if(last!==null&&!paused)elapsed+=Math.min(50,now-last)*(realTime?1:api.attacking&&window.S9Match3D?.mode!=='2d'?(Number(speed)>=4?1:Number(speed)>=2?1.15:1):Math.max(1,speed));
         last=now;const progress=Math.min(1,elapsed/ms);
         motions.forEach(t=>{
-          t.el.style.left=(t.start.x+(t.x-t.start.x)*progress)+'%';
-          t.el.style.top=(t.start.y+(t.y-t.start.y)*progress)+'%';
+          // La palla conserva una traiettoria regolare; i giocatori accelerano
+          // e decelerano senza gli scatti lineari che spezzavano l'azione.
+          const amount=t.el.id==='ball'?progress:progress*progress*(3-2*progress);
+          t.el.style.left=(t.start.x+(t.x-t.start.x)*amount)+'%';
+          t.el.style.top=(t.start.y+(t.y-t.start.y)*amount)+'%';
           if(loft&&t.el.id==='ball')t.el.style.transform=`translate(-50%,-50%) translateY(${-Math.sin(progress*Math.PI)*35}px) scale(${1+Math.sin(progress*Math.PI)*.5})`;
         });
         if(progress<1)requestAnimationFrame(frame);
@@ -51,7 +58,9 @@
   const baseSetup=setupPitch;
   setupPitch=function(){
     baseSetup();if(!current)return;
-    carrier=null;possession='home';
+    carrier=null;
+    const firstKick=current.coinToss?.kickoffSide||'home';
+    possession=current.half===2?opposite(firstKick):firstKick;
     let legend=document.getElementById('pitchTeamLegend');
     if(!legend){legend=document.createElement('div');legend.id='pitchTeamLegend';document.getElementById('pitch').appendChild(legend);}
     legend.replaceChildren();
@@ -62,10 +71,11 @@
       const item=document.createElement('span'),swatch=document.createElement('i');
       item.className='pitch-team-key '+side;swatch.className='pitch-team-swatch '+side;
       swatch.style.background=`linear-gradient(90deg,${primary} 0 50%,${secondary} 50% 100%)`;
-      item.append(swatch,document.createTextNode(T(teamId).name));legend.appendChild(item);
+      const team=T(teamId);item.append(swatch,document.createTextNode(`${team.name} ${team.season}`));legend.appendChild(item);
       const st=career.teamStates[side==='home'?current.h:current.a];
-      const rank={GK:0,DF:1,MF:2,AM:3,FW:4,ST:4};
-      const players=st.lineup.map(id=>st.players.find(p=>p.id===id)).filter(Boolean).sort((a,b)=>(rank[a.pos]??2)-(rank[b.pos]??2));
+      // Gli undici slot restano stabili: chi entra occupa esattamente il
+      // posto di chi esce, anche nel modello 3D e non solo nella lista.
+      const players=st.lineup.map(id=>st.players.find(p=>p.id===id)).filter(Boolean);
       const rows=(st.formation||'4-4-2').split('-').map(Number);let cursor=0;
       for(const player of players){
         const d=find(side,player.id);if(!d)continue;
@@ -78,8 +88,8 @@
         d.dataset.role=player.pos;d.dataset.baseX=xFor(side,x);d.dataset.baseY=y;
         d.style.left=d.dataset.baseX+'%';d.style.top=y+'%';
         d.style.background=`linear-gradient(90deg,${primary} 0 50%,${secondary} 50% 100%)`;
-        d.textContent=String(st.lineup.indexOf(player.id)+1);d.title=T(teamId).name+' · '+player.name;
-        if(player.pos==='GK')d.textContent='P';
+        const shirt=Math.max(1,st.players.findIndex(p=>p.id===player.id)+1);
+        d.textContent=String(shirt);d.title=`N° ${shirt} · ${team.name} ${team.season} · ${player.name}`;
         d.setAttribute('aria-label',player.name);
       }
     }
@@ -87,7 +97,8 @@
   };
   async function pass(side,receiver,target,cross=false){
     const b=ball();if(!receiver||!b)return;
-    const from=carrier&&dots(side).includes(carrier)?carrier:field(side)[0];
+    let from=carrier&&dots(side).includes(carrier)?carrier:field(side)[0];
+    if(from===receiver)from=field(side).find(d=>d!==receiver)||from;
     if(!from)return;
     if(!carrier){const p=pos(from);b.style.left=p.x+'%';b.style.top=p.y+'%';}
     label(cross?'CROSS IN AREA':'PASSAGGIO');
@@ -96,8 +107,11 @@
   }
   api.openPlay=async function(minute){
     const side=possession,players=field(side);if(players.length<2)return;
-    if(!carrier||!players.includes(carrier))carrier=null;
-    const receiver=players.filter(d=>d!==carrier)[minute%(players.length-1)];
+    if(!carrier||!players.includes(carrier)){
+      carrier=players[(minute+1)%players.length];const start=pos(carrier);
+      if(ball()){ball().style.left=start.x+'%';ball().style.top=start.y+'%';}
+    }
+    const options=players.filter(d=>d!==carrier),receiver=options[minute%options.length];
     const cross=false; // Quiet circulation reserves crosses and forward runs for highlights.
     if(cross){
       const winger=carrier||players[0],wide={x:xFor(side,74),y:minute%2?12:88};
@@ -126,17 +140,19 @@
   };
   // Tratto finale condiviso tra azione aperta e palle inattive: rifinitura,
   // posizione del portiere e risoluzione dell'esito (gol/parata/palo/fuori).
-  async function resolveShot(side,shooter,outcome,seed,at,match){
+  async function resolveShot(side,shooter,outcome,seed,at,match,firstTime=false){
     if(current!==match||match._finished)return;
     const keeper=dots(opposite(side)).find(d=>d.dataset.role==='GK');
     const nearest=field(opposite(side)).sort((a,b)=>Math.abs(pos(a).x-pos(shooter).x)-Math.abs(pos(b).x-pos(shooter).x)).slice(0,2);
-    label('PREPARA IL TIRO');
-    await move(nearest.map((d,i)=>({el:d,x:pos(shooter).x+(right(side)?3:-3),y:pos(shooter).y+(i?4:-4)})),380);
+    if(!firstTime){
+      label('CONTROLLO E TIRO');
+      await move(nearest.map((d,i)=>({el:d,x:pos(shooter).x+(right(side)?3:-3),y:pos(shooter).y+(i?4:-4)})),220);
+    }
     // World goal mouth: z 30.34–37.66 (44.62–55.38 percent).
     const y=outcome==='miss'?(seed%2?35:65):outcome==='post'?44.62:47+(seed%7);
     const target=at(outcome==='save'?95:outcome==='goal'?101:100,y);
-    label('TIRO');
-    await move([{el:keeper,...at(96,clamp(y,45,55))},{el:ball(),...target}],720);
+    label(firstTime?'TIRO AL VOLO':'TIRO');
+    await move([{el:keeper,...at(96,clamp(y,45,55))},{el:shooter,...at(91,pos(shooter).y)},{el:ball(),...target}],firstTime?540:650);
     if(outcome==='save'){
       label('PARATA');await move([{el:ball(),...at(96,clamp(y,45,55))}],300);possession=opposite(side);carrier=null;
     }else if(outcome==='post'){
@@ -158,15 +174,17 @@
       if(e.source==='corner'||e.source==='freekick'){
         const taker=find(side,e.taker?.id)||shooter;
         if(e.source==='corner'){
+          const finisher=shooter!==taker?shooter:(players.filter(d=>d!==taker).slice(-1)[0]||shooter);
           const flag=at(100,seed%2?3:97);
           label('CALCIO D’ANGOLO');
           await move([...shape(side,flag,[taker]),{el:taker,...flag},{el:ball(),...flag}],700);
-          carrier=taker;await move([],200);
+          carrier=taker;
           const box=at(88,47+seed%7);
           label('CROSS IN AREA');
-          await move([...shape(side,box,[taker,shooter]),{el:shooter,...box}],750);
-          await move([{el:ball(),...box}],550,true);
-          carrier=shooter;
+          await move([...shape(side,box,[taker,finisher]),{el:finisher,...box},{el:ball(),...box}],760,true);
+          carrier=finisher;
+          await resolveShot(side,finisher,outcome,seed,at,match,true);
+          return;
         }else{
           const spot=at(78,seed%2?28:72);
           label('PUNIZIONE');
@@ -196,7 +214,7 @@
       }else{
         await pass(side,shooter,at(71,46));await pass(side,support,at(76,58));await pass(side,shooter,at(81,50));
       }
-      await resolveShot(side,shooter,outcome,seed,at,match);
+      await resolveShot(side,shooter,outcome,seed,at,match,pattern===1||pattern===2);
     }finally{api.attacking=false;}
   };
   api.offside=async function(e){

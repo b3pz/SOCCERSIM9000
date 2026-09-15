@@ -59,11 +59,48 @@ function record(state){
  const ctx=S9V10.matchContext;
  const watchedFinal=ctx?.state===state&&ctx.match?.tie?.stage==='FINAL';
  if(state.champion!==state.user&&!watchedFinal)return false;
- state._ceremonySeen=true;queue.push(snapshot(state,current,ctx?.stadium));setTimeout(next,0);return true;
+ state._ceremonySeen=true;queue.push(snapshot(state,current,ctx?.stadium));setTimeout(nextV2,0);return true;
 }
 function exhibition(state,m,stadium){
  if(!state.exhibition||!state.completed||!m?._finished||state._ceremonySeen||![m.h,m.a].includes(state.champion))return false;
- state._ceremonySeen=true;queue.push(snapshot(state,m,stadium));setTimeout(next,0);return true;
+ state._ceremonySeen=true;queue.push(snapshot(state,m,stadium));setTimeout(nextV2,0);return true;
+}
+function loadImage(src){return new Promise(resolve=>{if(!src){resolve(null);return}const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>resolve(null);image.src=src})}
+async function nextV2(){
+ if(active||!queue.length)return;
+ const item=queue.shift();active=item;const club=T(item.champion),clubLabel=`${club.name} ${club.season}`;
+ const crestSrc=window.S9V10_DATA?.crestPath?.(item.champion)||club.crest||'';
+ const [kit,crestImage]=await Promise.all([G.loadKit(kitPath(item.champion,item.kit)),loadImage(crestSrc)]);if(active!==item)return;
+ previousFocus=document.activeElement;const brand=S9Competition.definitions[item.key]||S9Competition.definitions.friendly,venueStyle=S9Competition.stadiumStyle(item.stadium);
+ dialog.style.setProperty('--competition-accent',brand.accent);dialog.style.setProperty('--competition-dark',brand.dark);
+ dialog.querySelector('.s9-ceremony-kicker').textContent=item.exhibition?'FINALE DI ESIBIZIONE':'TITOLO CONQUISTATO';dialog.querySelector('h2').textContent=clubLabel;dialog.querySelector('.s9-ceremony-competition').textContent=brand.name;
+ dialog.querySelector('.s9-ceremony-caption').textContent=item.exhibition?'Premiazione di esibizione · nessun titolo aggiunto all’albo d’oro':item.key==='finaleight'?'Campione d’Italia · Final Eight conclusa':'Notte da campioni';
+ dialog.hidden=false;dialog.querySelector('button').focus();const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;dialog.querySelector('button').textContent=reduced?'CONTINUA ▶':'SALTA CINEMATICA ▶';
+ let elapsed=0,last=null,lastShot=-1;const steps=[...dialog.querySelectorAll('.s9-ceremony-progress span')],clamp=n=>Math.max(0,Math.min(1,n));
+ function draw(now){
+  if(active!==item)return;if(last!==null&&!document.hidden)elapsed+=Math.min(80,now-last);last=now;
+  const t=reduced?14:Math.min(14,elapsed/1000),shot=t<2?0:t<5?1:t<8.2?2:3;if(t>=14)dialog.querySelector('button').textContent='CONTINUA ▶';
+  if(shot!==lastShot){steps.forEach((step,i)=>step.classList.toggle('active',i<=shot));lastShot=shot}
+  const w=canvas.clientWidth||900,h=canvas.clientHeight||470,ratio=Math.min(devicePixelRatio||1,1.5);if(canvas.width!==Math.round(w*ratio)||canvas.height!==Math.round(h*ratio)){canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio)}context.setTransform(ratio,0,0,ratio,0,0);
+  const bg=context.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#020711');bg.addColorStop(.5,'#0f3153');bg.addColorStop(1,'#071c18');context.fillStyle=bg;context.fillRect(0,0,w,h);
+  for(let i=0;i<5;i++){const x=w*(.12+i*.19);context.fillStyle=`rgba(190,220,255,${.025+(i%2)*.018})`;context.beginPath();context.moveTo(x,0);context.lineTo(x-w*.11,h*.84);context.lineTo(x+w*.11,h*.84);context.fill()}
+  const walk=clamp((t-1.5)/3),handoff=clamp((t-4.7)/2.1),lift=clamp((t-7.1)/1.25),party=clamp((t-8.2)/2);
+  const camera=[[[0,5.3,14],[0,1.6,-1],48],[[2.8,3.1,10.8],[.25,1.15,.35],44],[[1.7,2.55,7.5],[.15,1.42,.55],39],[[Math.sin(t*.22)*.55,3.35,9.4],[0,1.62,.42],42]][shot],portrait=w/h<1.1;
+  const p=G.camera([camera[0][0],camera[0][1],camera[0][2]*Math.max(1,portrait?1.25:.82/(w/h))],camera[1],w,h,portrait?58:camera[2]),scene=G.scene(context,p);
+  for(let tier=0;tier<venueStyle.tiers;tier++)scene.box([0,1+tier*1.42,-10.4-tier*2.15],[22,1.3,2.8],tier%2?venueStyle.seats:brand.dark,0,S9Match3D.crowdTexture(brand,venueStyle,tier%3));
+  scene.box([0,6.4,-10.1],[12,.24,.4],brand.accent);if(crestImage){scene.face([[-6.8,2,-8.85],[-4.5,2,-8.85],[-4.5,4.3,-8.85],[-6.8,4.3,-8.85]],brand.dark,crestImage);scene.face([[4.5,2,-8.85],[6.8,2,-8.85],[6.8,4.3,-8.85],[4.5,4.3,-8.85]],brand.dark,crestImage)}
+  if(venueStyle.track)scene.box([0,-.08,.1],[15,.05,9.2],'#985d4f');for(let i=-8;i<8;i++)scene.box([i*.82,-.035,.1],[.8,.03,7.2],i%2?'#2e7847':'#368651');scene.box([0,-.018,.1],[.1,.035,7.1],'#eef4e6');
+  scene.box([0,.035,.8],[5.5,.08,2],brand.accent);scene.box([0,.13,.72],[4.7,.18,1.55],'#d7c17e');scene.box([0,.28,.64],[3.7,.25,1.08],'#f0dfac');scene.box([0,.012,2.6],[1.35,.035,3.1],brand.accent);
+  const squad=[[-3.2,-.15],[-2.45,-.72],[-1.65,-1],[-.82,-1.12],[.82,-1.12],[1.65,-1],[2.45,-.72],[3.2,-.15]];squad.forEach((pos,i)=>G.player(scene,pos[0]*(1.42-.42*walk),pos[1]+(1-walk)*(3.2+(i%3)*.22),kit,reduced?0:t*2.7+i*.37,0,1.16,String(i+2),false,.1+party*.55));
+  G.player(scene,0,.66,kit,reduced?0:t*2.3,0,1.34,'10',false,.16+lift*.84);scene.box([-.45,1.55,.5],[.13,.22,.2],brand.accent);
+  const officialX=2.05+.55*party;if(shot<3||party<.8){scene.box([officialX,.88,.72],[.58,1.22,.36],'#172131');scene.box([officialX,1.57,.72],[.34,.36,.31],'#c89572');scene.box([officialX-.25*handoff,1.15,.47],[.76,.16,.18],'#172131',-.22)}
+  trophy(scene,item.key,2*(1-handoff)+.08*handoff,1.52+lift*1.72,.56-.08*handoff,.92+lift*.08);scene.flush();
+  if(party>.05){for(let i=0;i<(w<600?75:155);i++){const x=(i*97.3)%w,y=reduced?(i*63)%h:(((t-8)*82+i*37)%(h+90))-45;context.fillStyle=i%4===0?brand.accent:i%4===1?'#fff0c1':i%4===2?'#fff':'#d5e5ff';context.save();context.translate(x,y);context.rotate(i*.43+t);context.fillRect(-2,-6,4,12);context.restore()}for(let b=0;b<4;b++){const bx=w*(.16+b*.23),by=h*(.16+(b%2)*.09),r=20+party*55;context.strokeStyle=b%2?brand.accent:'#e9f2ff';context.globalAlpha=.42*party;for(let ray=0;ray<16;ray++){const a=ray*Math.PI/8;context.beginPath();context.moveTo(bx+Math.cos(a)*r*.2,by+Math.sin(a)*r*.2);context.lineTo(bx+Math.cos(a)*r,by+Math.sin(a)*r);context.stroke()}context.globalAlpha=1}}
+  const captions=['LA NOTTE DELLA FINALE','VERSO IL PODIO','LA CONSEGNA','CAMPIONI'];context.fillStyle='rgba(2,8,18,.78)';context.fillRect(0,h-58,w,58);context.fillStyle='#f7e7b6';context.textAlign='center';context.font='900 '+Math.max(15,w/55)+'px Arial';context.fillText(captions[shot],w/2,h-31);context.fillStyle='#d7e2ef';context.font='700 '+Math.max(10,w/95)+'px Arial';context.fillText(clubLabel.toUpperCase(),w/2,h-12);
+  if(shot===0&&crestImage){const size=Math.min(w*.18,h*.28),alpha=clamp(1-Math.max(0,t-1.25)/.7);context.globalAlpha=alpha;context.drawImage(crestImage,w/2-size/2,h*.30-size/2,size,size);context.globalAlpha=1}if(t>7.75&&t<8.12){context.fillStyle=`rgba(255,246,213,${.55*(1-Math.abs(t-7.93)/.19)})`;context.fillRect(0,0,w,h)}
+  const bar=Math.max(8,h*.025);context.fillStyle='#02050a';context.fillRect(0,0,w,bar);context.fillRect(0,h-bar,w,bar);if(!reduced&&t<14)frame=requestAnimationFrame(draw);
+ }
+ frame=requestAnimationFrame(draw);
 }
 async function next(){
  if(active||!queue.length)return;
@@ -135,10 +172,10 @@ async function next(){
  }
  frame=requestAnimationFrame(draw);
 }
-function close(){if(!active)return;active=null;cancelAnimationFrame(frame);dialog.hidden=true;previousFocus?.focus?.();next()}
+function close(){if(!active)return;active=null;cancelAnimationFrame(frame);dialog.hidden=true;previousFocus?.focus?.();nextV2()}
 function boot(){
  dialog=document.createElement('div');dialog.id='trophyCeremony';dialog.hidden=true;dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-labelledby','ceremonyTeam');
- dialog.innerHTML='<div class="s9-ceremony-panel"><div class="s9-ceremony-kicker"></div><h2 id="ceremonyTeam"></h2><div class="s9-ceremony-competition"></div><canvas role="img" aria-label="La squadra festeggia e il capitano alza la coppa"></canvas><p class="s9-ceremony-caption"></p><button type="button" class="primary">CONTINUA ▶</button></div>';
+ dialog.innerHTML='<div class="s9-ceremony-panel"><div class="s9-ceremony-kicker"></div><h2 id="ceremonyTeam"></h2><div class="s9-ceremony-competition"></div><div class="s9-ceremony-progress" aria-hidden="true"><span>STADIO</span><span>PODIO</span><span>CONSEGNA</span><span>FESTA</span></div><canvas role="img" aria-label="Cinematica della finale: ingresso, consegna e alzata della coppa"></canvas><p class="s9-ceremony-caption"></p><button type="button" class="primary">CONTINUA ▶</button></div>';
  document.body.appendChild(dialog);canvas=dialog.querySelector('canvas');context=canvas.getContext('2d');dialog.querySelector('button').onclick=close;
  dialog.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close()}if(e.key==='Tab'){e.preventDefault();dialog.querySelector('button').focus()}});
 }

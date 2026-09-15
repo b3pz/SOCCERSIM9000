@@ -162,12 +162,9 @@ function boot(){
   const identity=S9Competition.stadiumIdentity(stadiumList[stadiumIndex]);
   const identityTexture=S9Match3D.stadiumIdentityTexture(identity,style,renderStadiumPreview);
   if(identityTexture){
-   s.box([style.landmark==='torre-maratona'?-9:0,5.2,-13.35],[style.landmark==='torre-maratona'?13:16,5,.3],'#07111f',0,identityTexture);
-   identity.clubs.slice(0,2).forEach((club,index)=>{
-    const x=identity.clubs.length>1?(index?-17:17):(style.landmark==='torre-maratona'?10:15);
-    const crest=S9Match3D.stadiumCrestTexture(club,renderStadiumPreview);
-    if(crest)s.box([x,5.4,-13.3],[5.2,5.7,.32],club.colors?.[0]||'#14233a',0,crest);
-   });
+   // Nell'anteprima i club residenti sono una targhetta della tribuna: il
+   // maxischermo con il risultato appartiene esclusivamente alla partita.
+   s.box([style.landmark==='torre-maratona'?-9:0,5.2,-13.35],[style.landmark==='torre-maratona'?19:25,1.55,.3],'#111923',0,identityTexture);
   }
   s.flush();
   ctx.fillStyle='rgba(3,10,22,.76)';ctx.fillRect(0,H-31,W,31);ctx.fillStyle='#f7e6b4';ctx.font='bold 12px Arial';ctx.textAlign='center';ctx.fillText(stadiumList[stadiumIndex].toUpperCase(),W/2,H-12);

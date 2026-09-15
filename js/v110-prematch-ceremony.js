@@ -42,7 +42,7 @@ function compactPrematch(){
     <div class="v110-brand-block">
       <div class="v110-kicker">SERIEA 9000 SIM · PRE-PARTITA</div>
       <div class="v110-title">${escapeHTML(b.name)}</div>
-      <div class="v110-matchline">${escapeHTML(stage())} · ${escapeHTML(ts[0]?.name||'CASA')} VS ${escapeHTML(ts[1]?.name||'OSPITI')}</div>
+      <div class="v110-matchline">${escapeHTML(stage())} · ${escapeHTML(ts[0]?`${ts[0].name} ${ts[0].season}`:'CASA')} VS ${escapeHTML(ts[1]?`${ts[1].name} ${ts[1].season}`:'OSPITI')}</div>
     </div>
     <div class="v110-logo-window" aria-hidden="true"><div class="v110-logo-runner">${Array.from({length:1},()=>`<img src="${logo}" alt="">`).join('')}</div></div>
     <div class="v110-stadium-block"><span>STADIO</span><strong>${escapeHTML(stadium()).toUpperCase()}</strong></div>

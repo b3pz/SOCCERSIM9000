@@ -85,11 +85,11 @@ function ensurePrematchHero(){
   const teams=resolveTeams();
   const dossier=resolveStadiumDossier();
   hero.querySelector('.v107-prematch-title').textContent=currentCompetitionLabel();
-  hero.querySelector('.v107-prematch-sub').textContent=`${currentStageLabel()} · ${teams?teams.home.name+' vs '+teams.away.name:'PREPARAZIONE PARTITA'}`;
+  hero.querySelector('.v107-prematch-sub').textContent=`${currentStageLabel()} · ${teams?teams.home.name+' '+teams.home.season+' vs '+teams.away.name+' '+teams.away.season:'PREPARAZIONE PARTITA'}`;
   hero.querySelector('.v107-stadium-name').textContent=dossier.stadium.toUpperCase();
   hero.querySelector('.v107-stadium-city').textContent=dossier.city;
-  hero.querySelector('.v107-home-coach').textContent=`${teams?.home?.name||'Casa'} · ${dossier.coach}`;
-  hero.querySelector('.v107-away-coach').textContent=`${teams?.away?.name||'Ospiti'} · ${dossier.opponentCoach}`;
+  hero.querySelector('.v107-home-coach').textContent=`${teams?.home?teams.home.name+' '+teams.home.season:'Casa'} · ${dossier.coach}`;
+  hero.querySelector('.v107-away-coach').textContent=`${teams?.away?teams.away.name+' '+teams.away.season:'Ospiti'} · ${dossier.opponentCoach}`;
   const rail=hero.querySelector('.v107-prematch-rail');
   const active=currentCompetitionKey();
   const cards=ORDER.map(k=>`<span class="v107-rail-item ${active===k?'active':''}"><img src="${LOGOS[k]}" alt="${LABELS[k]}"><b>${LABELS[k]}</b></span>`).join('');

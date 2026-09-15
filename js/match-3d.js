@@ -3,7 +3,7 @@
 'use strict';
 const MODES=['2d','3d','highlights'];
 let mode='3d';try{const saved=localStorage.getItem('s9-match-view');if(MODES.includes(saved))mode=saved}catch(e){}
-let canvas,ctx,frameId=0,trackedMatch=null,kitVersion=0,lastTime=0,eventActive=false;
+let canvas,ctx,frameId=0,trackedMatch=null,kitVersion=0,lastTime=0,eventActive=false,broadcastHud=null,broadcastSignature='';
 let uniforms={},playerDots=[],pitchHalf=0,pendingSetup=false;
 let visualTime=0,visualLast=0;
 let grassTextureCache=null;
@@ -14,7 +14,9 @@ let celebrationState=null; // breve cinematica fissa del gol con esultanza di gr
 function attackInfo(side){
  const secondHalf=current?.half===2;
  const home=side==='home';
- const attacksRight=(home&&!secondHalf)||(!home&&secondHalf);
+ const homeFirst=current?.coinToss?.homeAttacksRight??true;
+ const homeAttacksRight=secondHalf?!homeFirst:homeFirst;
+ const attacksRight=home?homeAttacksRight:!homeAttacksRight;
  return {side,attacksRight,goalX:attacksRight?105:0,dir:attacksRight?-1:1};
 }
 function beginHighlight(side){highlightState=attackInfo(side)}
@@ -53,13 +55,16 @@ function makeCelebrationState(side,scorerId){
   const off=offsets[i],x=centerX+off[0],z=centerZ+off[1];
   targets.set(d.dataset.pid,{x,z,startX:i===0&&variant!==1?x:variant===1?x-info.dir*2:x+(i%2?4:-4),startZ:variant===1?z-13:z+(i===0?0:5),leader:i===0});
  });
- return {...info,variant,centerX,centerZ,started:visualTime,targets};
+ const team=T(side==='home'?current.h:current.a),scorer=team?.players?.find(p=>p.id===scorerId);
+ return {...info,variant,centerX,centerZ,started:visualTime,targets,scorerName:scorer?.name||'GOL',teamName:team?`${team.name} ${team.season}`:''};
 }
 function celebrationFrame(now){
  const c=celebrationState;if(!c)return null;
- const t=Math.max(0,now-c.started),progress=clamp(t/(c.variant===1?2500:1600),0,1);
- return {...c,eye:[c.centerX,13,c.centerZ+42],target:[c.centerX,1.3,c.centerZ],fov:36,
-  bounds:[[c.centerX-10,0,c.centerZ-15],[c.centerX+10,0,c.centerZ-15],[c.centerX-10,4,c.centerZ+7],[c.centerX+10,4,c.centerZ+7]],
+ const t=Math.max(0,now-c.started),progress=clamp(t/(c.variant===1?2500:1600),0,1),cut=t<1350?0:t<3050?1:2;
+ const eye=cut===0?[c.centerX-c.dir*7,9.5,c.centerZ+31]:cut===1?[c.centerX+c.dir*(7+(t-1350)/260),8.5,c.centerZ+27]:[c.centerX,17,c.centerZ+46];
+ const span=cut===2?13:9;
+ return {...c,eye,target:[c.centerX,cut===2?1.2:1.55,c.centerZ],fov:cut===2?39:34,
+  bounds:[[c.centerX-span,0,c.centerZ-15],[c.centerX+span,0,c.centerZ-15],[c.centerX-span,4,c.centerZ+8],[c.centerX+span,4,c.centerZ+8]],
   progress:progress*progress*(3-2*progress)};
 }
 async function waitForCelebration(){
@@ -90,8 +95,8 @@ window.animAttack=async function(side,outcome){
  return oldAnimAttack.apply(this,arguments);
 };
 animAttack=window.animAttack;
-const positions=new Map(),boards=new Map(),crowds=new Map(),identityBoards=new Map(),crestBoards=new Map();
-const api=window.S9Match3D={get mode(){return mode},get eventActive(){return eventActive},get celebrating(){return !!celebrationState},waitCelebration:waitForCelebration,celebrate,setMode,crowdTexture,stadiumIdentityTexture,stadiumCrestTexture};
+const positions=new Map(),boards=new Map(),crowds=new Map(),identityBoards=new Map(),scoreboards=new Map(),crestBoards=new Map();
+const api=window.S9Match3D={get mode(){return mode},get eventActive(){return eventActive},get celebrating(){return !!celebrationState},waitCelebration:waitForCelebration,celebrate,setMode,crowdTexture,stadiumIdentityTexture,stadiumScoreboardTexture,stadiumCrestTexture,sponsorBoardTexture};
 const graphics=window.S9Football3D;
 // Texture "folla": generata una volta per tribuna e messa in cache (stesso
 // pattern di `boards` sopra per i cartelloni), cosi' non si ridisegna ogni
@@ -120,33 +125,38 @@ function crowdTexture(brand,stadiumStyle,standIndex){
 function crestSource(id){
  return window.S9V10_DATA?.crestPath?.(id)||window.CREST_ASSETS?.[id]||T(id)?.crest||'';
 }
-// Maxischermo dello stadio: usa gli stemmi dei club che appartengono davvero
-// all'impianto. Il canvas viene memorizzato e aggiornato solo quando termina il
-// caricamento delle immagini, quindi non aggiunge lavoro ai frame della gara.
+function drawCoverImage(c,image,x,y,w,h){
+ if(!image?.complete||!image.naturalWidth)return;
+ const ratio=Math.min(w/image.naturalWidth,h/image.naturalHeight),dw=image.naturalWidth*ratio,dh=image.naturalHeight*ratio;
+ c.drawImage(image,x+(w-dw)/2,y+(h-dh)/2,dw,dh);
+}
+function fitCanvasText(c,text,maxWidth,start,min,weight='900'){
+ let size=start;do{c.font=`${weight} ${size}px Arial`}while(size>min&&c.measureText(text).width>maxWidth&&--size);return size;
+}
+// Firma dell'impianto: una fascia applicata alla tribuna, non un secondo
+// maxischermo. Identifica i club residenti senza confonderli con le squadre
+// della partita in corso.
 function stadiumIdentityTexture(identity,stadiumStyle,onReady){
  if(!identity?.clubs?.length)return null;
  const key=identity.venue+'|'+identity.clubs.map(c=>c.id).join('|');
  let entry=identityBoards.get(key);
  if(!entry){
-  const canvas=document.createElement('canvas');canvas.width=960;canvas.height=224;
+  const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=64;
   entry={canvas,images:new Map(),pending:0,listeners:new Set()};identityBoards.set(key,entry);
   const redraw=()=>{
    const c=canvas.getContext('2d'),clubs=identity.clubs;
-   const bg=c.createLinearGradient(0,0,960,224);bg.addColorStop(0,'#050a12');bg.addColorStop(.55,'#102038');bg.addColorStop(1,'#050a12');c.fillStyle=bg;c.fillRect(0,0,960,224);
-   c.strokeStyle=stadiumStyle?.accent||'#d8dde5';c.lineWidth=8;c.strokeRect(4,4,952,216);
+   const bg=c.createLinearGradient(0,0,1024,0);bg.addColorStop(0,'#0b1119');bg.addColorStop(.5,'#1b2734');bg.addColorStop(1,'#0b1119');c.fillStyle=bg;c.fillRect(0,0,1024,64);
+   c.fillStyle=stadiumStyle?.accent||'#d8dde5';c.fillRect(0,0,1024,4);c.fillRect(0,60,1024,4);
+   c.textBaseline='middle';c.textAlign='left';c.fillStyle='#eef2f5';fitCanvasText(c,identity.venue.toUpperCase(),285,25,16,'900');c.fillText(identity.venue.toUpperCase(),28,32,285);
+   c.fillStyle='#596775';c.fillRect(330,13,2,38);c.fillStyle='#aeb9c3';c.font='700 15px Arial';c.fillText('CASA DI',356,32);
+   const gap=clubs.length>1?245:0,start=clubs.length>1?500:610;
    clubs.forEach((club,index)=>{
-    const segment=960/clubs.length,x=segment*index,colors=club.colors||['#23344c','#e8edf2'];
-    c.fillStyle=colors[0];c.fillRect(x+12,164,segment-24,38);c.fillStyle=colors[1];c.fillRect(x+12,194,segment-24,8);
-    const image=entry.images.get(club.id);
-    if(image?.complete&&image.naturalWidth){
-     const maxW=clubs.length>1?105:180,maxH=clubs.length>1?118:154,ratio=Math.min(maxW/image.naturalWidth,maxH/image.naturalHeight);
-     c.drawImage(image,x+(clubs.length>1?42:55)+(maxW-image.naturalWidth*ratio)/2,30+(maxH-image.naturalHeight*ratio)/2,image.naturalWidth*ratio,image.naturalHeight*ratio);
-    }
-    c.fillStyle='#f5f1e7';c.textAlign='left';c.textBaseline='middle';
-    c.font='900 '+(clubs.length>1?32:46)+'px Arial';c.fillText(club.name.toUpperCase(),x+(clubs.length>1?165:280),95,segment-(clubs.length>1?185:315));
-    c.fillStyle='#c8d2df';c.font='700 18px Arial';c.fillText(clubs.length>1?'CLUB DI CASA':'SQUADRA DI CASA',x+(clubs.length>1?165:280),132,segment-(clubs.length>1?185:315));
+    const x=start+index*gap,image=entry.images.get(club.id),colors=club.colors||['#23344c','#e8edf2'];
+    c.fillStyle=colors[0];c.fillRect(x-12,10,196,44);c.fillStyle=colors[1];c.fillRect(x-12,50,196,4);
+    drawCoverImage(c,image,x-4,15,34,34);
+    c.fillStyle='#fff';c.textAlign='left';fitCanvasText(c,club.name.toUpperCase(),140,19,12,'900');c.fillText(club.name.toUpperCase(),x+40,32,140);
    });
-   c.fillStyle='#f0d38a';c.textAlign='center';c.font='800 17px Arial';c.fillText(identity.venue.toUpperCase(),480,20);
+   for(let x=5;x<1024;x+=9){c.fillStyle='rgba(255,255,255,.025)';c.fillRect(x,6,2,52)}
   };
   redraw();
   for(const club of identity.clubs){
@@ -158,6 +168,66 @@ function stadiumIdentityTexture(identity,stadiumStyle,onReady){
  }
  if(onReady&&entry.pending)entry.listeners.add(onReady);
  return entry.canvas;
+}
+// Il vero maxischermo segue minuto e risultato della gara e usa gli stemmi
+// delle due squadre in campo. La texture cambia solo quando cambia il tabellone.
+function stadiumScoreboardTexture(match,identity,brand,onReady){
+ if(!match?.h||!match?.a)return null;
+ const home=T(match.h),away=T(match.a);if(!home||!away)return null;
+ const key=match.h+'|'+match.a;
+ let entry=scoreboards.get(key);
+ if(!entry){
+  const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=288;
+  entry={canvas,images:new Map(),pending:0,listeners:new Set(),signature:''};scoreboards.set(key,entry);
+  for(const id of [match.h,match.a]){
+   const src=crestSource(id);if(!src)continue;
+   const image=new Image();entry.images.set(id,image);entry.pending++;
+   image.onload=image.onerror=()=>{entry.pending=Math.max(0,entry.pending-1);entry.signature='';if(!entry.pending){for(const fn of entry.listeners)fn();entry.listeners.clear()}};image.src=src;
+  }
+ }
+ const minute=Math.max(0,Number(match.minute)||0),scoreH=Number(match.scoreH)||0,scoreA=Number(match.scoreA)||0;
+ const signature=[minute,match.half,scoreH,scoreA,brand?.dark,brand?.accent,identity?.venue].join('|');
+ if(entry.signature!==signature){
+  entry.signature=signature;const c=entry.canvas.getContext('2d'),w=1024,h=288;
+  c.clearRect(0,0,w,h);c.fillStyle='#02070d';c.fillRect(0,0,w,h);
+  const glow=c.createLinearGradient(0,0,0,h);glow.addColorStop(0,'#13283c');glow.addColorStop(.55,'#07131f');glow.addColorStop(1,'#02070d');c.fillStyle=glow;c.fillRect(14,14,w-28,h-28);
+  c.strokeStyle='#3c4d5c';c.lineWidth=7;c.strokeRect(6,6,w-12,h-12);c.strokeStyle=brand?.accent||'#e8c75a';c.lineWidth=3;c.strokeRect(18,18,w-36,h-36);
+  const homeColors=teamMeta?.[match.h]?.colors||['#19345a','#fff'],awayColors=teamMeta?.[match.a]?.colors||['#6b2632','#fff'];
+  c.fillStyle=homeColors[0];c.fillRect(22,22,330,212);c.fillStyle=awayColors[0];c.fillRect(672,22,330,212);
+  c.fillStyle='rgba(255,255,255,.09)';c.fillRect(22,22,330,7);c.fillRect(672,22,330,7);
+  drawCoverImage(c,entry.images.get(match.h),42,49,94,94);drawCoverImage(c,entry.images.get(match.a),888,49,94,94);
+  c.textBaseline='middle';c.fillStyle='#fff';c.textAlign='left';fitCanvasText(c,`${home.name} ${home.season}`,188,29,18);c.fillText(`${home.name} ${home.season}`,148,94,188);
+  c.textAlign='right';fitCanvasText(c,`${away.name} ${away.season}`,188,29,18);c.fillText(`${away.name} ${away.season}`,876,94,188);
+  c.fillStyle='rgba(0,0,0,.62)';c.fillRect(352,22,320,212);
+  c.fillStyle='#f7f4e9';c.textAlign='center';c.font='900 96px Arial';c.fillText(`${scoreH} : ${scoreA}`,512,132);
+  c.fillStyle=brand?.accent||'#e7cf77';c.font='900 25px Arial';c.fillText(`${match.half===2?'2° TEMPO':'1° TEMPO'}  ·  ${String(minute).padStart(2,'0')}'`,512,205);
+  c.fillStyle='rgba(255,255,255,.78)';c.font='700 16px Arial';c.fillText((identity?.venue||'SERIEA 9000 SIM').toUpperCase(),512,43,285);
+  c.fillStyle='rgba(255,255,255,.62)';c.font='700 15px Arial';c.textAlign='left';c.fillText('LIVE',44,208);c.textAlign='right';c.fillText('SERIEA 9000 SIM',980,208);
+  for(let y=26;y<238;y+=6){c.fillStyle='rgba(0,0,0,.08)';c.fillRect(24,y,976,2)}
+  const owners=identity?.clubs?.map(club=>club.name.toUpperCase()).join(' E ');
+  c.fillStyle='#101923';c.fillRect(20,244,984,38);c.fillStyle=brand?.accent||'#e7cf77';c.fillRect(20,244,984,3);
+  c.fillStyle='#d9e0e6';c.textAlign='center';fitCanvasText(c,owners?`${(identity?.venue||'STADIO').toUpperCase()} · CASA DI ${owners}`:(identity?.venue||'SERIEA 9000 SIM').toUpperCase(),900,18,12,'800');
+  c.fillText(owners?`${(identity?.venue||'STADIO').toUpperCase()} · CASA DI ${owners}`:(identity?.venue||'SERIEA 9000 SIM').toUpperCase(),512,264,900);
+ }
+ if(onReady&&entry.pending)entry.listeners.add(onReady);
+ return entry.canvas;
+}
+function sponsorBoardTexture(brand,headline,variant=0){
+ const v=((variant%3)+3)%3,key=[headline,brand?.dark,brand?.accent,v].join('|');if(boards.has(key))return boards.get(key);
+ const canvas=document.createElement('canvas');canvas.width=1440;canvas.height=96;const c=canvas.getContext('2d');
+ const primary=String(headline||brand?.name||'SERIEA 9000 SIM').split('·').map(s=>s.trim()).filter(Boolean);
+ const labels=[primary[0]||'SERIEA 9000 SIM',primary[1]||'PARTNER UFFICIALE','RADIO STADIO','NOVANTA SPORT','CALCIO 9000','AZZURRA VIAGGI'];
+ const palettes=[[brand?.dark||'#10233d',brand?.accent||'#e0c45d'],['#f0e8d5','#17263b'],['#b32932','#fff2d4'],['#174f3d','#f4d36a'],['#243e72','#eef3fa'],['#d08b22','#111a27']];
+ const panelW=240;c.fillStyle='#060a10';c.fillRect(0,0,1440,96);
+ for(let i=0;i<6;i++){
+  const index=(i+v*2)%labels.length,[bg,fg]=palettes[index],x=i*panelW;
+  c.fillStyle=bg;c.fillRect(x+3,5,panelW-6,86);c.fillStyle='rgba(255,255,255,.13)';c.fillRect(x+3,5,panelW-6,6);
+  c.fillStyle=fg;c.textAlign='center';c.textBaseline='middle';fitCanvasText(c,labels[index],panelW-28,27,16,'900');c.fillText(labels[index],x+panelW/2,46,panelW-28);
+  c.globalAlpha=.75;c.font='700 10px Arial';c.fillText(i%2?'OFFICIAL PARTNER':'SERIEA 9000 SIM',x+panelW/2,73);c.globalAlpha=1;
+  c.fillStyle='#05080d';c.fillRect(x+panelW-3,0,6,96);
+ }
+ for(let x=2;x<1440;x+=8){c.fillStyle='rgba(255,255,255,.035)';c.fillRect(x,7,2,82)}
+ boards.set(key,canvas);return canvas;
 }
 function stadiumCrestTexture(club,onReady){
  if(!club)return null;
@@ -207,6 +277,48 @@ function controls(parent,id){
  const select=document.createElement('select');select.id=id;select.dataset.matchPresentation='';
  for(const [value,text] of [['2d','Campo 2D'],['3d','Partita in 3D'],['highlights','Azioni salienti in 3D']]){const o=document.createElement('option');o.value=value;o.textContent=text;select.appendChild(o)}
  select.value=mode;select.addEventListener('change',()=>setMode(select.value));label.appendChild(select);parent.appendChild(label);
+}
+function fullscreenElement(){return document.fullscreenElement||document.webkitFullscreenElement||null}
+function broadcastActive(){
+ const match=document.getElementById('match'),wrap=document.getElementById('pitchWrap90'),full=fullscreenElement();
+ return !!match&&!!wrap&&(full===wrap||match.classList.contains('s9-broadcast-expanded'));
+}
+function updateBroadcastHud(){
+ if(!broadcastHud||!current)return;
+ const home=T(current.h),away=T(current.a),action=document.querySelector('#currentAction .action-text')?.textContent||'',minute=String(current.minute||0).padStart(2,'0')+"'",half=(current.half===2||current.minute>45)?'2T':'1T';
+ const signature=[current.h,current.a,current.scoreH,current.scoreA,minute,half,action,celebrationState?.scorerName||''].join('|');if(signature===broadcastSignature)return;broadcastSignature=signature;
+ const put=(selector,value)=>{const el=broadcastHud.querySelector(selector);if(el)el.textContent=value};
+ put('.s9-tv-clock',`${half}  ${minute}`);put('.s9-tv-home-name',`${home.name} ${home.season}`);put('.s9-tv-away-name',`${away.name} ${away.season}`);put('.s9-tv-home-score',current.scoreH);put('.s9-tv-away-score',current.scoreA);put('.s9-tv-event-minute',minute);put('.s9-tv-event-text',action);
+ const hi=broadcastHud.querySelector('.s9-tv-home-crest'),ai=broadcastHud.querySelector('.s9-tv-away-crest');if(hi&&hi.dataset.team!==current.h){hi.dataset.team=current.h;hi.src=crestSource(current.h)}if(ai&&ai.dataset.team!==current.a){ai.dataset.team=current.a;ai.src=crestSource(current.a)}
+ const goal=broadcastHud.querySelector('.s9-tv-goal');if(goal){goal.querySelector('strong').textContent=celebrationState?.scorerName||'GOL';goal.querySelector('span').textContent=celebrationState?.teamName||'';goal.classList.toggle('show',!!celebrationState)}
+}
+function installBroadcastLayer(){
+ const wrap=document.getElementById('pitchWrap90');if(!wrap||wrap.querySelector('.s9-tv-layer'))return;
+ broadcastHud=document.createElement('div');broadcastHud.className='s9-tv-layer';broadcastHud.innerHTML=`<div class="s9-tv-scorebug"><div class="s9-tv-channel">S9 90 <i>LIVE</i></div><div class="s9-tv-clock">1T&nbsp;&nbsp;00'</div><div class="s9-tv-team"><img class="s9-tv-home-crest" alt=""><span class="s9-tv-home-name">CASA</span><b class="s9-tv-home-score">0</b></div><div class="s9-tv-team"><img class="s9-tv-away-crest" alt=""><span class="s9-tv-away-name">OSPITI</span><b class="s9-tv-away-score">0</b></div></div><div class="s9-tv-watermark">SERIEA 9000 SIM</div><div class="s9-tv-event"><b class="s9-tv-event-minute">00'</b><span class="s9-tv-event-text"></span></div><div class="s9-tv-goal"><small>GOL</small><strong>MARCATORE</strong><span></span></div><button type="button" class="s9-tv-exit" aria-label="Esci dalla modalità televisiva">✕</button>`;
+ wrap.appendChild(broadcastHud);broadcastHud.querySelector('.s9-tv-exit').onclick=toggleFullscreen;updateBroadcastHud();
+}
+function updateFullscreenButton(){
+ const button=document.querySelector('#match .s9-fullscreen-btn'),match=document.getElementById('match');if(!button||!match)return;
+ const active=broadcastActive();match.classList.toggle('s9-broadcast-active',active);
+ button.textContent=active?'✕ ESCI DALLA DIRETTA':'▣ MODALITÀ TV';button.setAttribute('aria-label',active?'Esci dalla modalità televisiva':'Apri solo la partita in modalità televisiva');button.setAttribute('aria-pressed',String(active));
+}
+async function toggleFullscreen(){
+ const match=document.getElementById('match'),wrap=document.getElementById('pitchWrap90');if(!match||!wrap)return;
+ if(fullscreenElement()===wrap){
+  const exit=document.exitFullscreen||document.webkitExitFullscreen;if(exit){try{await exit.call(document)}catch(e){}}match.classList.remove('s9-broadcast-active');updateFullscreenButton();return;
+ }
+ if(match.classList.contains('s9-broadcast-expanded')){match.classList.remove('s9-broadcast-expanded','s9-broadcast-active');updateFullscreenButton();return;}
+ setMode('3d');installBroadcastLayer();updateBroadcastHud();
+ const request=wrap.requestFullscreen||wrap.webkitRequestFullscreen;
+ if(request){try{await request.call(wrap);match.classList.add('s9-broadcast-active');updateFullscreenButton();wake();return}catch(e){}}
+ match.classList.add('s9-broadcast-expanded','s9-broadcast-active');updateFullscreenButton();wake();
+}
+function installFullscreenControl(){
+ const controlsEl=document.querySelector('#match .match-controls');if(!controlsEl||controlsEl.querySelector('.s9-fullscreen-btn'))return;
+ const button=document.createElement('button');button.type='button';button.className='s9-fullscreen-btn';button.onclick=toggleFullscreen;
+ const choice=controlsEl.querySelector('.s9-view-choice');choice?controlsEl.insertBefore(button,choice):controlsEl.appendChild(button);updateFullscreenButton();
+ const onFullscreenChange=()=>{const match=document.getElementById('match');if(!fullscreenElement())match?.classList.remove('s9-broadcast-active');updateFullscreenButton();wake()};
+ document.addEventListener('fullscreenchange',onFullscreenChange);document.addEventListener('webkitfullscreenchange',onFullscreenChange);
 }
 function ensureCanvas(){
  const pitch=document.getElementById('pitch');if(!pitch)return;
@@ -327,33 +439,27 @@ function drawField(s,p,w,h,closeUp){
    const label='Partita in 3D allo '+stadiumIdentity.venue+(clubNames?' · stadio di '+clubNames:'');
    if(canvas.getAttribute('aria-label')!==label)canvas.setAttribute('aria-label',label);
   }
-  const identityTexture=stadiumIdentityTexture(stadiumIdentity,stadiumStyle);
-  if(identityTexture){
-   const identityX=stadiumStyle.landmark==='torre-maratona'?29:52.5;
-   const identityY=Math.max(6.2,topY+1.2);
-   s.box([identityX,identityY,back+1.85],[stadiumStyle.landmark==='torre-maratona'?31:38,9,.5],'#07111f',0,identityTexture);
-   stadiumIdentity.clubs.slice(0,2).forEach((club,index)=>{
-    const positions=stadiumIdentity.clubs.length>1?[16,89]:[stadiumStyle.landmark==='torre-maratona'?79:84];
-    const crestTexture=stadiumCrestTexture(club);
-    if(crestTexture)s.box([positions[index],8.1,back+1.9],[10.5,11,.56],club.colors?.[0]||'#14233a',0,crestTexture);
-   });
+  const screenX=stadiumStyle.landmark==='torre-maratona'?30:52.5,screenY=Math.max(7.3,topY+1.8);
+  const screenWidth=stadiumStyle.landmark==='torre-maratona'?34:44;
+  const scoreboardTexture=stadiumScoreboardTexture(current,stadiumIdentity,brand);
+  if(scoreboardTexture){
+   const screenHeight=screenWidth*288/1024;
+   s.box([screenX,screenY,back+1.88],[screenWidth,screenHeight,.65],'#03070c',0,scoreboardTexture);
+   s.box([screenX-screenWidth*.34,screenY-screenHeight*.7,back+1.5],[.75,4.2,.75],'#66717b');
+   s.box([screenX+screenWidth*.34,screenY-screenHeight*.7,back+1.5],[.75,4.2,.75],'#66717b');
   }
   for(const x of [0,105])for(const z of [0,68]){s.box([x,.8,z],[.12,1.6,.12],'#e4e9de');s.box([x+.4,1.4,z],[.8,.4,.08],brand.accent)}
   const boardText=(window.S9Competition?.adBoardText?.()||brand.name).toUpperCase();
-  let board=boards.get(boardText);if(!board){
-   board=document.createElement('canvas');board.width=960;board.height=64;
-   const bc=board.getContext('2d');bc.fillStyle=brand.dark;bc.fillRect(0,0,960,64);
-   bc.fillStyle='rgba(255,255,255,.08)';bc.fillRect(0,4,960,8);bc.fillRect(0,52,960,8);
-   bc.fillStyle=brand.accent;let size=30;bc.textAlign='center';bc.textBaseline='middle';
-   do{bc.font='bold '+size+'px Arial'}while(size-->16&&bc.measureText(boardText).width>860);
-   bc.fillText(boardText,480,33);
-   boards.set(boardText,board)
-  }
-  // Cartelloni pubblicitari a bordo campo su tutti e tre i lati visibili:
-  // prima c'era solo quello davanti alla tribuna principale.
-  s.face([[13,.1,-3],[92,.1,-3],[92,3,-3],[13,3,-3]],brand.dark,board);
-  s.face([[-3,.1,10],[-3,.1,58],[-3,3,58],[-3,3,10]],brand.dark,board);
-  s.face([[108,.1,58],[108,.1,10],[108,3,10],[108,3,58]],brand.dark,board);
+  const farBoard=sponsorBoardTexture(brand,boardText,Math.floor((Number(current?.minute)||0)/15));
+  const leftBoard=sponsorBoardTexture(brand,boardText,1+Math.floor((Number(current?.minute)||0)/15));
+  const rightBoard=sponsorBoardTexture(brand,boardText,2+Math.floor((Number(current?.minute)||0)/15));
+  // Fascia LED segmentata, più bassa e continua: ogni lato alterna partner,
+  // colori e messaggi come in uno stadio vero.
+  s.face([[4,.12,-3],[101,.12,-3],[101,2.42,-3],[4,2.42,-3]],'#080c12',farBoard);
+  s.face([[-3,.12,5],[-3,.12,63],[-3,2.42,63],[-3,2.42,5]],'#080c12',leftBoard);
+  s.face([[108,.12,63],[108,.12,5],[108,2.42,5],[108,2.42,63]],'#080c12',rightBoard);
+  s.box([52.5,2.54,-3.15],[97,.18,.24],'#717982');
+  s.box([-3.15,2.54,34],[.24,.18,58],'#717982');s.box([108.15,2.54,34],[.24,.18,58],'#717982');
  }
  s.flush();
  const turf=graphics.scene(ctx,p);
@@ -397,7 +503,7 @@ function drawField(s,p,w,h,closeUp){
 function render(now){
  frameId=0;
  if(!document.getElementById('match')?.classList.contains('active')||document.hidden)return;
- frameId=requestAnimationFrame(render);
+ frameId=requestAnimationFrame(render);updateBroadcastHud();
  if(typeof refreshTacticsPitch==='function')refreshTacticsPitch();
  if(mode==='2d'||!ctx||!current||canvas.offsetWidth===0){visualLast=0;return;}
  if(now-lastTime<32)return;lastTime=now;
@@ -496,6 +602,7 @@ doEvent=async function(e){
 
 function boot(){
  controls(document.querySelector('#kits .panel'),'kitMatchPresentation');controls(document.querySelector('#match .match-controls'),'liveMatchPresentation');
+ installFullscreenControl();installBroadcastLayer();
  const hint=document.createElement('p');hint.className='s9-view-hint';hint.textContent='Scegli la partita completa o solo le azioni salienti. Puoi cambiare vista anche durante la gara.';document.querySelector('#kits .panel').appendChild(hint);
  const choice=document.querySelector('#kits .s9-view-choice');document.querySelector('#kits .kit-stage').before(choice);choice.after(hint);
  setMode(mode);new MutationObserver(wake).observe(document.getElementById('match'),{attributes:true,attributeFilter:['class']});document.addEventListener('visibilitychange',()=>{visualLast=0;wake()});

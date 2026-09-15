@@ -5,7 +5,7 @@
   const $$=s=>Array.from(document.querySelectorAll(s));
 
   function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-  function teamName(id){try{return typeof T==='function'?(T(id)?.name||id):id}catch(e){return id||'—'}}
+  function teamName(id){try{const t=typeof T==='function'?T(id):null;return t?`${t.name} ${t.season}`:(id||'—')}catch(e){return id||'—'}}
 
   function ensurePanel(){
     const stage=$('#match .match-stage'); if(!stage) return null;
