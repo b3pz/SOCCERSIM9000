@@ -2401,5 +2401,36 @@ renderTeamPicker();
 <script src="js/tactics-redesign.js?v=slot-order-1"></script>
 
 <!-- Patch 15: logo SerieA 9000 SIM aggiornato, logo pagine interne spostato dal centro, sfondo Coppe sostituito con versione trofei/stadio approvata. -->
+<script>
+/* DIAGNOSTICA TOUCH — attiva solo con ?debug=1 nell'URL. Non tocca il gioco. */
+(function(){
+  'use strict';
+  if(!/[?&]debug=1(&|$)/.test(location.search)) return;
+  var badge=document.createElement('div');
+  badge.id='s9DebugBadge';
+  badge.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:rgba(0,0,0,.92);color:#0f0;font:11px/1.4 monospace;padding:8px;max-height:46vh;overflow:auto;white-space:pre-wrap;pointer-events:none;border-top:2px solid #0f0';
+  badge.textContent='DEBUG TOUCH ATTIVO — tocca lo schermo per vedere cosa blocca il click qui sotto.';
+  document.documentElement.appendChild(badge);
+  function describe(x,y,label){
+    var el=document.elementFromPoint(x,y);
+    var lines=[label+' @ ('+Math.round(x)+','+Math.round(y)+')  html.class="'+document.documentElement.className+'"'];
+    var n=el, i=0;
+    while(n && i<10){
+      var cs=getComputedStyle(n);
+      var cls=(n.className&&typeof n.className==='string')?'.'+n.className.trim().split(/\s+/).join('.'):'';
+      lines.push('  '+(n.id?'#'+n.id:'(no-id)')+cls+' <'+n.tagName+'> z='+cs.zIndex+' pos='+cs.position+' disp='+cs.display+' vis='+cs.visibility+' pe='+cs.pointerEvents+' opa='+cs.opacity);
+      n=n.parentElement; i++;
+    }
+    badge.textContent=lines.join('\n');
+  }
+  document.addEventListener('touchstart',function(e){
+    if(!e.touches||!e.touches[0])return;
+    describe(e.touches[0].clientX,e.touches[0].clientY,'TOUCHSTART');
+  },true);
+  document.addEventListener('click',function(e){
+    describe(e.clientX,e.clientY,'CLICK');
+  },true);
+})();
+</script>
 </body>
 </html>
