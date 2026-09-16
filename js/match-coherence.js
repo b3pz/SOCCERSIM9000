@@ -56,6 +56,31 @@
       return {el:d,x:keeper?base.x:clamp(base.x+(target.x-50)*.22+(team===side?(right(team)?5:-5):0)),y:keeper?clamp(50+(target.y-50)*.12,43,57):clamp(base.y+(target.y-50)*.18,7,93)};
     }));
   }
+  /* FIX 2026-09: corners and free kicks used to move the defending team with the
+     same weak, proportional drift as normal open-play circulation (shape()
+     above), which barely nudges players — so during a corner the attacking
+     side ran a full routine while the defence stayed close to its base
+     formation, looking like it "wasn't reacting". Set pieces need the
+     defending side to actually pack into its own box and mark near/far post,
+     which is a different, much stronger movement than the general-purpose
+     shape() offset, so this is a separate function rather than a tweak to it. */
+  function setPieceShape(side,target,exclude=[]){
+    const attackers=dots(side).filter(d=>!exclude.includes(d)).map(d=>{
+      const base={x:+d.dataset.baseX,y:+d.dataset.baseY};
+      const keeper=d.dataset.role==='GK';
+      return {el:d,x:keeper?base.x:clamp(base.x+(target.x-50)*.22+(right(side)?5:-5)),y:keeper?clamp(50+(target.y-50)*.12,43,57):clamp(base.y+(target.y-50)*.18,7,93)};
+    });
+    const other=opposite(side),spread=[-16,-9,-3,3,9,16,-20,20];
+    let marker=0;
+    const defenders=dots(other).filter(d=>!exclude.includes(d)).map(d=>{
+      if(d.dataset.role==='GK')return {el:d,x:xFor(other,96),y:50};
+      const i=marker++;
+      const y=clamp(50+spread[i%spread.length]*.85+(target.y-50)*.35,10,90);
+      const x=xFor(other,i<5?89-i%2*3:78);
+      return {el:d,x,y};
+    });
+    return [...attackers,...defenders];
+  }
   const baseSetup=setupPitch;
   setupPitch=function(){
     baseSetup();if(!current)return;
@@ -190,18 +215,18 @@
           const finisher=shooter!==taker?shooter:(players.filter(d=>d!==taker).slice(-1)[0]||shooter);
           const flag=at(100,seed%2?3:97);
           label('CALCIO D’ANGOLO');
-          await move([...shape(side,flag,[taker]),{el:taker,...flag},{el:ball(),...flag}],700);
+          await move([...setPieceShape(side,flag,[taker]),{el:taker,...flag},{el:ball(),...flag}],700);
           carrier=taker;
           const box=at(88,47+seed%7);
           label('CROSS IN AREA');
-          await move([...shape(side,box,[taker,finisher]),{el:finisher,...box},{el:ball(),...box,lift:22}],760,true);
+          await move([...setPieceShape(side,box,[taker,finisher]),{el:finisher,...box},{el:ball(),...box,lift:22}],760,true);
           carrier=finisher;
           await resolveShot(side,finisher,outcome,seed,at,match,true);
           return;
         }else{
           const spot=at(78,seed%2?28:72);
           label('PUNIZIONE');
-          await move([...shape(side,spot,[taker]),{el:taker,...spot},{el:ball(),...spot}],700);
+          await move([...setPieceShape(side,spot,[taker]),{el:taker,...spot},{el:ball(),...spot}],700);
           carrier=taker;await move([],350);
         }
         await resolveShot(side,shooter,outcome,seed,at,match);

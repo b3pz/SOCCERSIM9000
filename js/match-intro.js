@@ -108,7 +108,11 @@ function paint(item,now){
   const player=item.rosters[side][i];
   G.player(scene,x,z,side==='home'?item.homeKit:item.awayKit,walking&&!reduced?t*3.1+i*.17:0,angle,.72,player?.number||String(i+1),player?.keeper??i===0,0);
  }
- const refereeKit={shirt:'#f0c940',shorts:'#17202b',socks:'#f0c940'};
+ /* FIX 2026-09: the referee's shirt (#f0c940, golden yellow) and the goalkeeper's
+    shirt (#e9b637 in football-3d.js) were nearly the same shade, so on the pitch
+    referees and keepers were hard to tell apart. Referees now wear the classic
+    all-black kit, which no goalkeeper colour in this game uses. */
+ const refereeKit={shirt:'#1c1c1c',shorts:'#1c1c1c',socks:'#1c1c1c'};
  for(let i=0;i<3;i++){
   const rz=Math.min(0,-8.5-i*.85+t*1.08),spread=clamp((t-(8.5+i*.85)/1.08)/2.5),target=(i-1)*.8;
   // Referees pass to the side of the trophy plinth, then take the centre slots.

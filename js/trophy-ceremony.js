@@ -130,7 +130,10 @@ async function nextV2(){
   const approach=clamp((t-4.5)/1.5),retreat=clamp((t-7.15)/2),officialX=3.9-2.8*approach+3.2*retreat;
   // The presenter approaches only after the team has arrived, then walks away.
   const officialKit={shirt:'#172131',shorts:'#172131',socks:'#172131'};
-  G.player(scene,officialX,1.55,officialKit,(approach>0&&approach<1||retreat>0&&retreat<1)?t*3:0,retreat>0?Math.PI/2:-Math.PI/2,.86,'',false,0);
+  /* FIX 2026-09: the presenter was drawn at scale .86 while every player around
+     him uses 1.16 (line above) — a visible, consistent size mismatch that made
+     him look like a child next to the team, not a camera/perspective artefact. */
+  G.player(scene,officialX,1.55,officialKit,(approach>0&&approach<1||retreat>0&&retreat<1)?t*3:0,retreat>0?Math.PI/2:-Math.PI/2,1.16,'',false,0);
   trophy(scene,item.key,officialX*(1-handoff)+.08*handoff,1.52+lift*1.72,1.35*(1-handoff)+.48*handoff,.92+lift*.08);scene.flush();
   if(party>.05){for(let i=0;i<(w<600?75:155);i++){const x=(i*97.3)%w,y=reduced?(i*63)%h:(((t-8)*82+i*37)%(h+90))-45;context.fillStyle=i%4===0?brand.accent:i%4===1?'#fff0c1':i%4===2?'#fff':'#d5e5ff';context.save();context.translate(x,y);context.rotate(i*.43+t);context.fillRect(-2,-6,4,12);context.restore()}for(let b=0;b<4;b++){const bx=w*(.16+b*.23),by=h*(.16+(b%2)*.09),r=20+party*55;context.strokeStyle=b%2?brand.accent:'#e9f2ff';context.globalAlpha=.42*party;for(let ray=0;ray<16;ray++){const a=ray*Math.PI/8;context.beginPath();context.moveTo(bx+Math.cos(a)*r*.2,by+Math.sin(a)*r*.2);context.lineTo(bx+Math.cos(a)*r,by+Math.sin(a)*r);context.stroke()}context.globalAlpha=1}}
   const captions=['LA NOTTE DELLA FINALE','VERSO IL PODIO','LA CONSEGNA','CAMPIONI'];context.fillStyle='rgba(2,8,18,.78)';context.fillRect(0,h-58,w,58);context.fillStyle='#f7e7b6';context.textAlign='center';context.font='900 '+Math.max(15,w/55)+'px Arial';context.fillText(captions[shot],w/2,h-31);context.fillStyle='#d7e2ef';context.font='700 '+Math.max(10,w/95)+'px Arial';context.fillText(clubLabel.toUpperCase(),w/2,h-12);

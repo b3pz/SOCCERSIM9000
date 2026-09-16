@@ -130,7 +130,30 @@ function loadKit(src){
   const img=new Image();img.onload=()=>{
    if(!profile){resolve({...fallback,error:true});return}
    const front=document.createElement('canvas');front.width=128;front.height=144;
-   front.getContext('2d').drawImage(img,...profile.panel,0,0,128,144);
+   const fctx=front.getContext('2d');fctx.drawImage(img,...profile.panel,0,0,128,144);
+   /* FIX 2026-09: national-team kit source images have a fixed "10" printed on the
+      front of the shirt (a leftover from how these assets were generated) — every
+      player wearing the kit showed the same wrong front number, even though the
+      back correctly shows each player's real number. Club kit images don't have
+      this. Repainting this fixed region with the shirt's own colour erases the
+      baked-in digits without needing to touch 76 source image files individually;
+      the region was measured to clear the number on several national kits without
+      touching the crest or sponsor logo above it. */
+   if(/\/kits\/national\//.test(src)){
+    const rx=128*0.24,ry=144*0.44,rw=128*(0.70-0.24),rh=144*(0.92-0.44);
+    /* Sample the shirt's actual pixels just above the number rather than the
+       declared profile colour, which is often an average sampled elsewhere on
+       the shirt and can look like a faint patch against the real local shade. */
+    let fill=fallback.shirt;
+    try{
+     const strip=fctx.getImageData(rx,Math.max(0,ry-4),rw,3).data;
+     let r=0,g=0,b=0,n=0;
+     for(let i=0;i<strip.length;i+=4){r+=strip[i];g+=strip[i+1];b+=strip[i+2];n++}
+     if(n)fill=`rgb(${Math.round(r/n)},${Math.round(g/n)},${Math.round(b/n)})`;
+    }catch(_e){}
+    fctx.fillStyle=fill;
+    fctx.fillRect(rx,ry,rw,rh);
+   }
    resolve({...fallback,front});
   };img.onerror=()=>resolve({...fallback,error:true});img.src=src;
  });cache.set(src,task);return task;
