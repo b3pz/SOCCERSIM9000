@@ -1,6 +1,6 @@
 <!doctype html><html lang="it"><meta charset="utf-8"><title>Verifica interfaccia SerieA 9000</title>
 <style>body{margin:0;background:#192330;color:#fff;font:13px system-ui}nav{display:flex;flex-wrap:wrap;gap:5px;padding:8px}button,select{min-height:34px}iframe{display:block;border:0;margin:0 auto;background:#020817}#status{padding:4px 10px;min-height:20px}</style>
-<nav><select id="size"><option value="1180,700">Desktop 1180 × 700</option><option value="390,844">Telefono 390 × 844</option><option value="844,390">Telefono 844 × 390</option><option value="360,740">Telefono 360 × 740</option></select><button id="prepare">Carriera di prova</button><button data-view="calendar">Calendario</button><button data-view="table">Gironi</button><button data-view="europe">Coppe</button><button id="home">Stagione</button><button id="prematch">Pre-partita</button><button id="trophy">Cinematica</button><select id="venue"><option>San Siro</option><option>Stadio Olimpico</option><option>Artemio Franchi</option><option>Luigi Ferraris</option><option>Ennio Tardini</option></select><button id="stadium">Stadio 3D</button><button id="check">Controlla layout</button></nav><div id="status">Anteprima di sviluppo; nessun salvataggio della carriera.</div><iframe id="game" src="../index.html" width="1180" height="700" title="Gioco in verifica" allowfullscreen></iframe>
+<nav><select id="size"><option value="1180,700">Desktop 1180 × 700</option><option value="390,844">Telefono 390 × 844</option><option value="844,390">Telefono 844 × 390</option><option value="360,740">Telefono 360 × 740</option></select><button id="prepare">Carriera di prova</button><button data-view="calendar">Calendario</button><button data-view="table">Gironi</button><button data-view="europe">Coppe</button><button id="home">Stagione</button><button id="prematch">Pre-partita</button><button id="trophy">Cinematica</button><select id="venue"><option>San Siro</option><option>Stadio Olimpico</option><option>Artemio Franchi</option><option>Luigi Ferraris</option><option>Ennio Tardini</option></select><button id="stadium">Stadio 3D</button><button id="regression">Test gara completa</button><button id="check">Controlla layout</button></nav><div id="status">Anteprima di sviluppo; nessun salvataggio della carriera.</div><iframe id="game" src="../index.html?v=tactics-15" width="1180" height="700" title="Gioco in verifica" allowfullscreen></iframe>
 <script>
 const frame=document.querySelector('iframe'),status=document.querySelector('#status');const win=()=>frame.contentWindow;
 function report(){const w=win(),d=w.document,active=d.querySelector('.screen.active');const over=active?[...active.querySelectorAll('*')].filter(e=>{const r=e.getBoundingClientRect();return r.width&&r.left< w.innerWidth&&r.right>w.innerWidth+2&&w.getComputedStyle(e).position!=='absolute'&&!e.closest('.v10-bracket,.table-wrap')}):[];status.textContent=`Viewport ${w.innerWidth} × ${w.innerHeight} · ${active?.id} · Elementi oltre il bordo: ${over.length}`}
@@ -11,6 +11,22 @@ document.querySelector('#home').onclick=()=>{win().renderSeason();win().show('se
 document.querySelector('#prematch').onclick=()=>{win().openPrematch(win().nextUserGame());setTimeout(report,100)};
 document.querySelector('#trophy').onclick=()=>{const w=win();w.S9Celebration.record({id:'preview_'+Date.now(),key:'cdc',user:'inter_9798',champion:'inter_9798',completed:true,phase:'DONE',roundHistory:{FINAL:[{winner:'inter_9798',twoLeg:false,legs:[{h:'inter_9798',a:'milan_9394',hg:2,ag:0}]}]}})};
 document.querySelector('#stadium').onclick=()=>{const w=win(),venue=document.querySelector('#venue').value;if(w.S9V10.matchContext?.mode==='friendly'){w.S9V10.matchContext.stadium=venue;w.show('match');return}w.S9Exhibition.start({home:'inter_9798',away:w.S9V10.italianIds.find(id=>id!=='inter_9798'),competition:'friendly',stadium:venue,final:false});w.S9Match3D.setMode('3d');w.launchMatch();setTimeout(()=>{w.document.querySelector('#pauseBtn').click();report()},250)};
+// A deterministic integration scenario, confined to this development page.
+document.querySelector('#regression').onclick=()=>{
+ const w=win();w.S9Save.putCareer=async()=>{};
+ w.S9Exhibition.start({home:'inter_9798',away:'milan_0607',competition:'friendly',stadium:'Artemio Franchi',spectator:false,final:true});
+ w.S9Match3D.setMode('highlights');
+ const original=w.buildMatch;
+ w.buildMatch=function(...args){
+  const m=original.apply(this,args);w.buildMatch=original;
+  const home=w.T(m.h).players,away=w.T(m.a).players;
+  m.events=[{min:1,type:'goal',outcome:'goal',source:'corner',side:'home',player:home[9],taker:home[7],assist:home[7]},
+   {min:46,type:'chance',outcome:'save',source:'penalty',side:'away',player:away[9],taker:away[9]},
+   {min:60,type:'chance',outcome:'miss',source:'corner',finish:'bicycle',side:'home',player:home[10],taker:home[7]}];
+  return m;
+ };
+ w.launchMatch().then(()=>{status.textContent='Gara di verifica terminata: controllare 1–0, intervallo e parata del rigore.'}).catch(e=>{status.textContent='ERRORE GARA: '+e.message});
+};
 document.querySelector('#check').onclick=report;
 frame.onload=()=>{win().addEventListener('error',e=>status.textContent='ERRORE: '+e.message);win().addEventListener('unhandledrejection',e=>status.textContent='PROMISE: '+e.reason)};
 </script></html>

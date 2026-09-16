@@ -25,25 +25,26 @@
   // Pause applies to players and ball, including a ball in flight.
   async function move(targets,ms=650,loft=false,realTime=false){
     const match=current,unique=new Map();
+    if(api.attacking&&!realTime)ms*=1.4;
     targets.forEach(t=>{if(t.el)unique.set(t.el,t)});
-    const motions=[...unique.values()].map(t=>({...t,start:pos(t.el)}));
-    motions.forEach(t=>t.el.style.transition='none');
+    const motions=[...unique.values()].map(t=>({...t,start:pos(t.el),startLift:Math.max(0,-Number(/translateY\((-?[\d.]+)px\)/.exec(t.el.style.transform||'')?.[1]||0))}));
+    motions.forEach(t=>{t.el.style.transition='none';if(t.pose){t.el.dataset.action=t.pose;t.el.dataset.actionDirection=t.direction||1}});
     await new Promise(resolve=>{
       let elapsed=0,last=null;
       function frame(now){
         if(current!==match||match._finished){resolve();return;}
-        if(last!==null&&!paused)elapsed+=Math.min(50,now-last)*(realTime?1:api.attacking&&window.S9Match3D?.mode!=='2d'?(Number(speed)>=4?1:Number(speed)>=2?1.15:1):Math.max(1,speed));
+        if(last!==null&&!paused&&!document.hidden)elapsed+=Math.min(50,now-last)*(realTime?1:api.attacking&&window.S9Match3D?.mode!=='2d'?(Number(speed)>=4?2:Number(speed)>=2?1.5:1):Math.max(1,speed));
         last=now;const progress=Math.min(1,elapsed/ms);
         motions.forEach(t=>{
           // La palla conserva una traiettoria regolare; i giocatori accelerano
           // e decelerano senza gli scatti lineari che spezzavano l'azione.
-          const amount=t.el.id==='ball'?progress:progress*progress*(3-2*progress);
+          const amount=t.el.id==='ball'?progress:progress*progress*(3-2*progress);if(t.pose)t.el.dataset.actionProgress=progress;
           t.el.style.left=(t.start.x+(t.x-t.start.x)*amount)+'%';
           t.el.style.top=(t.start.y+(t.y-t.start.y)*amount)+'%';
-          if(loft&&t.el.id==='ball')t.el.style.transform=`translate(-50%,-50%) translateY(${-Math.sin(progress*Math.PI)*35}px) scale(${1+Math.sin(progress*Math.PI)*.5})`;
+          if(t.el.id==='ball'){const lift=t.startLift*(1-progress)+(t.lift||0)*progress+(loft?Math.sin(progress*Math.PI)*35:0);t.el.style.transform=`translate(-50%,-50%) translateY(${-lift}px)`;}
         });
         if(progress<1)requestAnimationFrame(frame);
-        else{if(ball())ball().style.transform='translate(-50%,-50%)';resolve();}
+        else{motions.forEach(t=>{if(t.pose){delete t.el.dataset.action;delete t.el.dataset.actionProgress}});resolve();}
       }
       requestAnimationFrame(frame);
     });
@@ -98,16 +99,16 @@
   async function pass(side,receiver,target,cross=false){
     const b=ball();if(!receiver||!b)return;
     let from=carrier&&dots(side).includes(carrier)?carrier:field(side)[0];
-    if(from===receiver)from=field(side).find(d=>d!==receiver)||from;
+    if(from===receiver){label('CONDUZIONE');await move([...shape(side,target,[receiver]),{el:receiver,...target},{el:b,...target}],650);return;}
     if(!from)return;
     if(!carrier){const p=pos(from);b.style.left=p.x+'%';b.style.top=p.y+'%';}
     label(cross?'CROSS IN AREA':'PASSAGGIO');
-    await move([...shape(side,target,[receiver,from]),{el:receiver,...target},{el:b,...target}],api.attacking?(cross?1100:900):950,cross);
+    await move([...shape(side,target,[receiver,from]),{el:receiver,...target},{el:b,...target,lift:cross?22:0}],api.attacking?(cross?1100:900):2400,cross);
     carrier=receiver;possession=side;
   }
   api.openPlay=async function(minute){
     const side=possession,players=field(side);if(players.length<2)return;
-    if(!carrier||!players.includes(carrier)){
+    if(!carrier||!dots(side).includes(carrier)){
       carrier=players[(minute+1)%players.length];const start=pos(carrier);
       if(ball()){ball().style.left=start.x+'%';ball().style.top=start.y+'%';}
     }
@@ -151,10 +152,11 @@
     // World goal mouth: z 30.34–37.66 (44.62–55.38 percent).
     const y=outcome==='miss'?(seed%2?35:65):outcome==='post'?44.62:47+(seed%7);
     const target=at(outcome==='save'?95:outcome==='goal'?101:100,y);
-    label(firstTime?'TIRO AL VOLO':'TIRO');
-    await move([{el:keeper,...at(96,clamp(y,45,55))},{el:shooter,...at(91,pos(shooter).y)},{el:ball(),...target}],firstTime?540:650);
+    const finish=api.event?.finish||(firstTime?(seed%11===0?'bicycle':seed%2?'header':'volley'):'shot');
+    label(({header:'COLPO DI TESTA',bicycle:'ROVESCIATA',volley:'TIRO AL VOLO'})[finish]||'TIRO');
+    await move([{el:keeper,...at(98,clamp(y,45,55)),pose:'dive',direction:y<50?-1:1},{el:shooter,...(firstTime?pos(shooter):{x:pos(shooter).x+(right(side)?1:-1)*2,y:pos(shooter).y}),pose:finish},{el:ball(),...target}],firstTime?540:650);
     if(outcome==='save'){
-      label('PARATA');await move([{el:ball(),...at(96,clamp(y,45,55))}],300);possession=opposite(side);carrier=null;
+      label('PARATA');await move([{el:ball(),...(keeper?pos(keeper):at(98,clamp(y,45,55)))}],300);possession=opposite(side);carrier=keeper||null;
     }else if(outcome==='post'){
       label('PALO');await move([{el:ball(),...at(91,39)}],450);carrier=null;
     }else{label(outcome==='goal'?'RETE!':'TIRO FUORI');carrier=null;}
@@ -168,6 +170,17 @@
     const at=(x,y)=>({x:xFor(side,x),y});
     api.attacking=true;carrier=null;
     try{
+      if(e.source==='penalty'){
+        const keeper=dots(opposite(side)).find(d=>d.dataset.role==='GK'),spot=at(89.52,50);
+        label('CALCIO DI RIGORE');
+        await move([...['home','away'].flatMap(team=>field(team).filter(d=>d!==shooter).map((d,i)=>({el:d,...at(72-i%4*2,16+i*3)}))),{el:keeper,...at(99.5,50)},{el:shooter,...at(86,50)},{el:ball(),...spot}],900);
+        await move([],800);label('RINCORSA');await move([{el:shooter,...spot}],650);
+        const y=outcome==='miss'?(seed%2?38:62):seed%2?46:54;
+        label('TIRO DAL DISCHETTO');
+        await move([{el:ball(),...at(outcome==='save'?98.5:102,y)},{el:keeper,...at(99,outcome==='save'?y:100-y),pose:'dive',direction:y<50?-1:1},{el:shooter,...spot,pose:'volley'}],650);
+        if(outcome==='save'){possession=opposite(side);carrier=keeper||null;if(keeper)await move([{el:ball(),...pos(keeper)}],180);}
+        label(outcome==='goal'?'GOL SU RIGORE':outcome==='save'?'RIGORE PARATO':'RIGORE FUORI');await move([],900);return;
+      }
       // Palla inattiva: niente costruzione dal basso, la palla parte
       // direttamente dalla bandierina d'angolo o dal punto di punizione,
       // con il battitore designato dalla tattica della squadra.
@@ -181,7 +194,7 @@
           carrier=taker;
           const box=at(88,47+seed%7);
           label('CROSS IN AREA');
-          await move([...shape(side,box,[taker,finisher]),{el:finisher,...box},{el:ball(),...box}],760,true);
+          await move([...shape(side,box,[taker,finisher]),{el:finisher,...box},{el:ball(),...box,lift:22}],760,true);
           carrier=finisher;
           await resolveShot(side,finisher,outcome,seed,at,match,true);
           return;
@@ -213,6 +226,14 @@
         await pass(side,shooter,at(82,48));
       }else{
         await pass(side,shooter,at(71,46));await pass(side,support,at(76,58));await pass(side,shooter,at(81,50));
+      }
+      if(pattern===0||pattern===3){
+        const defender=field(opposite(side)).find(d=>d!==shooter),p=pos(shooter),dir=right(side)?1:-1;
+        if(defender){
+          label(pattern===0?'TUNNEL':'DRIBBLING');
+          await move([{el:defender,x:p.x+dir*2,y:p.y},{el:ball(),x:p.x+dir*4,y:p.y}],350);
+          await move([{el:shooter,x:p.x+dir*5,y:p.y+2},{el:ball(),x:p.x+dir*5,y:p.y+2},{el:defender,x:p.x+dir*2,y:p.y-2}],550);carrier=shooter;
+        }
       }
       await resolveShot(side,shooter,outcome,seed,at,match,pattern===1||pattern===2);
     }finally{api.attacking=false;}

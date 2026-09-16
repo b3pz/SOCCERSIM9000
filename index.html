@@ -708,7 +708,7 @@ main{max-width:none!important;padding:0!important}
 @media(max-height:500px){#mainMenu #cupsModeBtn .cups-mode-icon{width:40px!important;height:36px!important}}
 </style>
 
-<link rel="stylesheet" href="css/game.css?v=match-intro-2">
+<link rel="stylesheet" href="css/game.css?v=tactics-15">
 <link rel="stylesheet" href="css/v106-match-experience.css?v=2">
 </head>
 <body>
@@ -1445,7 +1445,7 @@ function buildMatch(h,a){
  const ag=Math.min(6,poisson(Math.max(.2,1.02+(ap-hp)/22+(attack(a)-keeperQuality(h))*.014)));
  const ev=[],goalMinutes=[];
  // Battitore designato dalla tattica del club per angoli e punizioni dirette.
- const setPieceTaker=(id,key)=>{const st=career.teamStates[id],pid=st.setPieces?.[key];return st.players.find(p=>p.id===pid)};
+ const setPieceTaker=(id,key)=>{const st=career.teamStates[id],pid=st.setPieces?.[key];return st.players.find(p=>p.id===pid&&st.lineup.includes(p.id))};
  const goalEv=(id,count,side)=>{for(let i=0;i<count;i++){
   const scorer=weightedAttacker(id),pool=attackers(id).filter(x=>x.id!==scorer.id&&x.pos!=='GK');
   let min=rand(4,89);for(let tries=0;tries<30&&goalMinutes.some(m=>Math.abs(m-min)<3);tries++)min=rand(4,89);
@@ -1458,7 +1458,9 @@ function buildMatch(h,a){
    ev.push({min,type:'goal',outcome:'goal',side,player:taker,assist:null,source:'freekick',taker});
   }else if(dead<.22){
    const taker=setPieceTaker(id,Math.random()<.5?'cornerL':'cornerR')||scorer;
-   ev.push({min,type:'goal',outcome:'goal',side,player:scorer,assist:taker.id!==scorer.id?taker:null,source:'corner',taker});
+   const receiver=scorer.id!==taker.id?scorer:pool.find(p=>p.id!==taker.id);
+   if(receiver)ev.push({min,type:'goal',outcome:'goal',side,player:receiver,assist:taker,source:'corner',taker});
+   else ev.push({min,type:'goal',outcome:'goal',side,player:scorer,assist:null});
   }else{
    ev.push({min,type:'goal',outcome:'goal',side,player:scorer,assist:pool.length?pick(pool):null});
   }
@@ -1473,7 +1475,8 @@ function buildMatch(h,a){
   const dead=Math.random(),isFreekick=dead<.08,isCorner=!isFreekick&&dead<.28;
   if(isFreekick||isCorner){
    const taker=setPieceTaker(id,isFreekick?'direct':(Math.random()<.5?'cornerL':'cornerR'))||weightedAttacker(id);
-   const shooter=isFreekick?taker:weightedAttacker(id);
+   let shooter=isFreekick?taker:weightedAttacker(id);
+   if(isCorner&&shooter.id===taker.id)shooter=attackers(id).find(p=>p.pos!=='GK'&&p.id!==taker.id)||shooter;
    const outcome=nonGoalOutcome(shooter,keeperQuality(side==='home'?a:h),posts);if(outcome==='post')posts++;
    ev.push({min,type:'chance',outcome,side,player:shooter,source:isFreekick?'freekick':'corner',taker});
   }else{
@@ -1481,6 +1484,15 @@ function buildMatch(h,a){
    const outcome=nonGoalOutcome(player,keeperQuality(side==='home'?a:h),posts);if(outcome==='post')posts++;
    ev.push({min,type:'chance',outcome,side,player});
   }
+ }
+ // Penalties during normal play are engine events, with one stored outcome.
+ if(Math.random()<.27){
+  const side=Math.random()<share?'home':'away',id=side==='home'?h:a,opponent=side==='home'?a:h;
+  const designated=setPieceTaker(id,'penalty'),st=career.teamStates[id];
+  const taker=designated&&st.lineup.includes(designated.id)?designated:weightedAttacker(id);
+  const probability=Math.max(.62,Math.min(.88,.76+(shotQuality(taker)-keeperQuality(opponent))*.003));
+  const outcome=Math.random()<probability?'goal':Math.random()<.72?'save':'miss';
+  ev.push({min:rand(7,87),type:outcome==='goal'?'goal':'chance',outcome,side,player:taker,taker,assist:null,source:'penalty'});
  }
  const foulers=id=>career.teamStates[id].players.filter(p=>p.pos!=='GK'&&career.teamStates[id].lineup.includes(p.id));
  for(const type of ['card','foul'])for(let i=0,n=type==='card'?rand(1,4):rand(2,4);i<n;i++){
@@ -1498,7 +1510,7 @@ function buildMatch(h,a){
 // `current._tacticsDirty=true`. Il disegno vero avviene qui, al primo
 // fotogramma libero, cosi' non interrompe un'animazione già in corso.
 function refreshTacticsPitch(){
- if(current&&current._tacticsDirty){current._tacticsDirty=false;setupPitch();}
+ if(current&&current._tacticsDirty&&!window.S9MatchVisual?.attacking&&!window.S9Match3D?.eventActive&&!window.S9Match3D?.celebrating){current._tacticsDirty=false;setupPitch();}
 }
 function setupPitch(){
  let p=$("#pitch"); if(!p||!current)return;
@@ -1636,6 +1648,7 @@ async function animAttack(side,outcome="chance"){
 }
 async function doEvent(e){
  while(paused)await wait(250);current.minute=e.min;updateScore();
+ if(e.source==='penalty'){whistle();log(`${e.min}' CALCIO DI RIGORE · ${T(e.side==='home'?current.h:current.a).name} · ${e.player.name}`,e.side);current.keyEvents.push(`${e.min}' RIGORE · ${e.player.name}`)}
 
  if(e.type==="chance"){
    let team=T(e.side==="home"?current.h:current.a);
@@ -1797,7 +1810,7 @@ async function launchMatch(){
  paused=true;
  $("#halftimeScore").innerHTML=`<h2>${T(current.h).name} ${T(current.h).season} ${current.scoreH} - ${current.scoreA} ${T(current.a).name} ${T(current.a).season}</h2>`;
  $("#halftimeStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}`;
- show("halftime"); await new Promise(r=>halfResolver=r); paused=false;show("match");await playHalf(46,90);log("90' FINE PARTITA");
+ const intervalDone=new Promise(r=>halfResolver=r);if(!window.S9Match3D?.showInterval?.())show("halftime");await intervalDone;window.S9Match3D?.endInterval?.();paused=false;$("#pauseBtn").textContent="⏸ PAUSA";show("match");if(window.S9MatchVisual?.kickoff)await S9MatchVisual.kickoff(coinToss?.kickoffSide==='away'?'home':'away');await playHalf(46,90);log("90' FINE PARTITA");
  if(window.S9V10?.finishPlayedTie)await S9V10.finishPlayedTie();
  if(!window.S9V10?.matchContext){
  let games=career.fixtures[career.round];for(const [h,a] of games){if(h===current.h&&a===current.a)continue;simOther(h,a)}
@@ -1819,7 +1832,14 @@ $("#startMatch").onclick=()=>{
  show("kits");
 };
 $("#confirmKits").onclick=()=>launchMatch();
-$("#resumeSecond").onclick=()=>{if(halfResolver){current.half=2;current.minute=45;setupPitch();updateScore();log("45' Le squadre cambiano campo. Inizia il secondo tempo.","neutral");let r=halfResolver;halfResolver=null;r()}}
+$("#resumeSecond").onclick=()=>{
+ if(!halfResolver||!current)return;
+ const resume=halfResolver;halfResolver=null;
+ current.half=2;current.minute=45;paused=false;tacticsWasPaused=false;
+ $("#tacticsModal").style.display="none";
+ try{setupPitch();updateScore();log("45' Le squadre cambiano campo. Inizia il secondo tempo.","neutral")}
+ finally{resume()}
+}
 $("#returnSeason").onclick=()=>{renderSeason();show("season")}
 
 $("#pauseBtn").onclick=()=>{paused=!paused;$("#pauseBtn").textContent=paused?"RIPRENDI":"PAUSA"}
@@ -2375,62 +2395,32 @@ renderTeamPicker();
 <script src="js/v7-release.js?v=12"></script>
 <script src="js/v71-final-polish.js?v=10-final-3"></script>
 <script src="js/v72-publication-ui.js?v=10-final-3"></script>
-<script src="js/v73-alignment-fix.js?v=11-1"></script>
-<script src="js/v75-browser-compat.js?v=19-2-touchfix"></script>
+<script src="js/v73-alignment-fix.js?v=stability-13"></script>
+<script src="js/v75-browser-compat.js?v=19-1"></script>
 <script src="js/v76-match-ui.js?v=team-season-1"></script>
-<script src="js/v80-safari-iphone.js?v=23-2-touchfix"></script>
+<script src="js/v80-safari-iphone.js?v=23-1"></script>
 <script src="js/v91-final-touches.js?v=12-1"></script>
 <script src="js/v10-data.js?v=3d-1"></script>
-<script src="js/v10-release.js?v=presentation-2"></script>
+<script src="js/v10-release.js?v=stability-13"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
-<script src="js/match-coherence.js?v=fluid-actions-1"></script>
+<script src="js/match-coherence.js?v=stability-13"></script>
 <script src="js/kit-profiles.js?v=1"></script>
 <script src="js/asset-quality.js?v=1"></script>
-<script src="js/football-3d.js?v=1"></script>
+<script src="js/football-3d.js?v=stability-13"></script>
 <script src="js/kit-presentation.js?v=1"></script>
-<script src="js/match-3d.js?v=broadcast-tv-2"></script>
+<script src="js/match-3d.js?v=stability-13"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
-<script src="js/match-intro.js?v=cinematic-tv-5"></script>
-<script src="js/trophy-ceremony.js?v=finale-cinematic-1"></script>
-<script src="js/exhibition.js?v=stadium-identity-2"></script>
+<script src="js/match-intro.js?v=stability-13"></script>
+<script src="js/trophy-ceremony.js?v=lap-close-14"></script>
+<script src="js/exhibition.js?v=stability-13"></script>
 <script src="js/v106-match-experience.js?v=presentation-2"></script>
 <script src="js/v107-cup-polish.js?v=team-season-1"></script>
 <script src="js/v108-complete-match-flow.js?v=team-season-1"></script>
 <script src="js/v110-prematch-ceremony.js?v=team-season-1"></script>
 <script src="js/presentation.js?v=presentation-2"></script>
-<script src="js/tactics-redesign.js?v=slot-order-1"></script>
+<script src="js/tactics-redesign.js?v=stability-13"></script>
 
 <!-- Patch 15: logo SerieA 9000 SIM aggiornato, logo pagine interne spostato dal centro, sfondo Coppe sostituito con versione trofei/stadio approvata. -->
-<script>
-/* DIAGNOSTICA TOUCH — attiva solo con ?debug=1 nell'URL. Non tocca il gioco. */
-(function(){
-  'use strict';
-  if(!/[?&]debug=1(&|$)/.test(location.search)) return;
-  var badge=document.createElement('div');
-  badge.id='s9DebugBadge';
-  badge.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:rgba(0,0,0,.92);color:#0f0;font:11px/1.4 monospace;padding:8px;max-height:46vh;overflow:auto;white-space:pre-wrap;pointer-events:none;border-top:2px solid #0f0';
-  badge.textContent='DEBUG TOUCH ATTIVO — tocca lo schermo per vedere cosa blocca il click qui sotto.';
-  document.documentElement.appendChild(badge);
-  function describe(x,y,label){
-    var el=document.elementFromPoint(x,y);
-    var lines=[label+' @ ('+Math.round(x)+','+Math.round(y)+')  html.class="'+document.documentElement.className+'"'];
-    var n=el, i=0;
-    while(n && i<10){
-      var cs=getComputedStyle(n);
-      var cls=(n.className&&typeof n.className==='string')?'.'+n.className.trim().split(/\s+/).join('.'):'';
-      lines.push('  '+(n.id?'#'+n.id:'(no-id)')+cls+' <'+n.tagName+'> z='+cs.zIndex+' pos='+cs.position+' disp='+cs.display+' vis='+cs.visibility+' pe='+cs.pointerEvents+' opa='+cs.opacity);
-      n=n.parentElement; i++;
-    }
-    badge.textContent=lines.join('\n');
-  }
-  document.addEventListener('touchstart',function(e){
-    if(!e.touches||!e.touches[0])return;
-    describe(e.touches[0].clientX,e.touches[0].clientY,'TOUCHSTART');
-  },true);
-  document.addEventListener('click',function(e){
-    describe(e.clientX,e.clientY,'CLICK');
-  },true);
-})();
-</script>
+<script src="js/tactical-workspace.js?v=tactics-15"></script>
 </body>
 </html>

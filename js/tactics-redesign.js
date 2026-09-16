@@ -52,8 +52,8 @@ function installShell(){
    <button type="button" id="doSub" disabled>CONFERMA CAMBIO</button>
   </div>
   <main class="s9-squad-columns">
-   <section class="s9-squad-list"><header><span>TITOLARI</span><small>Seleziona il giocatore da sostituire</small></header><div id="startersTable"></div></section>
-   <section class="s9-squad-list bench"><header><span>PANCHINA</span><small>Seleziona il giocatore da inserire</small></header><div id="benchTable"></div></section>
+   <section class="s9-squad-list"><header><span>TITOLARI</span><small>Seleziona il giocatore da sostituire</small></header><div id="startersTable" tabindex="0" aria-label="Scorri i titolari"></div></section>
+   <section class="s9-squad-list bench"><header><span>PANCHINA</span><small>Seleziona il giocatore da inserire</small></header><div id="benchTable" tabindex="0" aria-label="Scorri la panchina"></div></section>
   </main>
   <details class="s9-squad-setpieces"><summary>BATTITORI E CALCI PIAZZATI</summary><div id="liveSetPieces"></div></details>
   </div>
@@ -81,6 +81,7 @@ function bindCards(){
  });
 }
 function openSquadRoom(){
+ if(window.S9V10?.matchContext?.spectator)return;
  installShell();const st=career?.teamStates?.[career.user],team=career&&T(career.user);if(!st||!team)return;
  const modal=$('#tacticsModal');if(modal.style.display!=='flex')tacticsWasPaused=paused;paused=true;selectedOut=null;selectedIn=null;
  if(document.activeElement instanceof HTMLElement)document.activeElement.blur();

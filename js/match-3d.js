@@ -3,12 +3,12 @@
 'use strict';
 const MODES=['2d','3d','highlights'];
 let mode='3d';try{const saved=localStorage.getItem('s9-match-view');if(MODES.includes(saved))mode=saved}catch(e){}
-let canvas,ctx,frameId=0,trackedMatch=null,kitVersion=0,lastTime=0,eventActive=false,broadcastHud=null,broadcastSignature='';
+let canvas,ctx,frameId=0,trackedMatch=null,kitVersion=0,lastTime=0,eventActive=false,broadcastHud=null,broadcastSignature='',tacticsOrigin=null;
+let intervalPanel=null,intervalActive=false,fullscreenExitPending=false;
 let uniforms={},playerDots=[],pitchHalf=0,pendingSetup=false;
 let visualTime=0,visualLast=0;
-let grassTextureCache=null;
 let followCamera=newCamera();
-function newCamera(){return {x:52.5,z:34,vx:0,vz:0,last:0,blend:0,ballX:52.5,ballZ:34,lead:0}}
+function newCamera(){return {x:52.5,z:34,vx:0,vz:0,last:0,blend:0,ballX:52.5,ballZ:34,lead:0,fit:null}}
 let highlightState=null; // camera delle azioni salienti: segue il pallone ma senza orbitare attorno alla scena
 let celebrationState=null; // breve cinematica fissa del gol con esultanza di gruppo
 function attackInfo(side){
@@ -22,7 +22,8 @@ function attackInfo(side){
 function beginHighlight(side){highlightState=attackInfo(side)}
 // A critically damped translation on one fixed stadium side. No azimuth changes.
 function followedCamera(now,ball){
- const c=followCamera,dt=c.last?Math.min(.08,(now-c.last)/1000):.033;c.last=now;
+ const c=followCamera,dt=c.last?Math.min(.08,Math.max(0,(now-c.last)/1000)):.016;c.last=now;
+ if(!dt&&c.view)return c.view;
  const active=highlightState?1:0;
  c.blend+=(active-c.blend)*(1-Math.exp(-dt/.65));
  const velocity=clamp((ball.x-c.ballX)/dt,-22,22);
@@ -40,7 +41,7 @@ function followedCamera(now,ball){
  // Nelle azioni salienti (blend->1) la telecamera si stringe molto di piu' di
  // prima: meno campo inquadrato, meno altezza, meno distanza dal pallone.
  const span=35-c.blend*15+widening;
- return {eye:[c.x,38-c.blend*14,c.z+76-c.blend*32],target:[c.x,.7,c.z],fov:43,
+ return c.view={eye:[c.x,38-c.blend*14,c.z+76-c.blend*32],target:[c.x,.7,c.z],fov:43,
   bounds:[[c.x-span,0,-3+c.blend*18],[c.x+span,0,-3+c.blend*18],[c.x-span,3.5,71-c.blend*18],[c.x+span,3.5,71-c.blend*18]],spanX:span};
 }
 function makeCelebrationState(side,scorerId){
@@ -96,7 +97,7 @@ window.animAttack=async function(side,outcome){
 };
 animAttack=window.animAttack;
 const positions=new Map(),boards=new Map(),crowds=new Map(),identityBoards=new Map(),scoreboards=new Map(),crestBoards=new Map();
-const api=window.S9Match3D={get mode(){return mode},get eventActive(){return eventActive},get celebrating(){return !!celebrationState},waitCelebration:waitForCelebration,celebrate,setMode,crowdTexture,stadiumIdentityTexture,stadiumScoreboardTexture,stadiumCrestTexture,sponsorBoardTexture};
+const api=window.S9Match3D={get mode(){return mode},get intermission(){return intervalActive},showInterval,endInterval,get eventActive(){return eventActive},get celebrating(){return !!celebrationState},waitCelebration:waitForCelebration,celebrate,setMode,drawStadium:(context,project,w,h,options={})=>drawField(graphics.scene(context,project),project,w,h,null,context,{...options,external:true}),crowdTexture,stadiumIdentityTexture,stadiumScoreboardTexture,stadiumCrestTexture,sponsorBoardTexture};
 const graphics=window.S9Football3D;
 // Texture "folla": generata una volta per tribuna e messa in cache (stesso
 // pattern di `boards` sopra per i cartelloni), cosi' non si ridisegna ogni
@@ -286,28 +287,65 @@ function broadcastActive(){
 function updateBroadcastHud(){
  if(!broadcastHud||!current)return;
  const home=T(current.h),away=T(current.a),action=document.querySelector('#currentAction .action-text')?.textContent||'',minute=String(current.minute||0).padStart(2,'0')+"'",half=(current.half===2||current.minute>45)?'2T':'1T';
- const signature=[current.h,current.a,current.scoreH,current.scoreA,minute,half,action,celebrationState?.scorerName||''].join('|');if(signature===broadcastSignature)return;broadcastSignature=signature;
+ const actionMinute=document.querySelector('#currentAction .action-minute')?.textContent||minute;
+ const signature=[actionMinute,current.h,current.a,current.scoreH,current.scoreA,minute,half,action,celebrationState?.scorerName||'',paused,speed].join('|');if(signature===broadcastSignature)return;broadcastSignature=signature;
  const put=(selector,value)=>{const el=broadcastHud.querySelector(selector);if(el)el.textContent=value};
- put('.s9-tv-clock',`${half}  ${minute}`);put('.s9-tv-home-name',`${home.name} ${home.season}`);put('.s9-tv-away-name',`${away.name} ${away.season}`);put('.s9-tv-home-score',current.scoreH);put('.s9-tv-away-score',current.scoreA);put('.s9-tv-event-minute',minute);put('.s9-tv-event-text',action);
+ put('.s9-tv-clock',`${half}  ${minute}`);put('.s9-tv-home-name',`${home.name} ${home.season}`);put('.s9-tv-away-name',`${away.name} ${away.season}`);put('.s9-tv-home-score',current.scoreH);put('.s9-tv-away-score',current.scoreA);put('.s9-tv-event-minute',actionMinute);put('.s9-tv-event-text',action);
+ const event=broadcastHud.querySelector('.s9-tv-event');if(event)event.hidden=current.minute>parseInt(actionMinute,10)+1||!/(GOL|TIRO|PARAT|PALO|FUORIGIOCO|FALLO|AMMON|ESPUL|RIGORE|ANGOLO|PUNIZIONE)/i.test(action);
  const hi=broadcastHud.querySelector('.s9-tv-home-crest'),ai=broadcastHud.querySelector('.s9-tv-away-crest');if(hi&&hi.dataset.team!==current.h){hi.dataset.team=current.h;hi.src=crestSource(current.h)}if(ai&&ai.dataset.team!==current.a){ai.dataset.team=current.a;ai.src=crestSource(current.a)}
- const goal=broadcastHud.querySelector('.s9-tv-goal');if(goal){goal.querySelector('strong').textContent=celebrationState?.scorerName||'GOL';goal.querySelector('span').textContent=celebrationState?.teamName||'';goal.classList.toggle('show',!!celebrationState)}
+ const goal=broadcastHud.querySelector('.s9-tv-goal');if(goal){goal.querySelector('strong').textContent=celebrationState?.scorerName||'GOL';goal.querySelector('span').textContent=celebrationState?.teamName||'';goal.hidden=!celebrationState;goal.classList.toggle('show',!!celebrationState)}
+ const pause=broadcastHud.querySelector('.s9-tv-pause');if(pause){pause.textContent=paused?'▶':'Ⅱ';pause.setAttribute('aria-label',paused?'Riprendi la partita':'Metti in pausa la partita')}
+ put('.s9-tv-speed',`${speed}×`);
 }
+function parkTacticsForBroadcast(){
+ const modal=document.getElementById('tacticsModal'),wrap=document.getElementById('pitchWrap90');if(!modal||!wrap)return;
+ if(!tacticsOrigin)tacticsOrigin={parent:modal.parentNode,next:modal.nextSibling};
+ if(modal.parentNode!==wrap)wrap.appendChild(modal);
+}
+function restoreTacticsModal(){
+ const modal=document.getElementById('tacticsModal');if(!modal||!tacticsOrigin)return;
+ const {parent,next}=tacticsOrigin;if(next&&next.parentNode===parent)parent.insertBefore(modal,next);else parent.appendChild(modal);tacticsOrigin=null;
+}
+function toggleBroadcastPause(){document.getElementById('pauseBtn')?.click();broadcastSignature='';updateBroadcastHud();wake()}
+function cycleBroadcastSpeed(){
+ const next=Number(speed)===1?2:Number(speed)===2?4:1;
+ document.querySelector(`#match [data-speed="${next}"]`)?.click();broadcastSignature='';updateBroadcastHud();wake();
+}
+function openBroadcastTactics(){parkTacticsForBroadcast();document.getElementById('tacticsBtn')?.click();broadcastSignature='';updateBroadcastHud()}
 function installBroadcastLayer(){
  const wrap=document.getElementById('pitchWrap90');if(!wrap||wrap.querySelector('.s9-tv-layer'))return;
- broadcastHud=document.createElement('div');broadcastHud.className='s9-tv-layer';broadcastHud.innerHTML=`<div class="s9-tv-scorebug"><div class="s9-tv-channel">S9 90 <i>LIVE</i></div><div class="s9-tv-clock">1T&nbsp;&nbsp;00'</div><div class="s9-tv-team"><img class="s9-tv-home-crest" alt=""><span class="s9-tv-home-name">CASA</span><b class="s9-tv-home-score">0</b></div><div class="s9-tv-team"><img class="s9-tv-away-crest" alt=""><span class="s9-tv-away-name">OSPITI</span><b class="s9-tv-away-score">0</b></div></div><div class="s9-tv-watermark">SERIEA 9000 SIM</div><div class="s9-tv-event"><b class="s9-tv-event-minute">00'</b><span class="s9-tv-event-text"></span></div><div class="s9-tv-goal"><small>GOL</small><strong>MARCATORE</strong><span></span></div><button type="button" class="s9-tv-exit" aria-label="Esci dalla modalità televisiva">✕</button>`;
- wrap.appendChild(broadcastHud);broadcastHud.querySelector('.s9-tv-exit').onclick=toggleFullscreen;updateBroadcastHud();
+ broadcastHud=document.createElement('div');broadcastHud.className='s9-tv-layer';broadcastHud.innerHTML=`<div class="s9-tv-scorebug"><div class="s9-tv-channel">S9 90 <i>LIVE</i></div><div class="s9-tv-clock">1T&nbsp;&nbsp;00'</div><div class="s9-tv-team"><img class="s9-tv-home-crest" alt=""><span class="s9-tv-home-name">CASA</span><b class="s9-tv-home-score">0</b></div><div class="s9-tv-team"><img class="s9-tv-away-crest" alt=""><span class="s9-tv-away-name">OSPITI</span><b class="s9-tv-away-score">0</b></div></div><div class="s9-tv-watermark">SERIEA 9000 SIM</div><div class="s9-tv-event" hidden><b class="s9-tv-event-minute">00'</b><span class="s9-tv-event-text"></span></div><div class="s9-tv-goal" hidden aria-live="polite"><small>GOL</small><strong>MARCATORE</strong><span></span></div><div class="s9-tv-controls" aria-label="Comandi partita"><button type="button" class="s9-tv-pause" aria-label="Metti in pausa la partita">Ⅱ</button><button type="button" class="s9-tv-speed" aria-label="Cambia velocità">1×</button><button type="button" class="s9-tv-tactics" aria-label="Apri tattica e cambi">⚙</button></div><button type="button" class="s9-tv-exit" aria-label="Esci dalla modalità televisiva">✕</button>`;
+ document.getElementById('pitch').appendChild(broadcastHud);broadcastHud.querySelector('.s9-tv-exit').onclick=toggleFullscreen;broadcastHud.querySelector('.s9-tv-pause').onclick=toggleBroadcastPause;broadcastHud.querySelector('.s9-tv-speed').onclick=cycleBroadcastSpeed;broadcastHud.querySelector('.s9-tv-tactics').onclick=openBroadcastTactics;updateBroadcastHud();
 }
+function showInterval(){
+ if(!broadcastActive())return false;
+ intervalActive=true;const wrap=document.getElementById('pitchWrap90');
+ if(!intervalPanel){
+  intervalPanel=document.createElement('div');intervalPanel.className='s9-tv-interval';intervalPanel.setAttribute('role','dialog');intervalPanel.setAttribute('aria-label','Intervallo');
+  intervalPanel.innerHTML='<div><small>INTERVALLO</small><h2></h2><p class="s9-interval-stats"></p><button class="s9-interval-resume">SECONDO TEMPO ▶</button><button class="s9-interval-tactics">TATTICA E CAMBI</button><button class="s9-interval-exit">ESCI DALLA MODALITÀ TV</button></div>';
+  wrap.appendChild(intervalPanel);
+  intervalPanel.querySelector('.s9-interval-resume').onclick=()=>document.getElementById('resumeSecond').click();
+  intervalPanel.querySelector('.s9-interval-tactics').onclick=openBroadcastTactics;
+  intervalPanel.querySelector('.s9-interval-exit').onclick=toggleFullscreen;
+ }
+ intervalPanel.querySelector('h2').textContent=`${T(current.h).name} ${T(current.h).season} ${current.scoreH} – ${current.scoreA} ${T(current.a).name} ${T(current.a).season}`;
+ intervalPanel.querySelector('.s9-interval-stats').textContent=`Tiri ${current.stats.shotsH} – ${current.stats.shotsA} · In porta ${current.stats.onH} – ${current.stats.onA}`;
+ intervalPanel.querySelector('.s9-interval-tactics').hidden=!!window.S9V10?.matchContext?.spectator;
+ intervalPanel.hidden=false;intervalPanel.querySelector('.s9-interval-resume').focus({preventScroll:true});return true;
+}
+function endInterval(){intervalActive=false;if(intervalPanel)intervalPanel.hidden=true;}
+function revealNormalInterval(){if(intervalActive){if(intervalPanel)intervalPanel.hidden=true;show('halftime')}}
 function updateFullscreenButton(){
  const button=document.querySelector('#match .s9-fullscreen-btn'),match=document.getElementById('match');if(!button||!match)return;
- const active=broadcastActive();match.classList.toggle('s9-broadcast-active',active);
+ const active=match.classList.contains('active')&&broadcastActive();if(match.classList.contains('s9-broadcast-active')!==active)match.classList.toggle('s9-broadcast-active',active);
  button.textContent=active?'✕ ESCI DALLA DIRETTA':'▣ MODALITÀ TV';button.setAttribute('aria-label',active?'Esci dalla modalità televisiva':'Apri solo la partita in modalità televisiva');button.setAttribute('aria-pressed',String(active));
 }
 async function toggleFullscreen(){
  const match=document.getElementById('match'),wrap=document.getElementById('pitchWrap90');if(!match||!wrap)return;
  if(fullscreenElement()===wrap){
-  const exit=document.exitFullscreen||document.webkitExitFullscreen;if(exit){try{await exit.call(document)}catch(e){}}match.classList.remove('s9-broadcast-active');updateFullscreenButton();return;
+  const exit=document.exitFullscreen||document.webkitExitFullscreen;if(exit){try{await exit.call(document)}catch(e){}}match.classList.remove('s9-broadcast-active');restoreTacticsModal();revealNormalInterval();updateFullscreenButton();return;
  }
- if(match.classList.contains('s9-broadcast-expanded')){match.classList.remove('s9-broadcast-expanded','s9-broadcast-active');updateFullscreenButton();return;}
+ if(match.classList.contains('s9-broadcast-expanded')){match.classList.remove('s9-broadcast-expanded','s9-broadcast-active');restoreTacticsModal();revealNormalInterval();updateFullscreenButton();return;}
  setMode('3d');installBroadcastLayer();updateBroadcastHud();
  const request=wrap.requestFullscreen||wrap.webkitRequestFullscreen;
  if(request){try{await request.call(wrap);match.classList.add('s9-broadcast-active');updateFullscreenButton();wake();return}catch(e){}}
@@ -317,7 +355,7 @@ function installFullscreenControl(){
  const controlsEl=document.querySelector('#match .match-controls');if(!controlsEl||controlsEl.querySelector('.s9-fullscreen-btn'))return;
  const button=document.createElement('button');button.type='button';button.className='s9-fullscreen-btn';button.onclick=toggleFullscreen;
  const choice=controlsEl.querySelector('.s9-view-choice');choice?controlsEl.insertBefore(button,choice):controlsEl.appendChild(button);updateFullscreenButton();
- const onFullscreenChange=()=>{const match=document.getElementById('match');if(!fullscreenElement())match?.classList.remove('s9-broadcast-active');updateFullscreenButton();wake()};
+ const onFullscreenChange=()=>{const match=document.getElementById('match');if(!fullscreenElement()){match?.classList.remove('s9-broadcast-active');restoreTacticsModal();revealNormalInterval()}updateFullscreenButton();wake()};
  document.addEventListener('fullscreenchange',onFullscreenChange);document.addEventListener('webkitfullscreenchange',onFullscreenChange);
 }
 function ensureCanvas(){
@@ -349,31 +387,11 @@ function ballWorldPosition(){
   lift:lift?-Number(lift[1])/12:0
  };
 }
-function grassTexture(){
- if(grassTextureCache)return grassTextureCache;
- const c=document.createElement('canvas');c.width=840;c.height=544;
- const g=c.getContext('2d');
- if(!g)return c;
- g.fillStyle='#347f4d';g.fillRect(0,0,c.width,c.height);
- // Texture dell'erba deterministica: viene generata una volta sola, quindi
- // non scintilla tra un fotogramma e l'altro.
- let seed=9000;
- const rnd=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296);
- for(let i=0;i<14500;i++){
-  const x=rnd()*c.width,y=rnd()*c.height,len=.6+rnd()*1.8;
-  g.strokeStyle=rnd()>.48?'rgba(214,239,174,.105)':'rgba(4,45,20,.12)';
-  g.lineWidth=.55+rnd()*.45;g.beginPath();g.moveTo(x,y);g.lineTo(x+(rnd()-.5)*.7,y-len);g.stroke();
- }
- // Sottili passate del rasaerba, senza rubare leggibilita' alle righe bianche.
- g.strokeStyle='rgba(235,255,214,.045)';g.lineWidth=1;
- for(let y=18;y<c.height;y+=34){g.beginPath();g.moveTo(0,y);g.lineTo(c.width,y);g.stroke()}
- grassTextureCache=c;return c;
-}
-function drawField(s,p,w,h,closeUp){
- const gradient=ctx.createLinearGradient(0,0,0,h);gradient.addColorStop(0,'#182d47');gradient.addColorStop(1,'#091825');ctx.fillStyle=gradient;ctx.fillRect(0,0,w,h);
+function drawField(s,p,w,h,closeUp,paintCtx=ctx,options={}){
+ const gradient=paintCtx.createLinearGradient(0,0,0,h);gradient.addColorStop(0,'#182d47');gradient.addColorStop(1,'#091825');paintCtx.fillStyle=gradient;paintCtx.fillRect(0,0,w,h);
  // Stadium tiers, perimeter and alternating mown strips.
- const brand=window.S9Competition?.active()||{name:'SERIE A',accent:'#d5b35f',dark:'#142f57'};
- const stadiumStyle=window.S9Competition?.stadiumStyle()||{tiers:4,seats:'#385572',track:false};
+ const brand=options.brand||window.S9Competition?.active()||{name:'SERIE A',accent:'#d5b35f',dark:'#142f57'};
+ const stadiumStyle=window.S9Competition?.stadiumStyle(options.stadium)||{tiers:4,seats:'#385572',track:false};
  if(!closeUp){
   // v11 — prima il primo anello di spalti stava a y=tier*1.6-1: per tier 0
   // significava un'altezza NEGATIVA, cioe' lo spalto affondava sotto il
@@ -433,15 +451,15 @@ function drawField(s,p,w,h,closeUp){
    s.face([[x-1.8,15.8,z+.28],[x+1.8,15.8,z+.28],[x+1.8,17,z+.28],[x-1.8,17,z+.28]],'#fff2cc');
   }
   if(stadiumStyle.landmark==='torre-maratona')marathonTower(s,52.5,back-7);
-  const stadiumIdentity=window.S9Competition?.stadiumIdentity?.();
-  if(canvas&&stadiumIdentity){
+  const stadiumIdentity=window.S9Competition?.stadiumIdentity?.(options.stadium);
+  if(!options.external&&canvas&&stadiumIdentity){
    const clubNames=stadiumIdentity.clubs.map(club=>club.name).join(' e ');
    const label='Partita in 3D allo '+stadiumIdentity.venue+(clubNames?' · stadio di '+clubNames:'');
    if(canvas.getAttribute('aria-label')!==label)canvas.setAttribute('aria-label',label);
   }
   const screenX=stadiumStyle.landmark==='torre-maratona'?30:52.5,screenY=Math.max(7.3,topY+1.8);
   const screenWidth=stadiumStyle.landmark==='torre-maratona'?34:44;
-  const scoreboardTexture=stadiumScoreboardTexture(current,stadiumIdentity,brand);
+  const scoreboardTexture=stadiumScoreboardTexture(options.match||current,stadiumIdentity,brand);
   if(scoreboardTexture){
    const screenHeight=screenWidth*288/1024;
    s.box([screenX,screenY,back+1.88],[screenWidth,screenHeight,.65],'#03070c',0,scoreboardTexture);
@@ -462,14 +480,16 @@ function drawField(s,p,w,h,closeUp){
   s.box([-3.15,2.54,34],[.24,.18,58],'#717982');s.box([108.15,2.54,34],[.24,.18,58],'#717982');
  }
  s.flush();
- const turf=graphics.scene(ctx,p);
+ const turf=graphics.scene(paintCtx,p);
  turf.face([[-8,-.08,-8],[113,-.08,-8],[113,-.08,76],[-8,-.08,76]],'#245643');
  turf.flush();
- const grass=graphics.scene(ctx,p);
- grass.face([[0,.012,0],[105,.012,0],[105,.012,68],[0,.012,68]],'#347f4d',grassTexture());
+ const grass=graphics.scene(paintCtx,p);
+ // Una superficie piena e fasce geometriche restano stabili con ogni taglio
+ // di camera. La vecchia bitmap prospettica produceva scintillii e salti.
+ grass.face([[0,.012,0],[105,.012,0],[105,.012,68],[0,.012,68]],'#347f4d');
  grass.flush();
- for(let i=0;i<12;i++){const strip=graphics.scene(ctx,p),x=i*8.75;strip.face([[x,.025,0],[x+8.75,.025,0],[x+8.75,.025,68],[x,.025,68]],i%2?'rgba(222,240,179,.045)':'rgba(0,24,7,.055)');strip.flush();}
- const line=(points,lw)=>{ctx.beginPath();points.map(v=>p(v)).forEach((v,i)=>i?ctx.lineTo(v.x,v.y):ctx.moveTo(v.x,v.y));ctx.strokeStyle='#dcebd4';ctx.lineWidth=lw||Math.max(1,w/1000);ctx.stroke()};
+ for(let i=0;i<12;i++){const strip=graphics.scene(paintCtx,p),x=i*8.75;strip.face([[x,.025,0],[x+8.75,.025,0],[x+8.75,.025,68],[x,.025,68]],i%2?'rgba(222,240,179,.045)':'rgba(0,24,7,.055)');strip.flush();}
+ const line=(points,lw)=>{paintCtx.beginPath();const projected=points.map(p);for(let i=1;i<projected.length;i++){const segment=graphics.clipNear([projected[i-1],projected[i]]);if(segment.length<2)continue;paintCtx.moveTo(segment[0].x,segment[0].y);paintCtx.lineTo(segment[1].x,segment[1].y)}paintCtx.strokeStyle='#dcebd4';paintCtx.lineWidth=lw||Math.max(1,w/1000);paintCtx.stroke()};
  const rect=(x,z,dx,dz,lw)=>line([[x,.04,z],[x+dx,.04,z],[x+dx,.04,z+dz],[x,.04,z+dz],[x,.04,z]],lw);
  // v10.9 — durante il primo piano su un'azione, prima si disegnava
  // SEMPRE tutto il campo (perimetro intero, cerchio di centrocampo,
@@ -487,7 +507,7 @@ function drawField(s,p,w,h,closeUp){
   rect(0,0,105,68);line([[52.5,.04,0],[52.5,.04,68]]);
   rect(0,13.84,16.5,40.32);rect(88.5,13.84,16.5,40.32);rect(0,24.84,5.5,18.32);rect(99.5,24.84,5.5,18.32);
   line(Array.from({length:65},(_,i)=>[52.5+Math.cos(i*Math.PI/32)*9.15,.04,34+Math.sin(i*Math.PI/32)*9.15]));
-  for(const x of [11,52.5,94]){const v=p([x,.05,34]);ctx.fillStyle='#e7eedf';ctx.beginPath();ctx.arc(v.x,v.y,1.8,0,Math.PI*2);ctx.fill()}
+  for(const x of [11,52.5,94]){const v=p([x,.05,34]);if(v.z<.1)continue;paintCtx.fillStyle='#e7eedf';paintCtx.beginPath();paintCtx.arc(v.x,v.y,1.8,0,Math.PI*2);paintCtx.fill()}
   // Quarto di cerchio ai 4 angoli (raggio 1m, zona di battuta del corner):
   // prima mancavano del tutto, il campo finiva a spigolo vivo.
   for(const [cx,cz,sx,sz] of [[0,0,1,1],[105,0,-1,1],[0,68,1,-1],[105,68,-1,-1]])
@@ -497,7 +517,7 @@ function drawField(s,p,w,h,closeUp){
   const back=x===0?-2:107;
   for(let z=30.34;z<38;z+=.61){line([[x,2.44,z],[back,2.44,z],[back,0,z]])}
   for(let y=0;y<=2.44;y+=.61)line([[x,y,30.34],[back,y,30.34],[back,y,37.66],[x,y,37.66]]);
-  ctx.lineWidth=2;line([[x,0,30.34],[x,2.44,30.34],[x,2.44,37.66],[x,0,37.66]]);
+  paintCtx.lineWidth=2;line([[x,0,30.34],[x,2.44,30.34],[x,2.44,37.66],[x,0,37.66]]);
  }
 }
 function render(now){
@@ -505,27 +525,34 @@ function render(now){
  if(!document.getElementById('match')?.classList.contains('active')||document.hidden)return;
  frameId=requestAnimationFrame(render);updateBroadcastHud();
  if(typeof refreshTacticsPitch==='function')refreshTacticsPitch();
- if(mode==='2d'||!ctx||!current||canvas.offsetWidth===0){visualLast=0;return;}
- if(now-lastTime<32)return;lastTime=now;
+ // The match clock keeps progressing when the user opens statistics or commentary.
+ if(visualLast&&!paused&&!document.hidden)visualTime+=Math.min(80,now-visualLast);
+ visualLast=now;
+ if(mode==='2d'||!ctx||!current||canvas.offsetWidth===0)return;
+ if(now-lastTime<(canvas.clientWidth<600?32:16))return;lastTime=now;
  const w=Math.round(canvas.clientWidth),h=Math.round(canvas.clientHeight);if(!w||!h)return;
  const ratio=Math.min(window.devicePixelRatio||1,1.5);if(canvas.width!==Math.round(w*ratio)||canvas.height!==Math.round(h*ratio)){canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio)}ctx.setTransform(ratio,0,0,ratio,0,0);
  const ballPos=ballWorldPosition();
- if(visualLast&&!paused&&!document.hidden)visualTime+=Math.min(80,now-visualLast);
- visualLast=now;
  const celebration=celebrationFrame(visualTime);
- const cameraState=celebration||followedCamera(now,ballPos);
+ const cameraState=celebration||followedCamera(visualTime,ballPos);
  const raw=graphics.camera(cameraState.eye,cameraState.target,w,h,cameraState.fov);
  const bounds=cameraState.bounds.map(raw);
  // Include the actual ball in the safe frame during long passes, including its height.
- if(!celebration){for(const dx of [-7,7])for(const dz of [-6,6])bounds.push(raw([ballPos.x+dx,ballPos.lift+2,ballPos.z+dz]));}
- const venueStyle=window.S9Competition?.stadiumStyle?.();
- if(!celebration&&!highlightState&&venueStyle?.landmarkHeight){
+ if(!celebration){for(const dx of [-7,7])for(const dz of [-6,6])bounds.push(raw([ballPos.x+dx,5,ballPos.z+dz]));}
+ const venueStyle=window.S9Competition?.stadiumStyle?.(),television=broadcastActive();
+ if(!television&&!celebration&&!highlightState&&venueStyle?.landmarkHeight){
   const setback=venueStyle.setback||0;
   bounds.push(raw([52.5,venueStyle.landmarkHeight,-17-setback]));
  }
  const minX=Math.min(...bounds.map(p=>p.x)),maxX=Math.max(...bounds.map(p=>p.x)),minY=Math.min(...bounds.map(p=>p.y)),maxY=Math.max(...bounds.map(p=>p.y));
- const zoom=Math.max(.1,Math.min((w-28)/(maxX-minX),(h-65)/(maxY-minY)));
- const p=point=>{const v=raw(point);return {x:w/2+(v.x-(minX+maxX)/2)*zoom,y:h/2+12+(v.y-(minY+maxY)/2)*zoom,z:v.z}};
+ const zoom=Math.max(.1,Math.min((w-(television?12:28))/(maxX-minX),(h-(television?18:65))/(maxY-minY)));
+ let fit={x:(minX+maxX)/2,y:(minY+maxY)/2,zoom};
+ if(!celebration){
+  const old=followCamera.fit;
+  if(old&&old.w===w&&old.h===h){const alpha=paused?0:1-Math.exp(-Math.min(80,now-old.time)/240);fit={x:old.x+(fit.x-old.x)*alpha,y:old.y+(fit.y-old.y)*alpha,zoom:old.zoom+(fit.zoom-old.zoom)*alpha};}
+  followCamera.fit={...fit,w,h,time:now};
+ }
+ const p=point=>{const v=raw(point),cx=w/2+(v.cx-fit.x)*fit.zoom,cy=h/2+(television?5:12)+(v.cy-fit.y)*fit.zoom;return {...v,x:cx+v.nx*fit.zoom/(v.z||1e-9),y:cy+v.ny*fit.zoom/(v.z||1e-9),cx,cy,nx:v.nx*fit.zoom,ny:v.ny*fit.zoom}};
  drawField(graphics.scene(ctx,p),p,w,h,null);
  const actors=graphics.scene(ctx,p);
  for(const side of ['home','away']){
@@ -550,7 +577,8 @@ function render(now){
    }
    const shadow=p([x,.03,z]);ctx.fillStyle='#071f2466';ctx.beginPath();ctx.ellipse(shadow.x,shadow.y,Math.max(3,w/160),Math.max(1.5,w/440),0,0,Math.PI*2);ctx.fill();
    if(!celebration&&S9MatchVisual.carrier===d){ctx.strokeStyle='#f5db79';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(shadow.x,shadow.y,Math.max(5,w/110),Math.max(2,w/330),0,0,Math.PI*2);ctx.stroke();}
-   graphics.player(actors,x,z,kit,phase,angle,1.35,d.dataset.role==='GK'?'1':d.textContent,d.dataset.role==='GK',celebrating);
+   if(d.dataset.action)angle=attackInfo(side).attacksRight?Math.PI/2:-Math.PI/2;
+   graphics.player(actors,x,z,kit,phase,angle,1.35,d.textContent,d.dataset.role==='GK',celebrating,d.dataset.action?{kind:d.dataset.action,progress:Number(d.dataset.actionProgress)||0,direction:Number(d.dataset.actionDirection)||1}:null);
   }
  }
  actors.flush();
@@ -575,8 +603,8 @@ setupPitch=function(){
   if(changed){uniforms={};document.getElementById('v7EventToast')?.classList.remove('show');delete document.getElementById('match').dataset.cinematic;}
  }
  playerDots=Array.from(document.querySelectorAll('#pitch .dot'));
- positions.clear();
- if(canvas&&eventActive&&mode!=='2d'){canvas.classList.remove('s9-restart');requestAnimationFrame(()=>canvas.classList.add('s9-restart'));}
+ for(const id of positions.keys())if(!playerDots.some(d=>d.dataset.pid===id))positions.delete(id);
+ // Rebuilding a lineup must not flash/fade the whole broadcast canvas.
  updateUniforms();wake();return result;
 };
 const oldOpenPlay=S9MatchVisual.openPlay;
@@ -585,7 +613,7 @@ S9MatchVisual.openPlay=async function(minute){
   // In highlights mode il tempo di scansione resta rapido, ma non
   // accelera in modo isterico con 4x: l'occhio deve poter leggere la
   // telecronaca e prepararsi all'azione saliente successiva.
-  const delay=(Number(speed)||1)>=4?100:(Number(speed)||1)>=2?85:70;
+  const delay=(Number(speed)||1)>=4?125:(Number(speed)||1)>=2?250:500;
   await new Promise(resolve=>setTimeout(resolve,delay));return;
  }
  return oldOpenPlay.call(this,minute);
@@ -605,7 +633,18 @@ function boot(){
  installFullscreenControl();installBroadcastLayer();
  const hint=document.createElement('p');hint.className='s9-view-hint';hint.textContent='Scegli la partita completa o solo le azioni salienti. Puoi cambiare vista anche durante la gara.';document.querySelector('#kits .panel').appendChild(hint);
  const choice=document.querySelector('#kits .s9-view-choice');document.querySelector('#kits .kit-stage').before(choice);choice.after(hint);
- setMode(mode);new MutationObserver(wake).observe(document.getElementById('match'),{attributes:true,attributeFilter:['class']});document.addEventListener('visibilitychange',()=>{visualLast=0;wake()});
+ setMode(mode);new MutationObserver(()=>{
+  const match=document.getElementById('match'),wrap=document.getElementById('pitchWrap90');
+  if(match&&!match.classList.contains('active')&&(match.classList.contains('s9-broadcast-active')||match.classList.contains('s9-broadcast-expanded')||fullscreenElement()===wrap)){
+   if(fullscreenElement()===wrap&&!fullscreenExitPending){
+    fullscreenExitPending=true;const exit=document.exitFullscreen||document.webkitExitFullscreen;
+    Promise.resolve().then(()=>exit?.call(document)).catch(()=>{}).finally(()=>{fullscreenExitPending=false});
+   }
+   if(match.classList.contains('s9-broadcast-expanded')||match.classList.contains('s9-broadcast-active'))match.classList.remove('s9-broadcast-expanded','s9-broadcast-active');
+   restoreTacticsModal();updateFullscreenButton();
+  }
+  wake();
+ }).observe(document.getElementById('match'),{attributes:true,attributeFilter:['class']});document.addEventListener('visibilitychange',()=>{visualLast=0;wake()});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

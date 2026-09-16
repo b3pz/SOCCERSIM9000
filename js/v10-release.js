@@ -919,6 +919,21 @@ try{
        }
      }
    }
+   // Resolve set-piece identities from the current XI after substitutions.
+   if(['corner','freekick','penalty'].includes(e.source)){
+     const tid=e.side==='home'?current.h:current.a,st=career.teamStates[tid];
+     const eligible=st.players.filter(p=>st.lineup.includes(p.id)&&!current._v103?.teams?.[tid]?.newInjuries[p.id]);
+     const key=e.source==='penalty'?'penalty':e.source==='freekick'?'direct':'cornerL';
+     const taker=eligible.find(p=>p.id===e.taker?.id)||eligible.find(p=>p.id===st.setPieces?.[key])||eligible.find(p=>p.pos!=='GK');
+     if(taker){
+       e={...e,taker};
+       if(e.source==='corner'){
+         const receiver=eligible.find(p=>p.id===e.player.id&&p.id!==taker.id)||eligible.find(p=>p.pos!=='GK'&&p.id!==taker.id);
+         if(!receiver)return;
+         e={...e,player:receiver,assist:e.type==='goal'?taker:null};
+       }else e={...e,player:taker,assist:null};
+     }
+   }
    Object.assign(sourceEvent,e);
    if(window.S9MatchVisual)S9MatchVisual.event=e;
    try{return await oldDoEventV103(e)}finally{if(window.S9MatchVisual)S9MatchVisual.event=null; if(['red','sub'].includes(e.type))setupPitch();}

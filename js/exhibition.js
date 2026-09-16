@@ -12,14 +12,16 @@ function start(config){
  career=S9V10.createMatchCareer(h,[h,a]);S9V10.standalone=null;
  const state={id:'friendly_'+Date.now(),key:config.competition,name:S9Competition.definitions[config.competition].name,exhibition:true,completed:false};
  const tie={a:h,b:a,twoLeg:false,directPens:false,legs:[]};
- S9V10.matchContext={mode:'friendly',state,stadium:config.stadium.trim(),final,match:{h,a,kind:final?'knockout':'friendly',tie,leg:1,stage:final?'FINALE · ESIBIZIONE':'AMICHEVOLE'}};
+ S9V10.matchContext={mode:'friendly',state,spectator:!!config.spectator,stadium:config.stadium.trim(),final,match:{h,a,kind:final?'knockout':'friendly',tie,leg:1,stage:final?'FINALE · ESIBIZIONE':'AMICHEVOLE'}};
  career.fixtures=[[[h,a]]];career.otherFixtures=[[]];
  S9V10.applyCompetitionTheme(config.competition);openPrematch([h,a]);q('#backSeason').textContent='← AMICHEVOLE';
+ document.getElementById('match').classList.toggle('s9-spectator',!!config.spectator);
+ if(config.spectator){renderKitScreen();show('kits')}
 }
 function restore(){
  if(!saved)return;
  if(current?._running&&!current._finished)return;
- const original=saved;saved=null;career=original.career;S9V10.standalone=original.standalone;S9V10.savedCareer=original.savedCareer;S9V10.matchContext=null;current=null;paused=false;
+ document.getElementById('match').classList.remove('s9-spectator');const original=saved;saved=null;career=original.career;S9V10.standalone=original.standalone;S9V10.savedCareer=original.savedCareer;S9V10.matchContext=null;current=null;paused=false;
  S9V10.applyCompetitionTheme('');show('exhibitionSetup');
 }
 function complete(){
@@ -103,6 +105,7 @@ function boot(){
   </div>
   <input type="hidden" id="exhibitionStadium">
  </div>
+ <label class="s9-final-choice"><input type="checkbox" id="exhibitionSpectator"> Guarda evento · CPU contro CPU</label>
  <label class="s9-final-choice"><input type="checkbox" id="exhibitionFinal"> Finale · in caso di pareggio, supplementari e rigori</label>
  <p class="s9-exhibition-note">Le esibizioni non modificano carriera, classifiche o albo d’oro. La finale include la premiazione con la coppa della competizione scelta.</p>
  </div>
@@ -264,7 +267,28 @@ function boot(){
 
  showStep(1);
  button.onclick=()=>{q('#exhibitionError').textContent='';show('exhibitionSetup');showStep(1)};
- q('#exhibitionForm').onsubmit=e=>{e.preventDefault();if(step<3){showStep(step+1);return}try{start({home:ids[homeIndex],away:ids[awayIndex],competition,stadium:q('#exhibitionStadium').value,final:q('#exhibitionFinal').checked})}catch(error){q('#exhibitionError').textContent=error.message}};
+ q('#exhibitionForm').onsubmit=e=>{e.preventDefault();if(step<3){showStep(step+1);return}try{start({home:ids[homeIndex],away:ids[awayIndex],competition,stadium:q('#exhibitionStadium').value,final:q('#exhibitionFinal').checked,spectator:q('#exhibitionSpectator').checked})}catch(error){q('#exhibitionError').textContent=error.message}};
 }
+// Spectator matches progress through the interval and both benches are automated.
+let intervalMatch=null,intervalTimer=0;
+setInterval(()=>{
+ const context=S9V10.matchContext,m=current;if(!context?.spectator||!m?._running||m._finished)return;
+ if((document.getElementById('halftime')?.classList.contains('active')||window.S9Match3D?.intermission)){
+  if(intervalMatch!==m){intervalMatch=m;clearTimeout(intervalTimer);intervalTimer=setTimeout(()=>{if(current===m&&S9V10.matchContext?.spectator&&(document.getElementById('halftime')?.classList.contains('active')||window.S9Match3D?.intermission))document.getElementById('resumeSecond')?.click()},8000)}
+  return;
+ }
+ if(paused||m.minute<55||S9Match3D.eventActive||S9Match3D.celebrating)return;
+ for(const id of [m.h,m.a]){
+  const st=career.teamStates[id];if(!st||st.subs>=3||m.minute<55+st.subs*12)continue;
+  const starters=st.lineup.map(pid=>st.players.find(p=>p.id===pid)).filter(p=>p&&p.pos!=='GK').sort((a,b)=>(a.fitness??100)-(b.fitness??100));
+  for(const out of starters){
+   const incoming=st.players.filter(p=>!st.lineup.includes(p.id)&&roleGroup(p.pos)===roleGroup(out.pos)&&S9V10.canSubstitute(st,out.id,p.id,false)).sort((a,b)=>b.overall-a.overall)[0];
+   if(!incoming)continue;
+   S9V10.recordSubstitution(id,out.id,incoming.id,m.minute);st.lineup[st.lineup.indexOf(out.id)]=incoming.id;st.subs++;
+   Object.keys(st.setPieces||{}).forEach(k=>{if(st.setPieces[k]===out.id)st.setPieces[k]=incoming.id});
+   log(`${m.minute}' CAMBIO ${T(id).name} ${T(id).season}: ${out.name} ↓ ${incoming.name} ↑`);m._tacticsDirty=true;break;
+  }
+ }
+},500);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

@@ -41,6 +41,7 @@
     window.doEvent=async function(e){
       const s=current?.stats;
       if(s&&e){
+        if(e.source==='corner'){const key=e.side==='home'?'cornersH':'cornersA';s[key]=(s[key]||0)+1;}
         if(e.type==='goal'){
           if(e.side==='home'){s.shotsH=(s.shotsH||0)+1;s.onH=(s.onH||0)+1;}
           else{s.shotsA=(s.shotsA||0)+1;s.onA=(s.onA||0)+1;}
@@ -55,10 +56,7 @@
       if(s&&e?.type==='chance'){
         if((s.onH||0)>beforeH) s.savesA=(s.savesA||0)+1;
         if((s.onA||0)>beforeA) s.savesH=(s.savesH||0)+1;
-        if(Math.random()<.28){
-          if(e.side==='home')s.cornersH=(s.cornersH||0)+1;
-          else s.cornersA=(s.cornersA||0)+1;
-        }
+
       }
       return out;
     };

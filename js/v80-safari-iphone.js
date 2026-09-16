@@ -52,8 +52,7 @@
        comes from the other, so buttons look fine but do not respond to touch. The
        newer 's9-responsive' layer plus the plain @media(orientation:portrait) CSS
        guard already covers phone layout, so these classes are intentionally no
-       longer added. Viewport custom properties are still kept in sync below in case
-       other rules read them.
+       longer added.
     root.classList.toggle('s9-phone-portrait',portrait);
     root.classList.toggle('s9-phone-landscape',landscape); */
     root.dataset.s9Viewport=`${w}x${h}`;
