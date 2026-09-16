@@ -33,7 +33,7 @@ function choosePlayer(id){
 }
 function row(p){
  const selected=candidate===p.id,status=p.injuryGames>0?'Infortunato':p.suspensionGames>0?'Squalificato':'';
- return `<button type="button" class="tw-reserve ${selected?'chosen':''}" data-reserve="${esc(p.id)}" ${status?'disabled':''}><span class="tw-number">${number(p)}</span><span class="tw-person"><b>${esc(p.name)}</b><small>${roles[p.pos]||p.pos}${status?' · '+status:''}</small></span><span class="tw-value"><b>${p.overall}</b><small>OVR</small></span><span class="tw-value ${fit(p)<70?'low':''}"><b>${fit(p)}%</b><small>COND.</small></span></button>`;
+ return `<button type="button" class="tw-reserve ${selected?'chosen':''}" data-reserve="${esc(p.id)}" draggable="${status?'false':'true'}" ${status?'disabled':''}><span class="tw-number">${number(p)}</span><span class="tw-person"><b>${esc(p.name)}</b><small>${roles[p.pos]||p.pos}${status?' · '+status:''}</small></span><span class="tw-value"><b>${p.overall}</b><small>OVR</small></span><span class="tw-value ${fit(p)<70?'low':''}"><b>${fit(p)}%</b><small>COND.</small></span></button>`;
 }
 function render(){
  const s=state();if(!root||!s)return;
@@ -45,15 +45,33 @@ function render(){
  const canConfirm=out&&incoming&&(s.lineup.includes(incoming.id)||S9V10.canSubstitute(s,out.id,incoming.id,true))&&((out.pos==='GK')===(incoming.pos==='GK'));
  root.innerHTML=`<div class="tw-heading"><button type="button" data-action="back" class="tw-back">← INDIETRO</button><div><small>PREPARAZIONE PARTITA</small><h1>${esc(team.name)} <span>${esc(team.season)}</span></h1><p>${esc((current?.fixture||[]).map(id=>{const t=T(id);return t.name+' '+t.season}).join(' · '))}</p></div><button type="button" data-action="kits" class="tw-primary">SCEGLI DIVISE →</button></div>
  <div class="tw-settings"><label>MODULO<select id="twFormation">${team.formations.map(f=>`<option ${s.formation===f?'selected':''}>${f}</option>`).join('')}</select></label><fieldset><legend>ATTEGGIAMENTO</legend>${['Difensivo','Normale','Offensivo'].map(m=>`<button type="button" data-mentality="${m}" aria-pressed="${s.mentality===m}">${m}</button>`).join('')}</fieldset><div class="tw-readiness"><b>${on.length}/11</b><span>TITOLARI · COND. ${Math.round(on.reduce((n,p)=>n+fit(p),0)/Math.max(1,on.length))}%</span><button type="button" data-action="undo" ${history.length?'':'disabled'}>↶ Annulla ultima modifica</button></div></div>
- <div class="tw-main"><div class="tw-board"><div class="tw-board-title"><b>LA TUA FORMAZIONE</b><span>${esc(s.formation)} · ATTACCO ↑</span></div><p class="tw-help">Seleziona un titolare, poi una riserva o un altro titolare per scambiare posizione.</p><div class="tw-pitch"><div class="tw-field-lines" aria-hidden="true"><i></i><em></em></div>${on.map((p,i)=>{const pt=layout[i]||{x:50,y:50},warning=!compatible(p,pt.role)||unavailable(p);return `<button type="button" data-slot="${i}" aria-pressed="${slot===i}" aria-label="${esc(p.name)}, numero ${number(p)}, ${roles[p.pos]}, posizione ${roles[pt.role]}, condizione ${fit(p)}%" class="tw-player ${slot===i?'chosen':''} ${warning?'warning':''}" style="left:${pt.x}%;top:${pt.y}%"><span class="tw-shirt">${number(p)}</span><b>${esc(p.name.split(' ').slice(-1)[0])}</b><small>${roles[pt.role]||pt.role} · ${fit(p)}%</small></button>`}).join('')}</div><div class="tw-warning">${warnings.length?`${warnings.length} giocatori da controllare: ${warnings.map(p=>esc(p.name)+(unavailable(p)?' (non disponibile)':' (fuori ruolo)')).join(', ')}.`:'✓ Undici completo · ruoli coperti'}</div></div>
+ <div class="tw-main"><div class="tw-board"><div class="tw-board-title"><b>LA TUA FORMAZIONE</b><span>${esc(s.formation)} · ATTACCO ↑</span></div><p class="tw-help">Seleziona un titolare, poi una riserva o un altro titolare per scambiare posizione.</p><div class="tw-pitch"><div class="tw-field-lines" aria-hidden="true"><i></i><em></em></div>${on.map((p,i)=>{const pt=layout[i]||{x:50,y:50},warning=!compatible(p,pt.role)||unavailable(p);return `<button type="button" data-slot="${i}" aria-pressed="${slot===i}" aria-label="${esc(p.name)}, numero ${number(p)}, ${roles[p.pos]}, posizione ${roles[pt.role]}, condizione ${fit(p)}%" class="tw-player ${slot===i?'chosen':''} ${warning?'warning':''}" draggable="true" style="left:${pt.x}%;top:${pt.y}%"><span class="tw-shirt">${number(p)}</span><b>${esc(p.name.split(' ').slice(-1)[0])}</b><small>${roles[pt.role]||pt.role} · ${fit(p)}%</small></button>`}).join('')}</div><div class="tw-warning">${warnings.length?`${warnings.length} giocatori da controllare: ${warnings.map(p=>esc(p.name)+(unavailable(p)?' (non disponibile)':' (fuori ruolo)')).join(', ')}.`:'✓ Undici completo · ruoli coperti'}</div></div>
  <div class="tw-bench"><div class="tw-board-title"><b>PANCHINA</b><span>${s.players.length-on.length} GIOCATORI</span></div><label class="tw-search">CERCA GIOCATORE<input id="twSearch" type="search" placeholder="Nome del giocatore" value="${esc(query)}"></label><div class="tw-filters" aria-label="Filtra per ruolo">${[['ALL','Tutti'],['GK','POR'],['DF','DIF'],['MF','CEN'],['AM','TRQ'],['ST','ATT']].map(([v,n])=>`<button type="button" data-filter="${v}" aria-pressed="${filter===v}">${n}</button>`).join('')}</div><div class="tw-reserves">${ordered.map(row).join('')||'<p class="tw-empty">Nessun giocatore corrisponde al filtro.</p>'}</div></div></div>
  <div class="tw-transfer" aria-live="polite"><div><small>${out?'TITOLARE SELEZIONATO':'GESTIONE FORMAZIONE'}</small><strong>${out?`N° ${number(out)} · ${esc(out.name)}`:'Scegli chi schierare'}</strong><span>${out?`${roles[out.pos]} · OVR ${out.overall} · Condizione ${fit(out)}% · Morale ${out.morale}`:'I cambi pre-partita sono liberi. Ogni riserva prende il posto selezionato.'}</span>${out?'<button type="button" data-action="profile">Scheda giocatore</button>':''}</div><div><small>${incoming?'GIOCATORE IN ENTRATA':'CONFRONTO'}</small><strong>${incoming?`N° ${number(incoming)} · ${esc(incoming.name)}`:'Seleziona una riserva'}</strong><span>${incoming?`${roles[incoming.pos]} · OVR ${incoming.overall} (${incoming.overall-out.overall>=0?'+':''}${incoming.overall-out.overall}) · Condizione ${fit(incoming)}%`:'Qualità, condizione e ruolo prima di confermare.'}</span>${incoming&&!compatible(incoming,layout[slot]?.role)?'<em>Attenzione: ruolo diverso dalla posizione selezionata.</em>':''}</div><button type="button" data-action="confirm" class="tw-primary" ${canConfirm?'':'disabled'}>${incoming&&s.lineup.includes(incoming.id)?'SCAMBIA POSIZIONI':'CONFERMA CAMBIO'}</button></div>
  <div class="tw-notice" role="status">${esc(notice)}</div><details class="tw-setpieces"><summary>BATTITORI E CALCI PIAZZATI</summary><div>${[['penalty','Rigori'],['direct','Punizioni dirette'],['indirect','Punizioni indirette'],['cornerL','Angoli sinistri'],['cornerR','Angoli destri']].map(([key,label])=>`<label>${label}<select data-setpiece="${key}">${on.map(p=>`<option value="${esc(p.id)}" ${s.setPieces?.[key]===p.id?'selected':''}>${number(p)} · ${esc(p.name)}</option>`).join('')}</select></label>`).join('')}</div></details>`;
  root.querySelector('.tw-reserves').scrollTop=scroll;
  root.querySelector('#twFormation').onchange=e=>{save();s.lineup=arrange(s,e.target.value);s.formation=e.target.value;slot=null;candidate=null;notice='Modulo aggiornato: gli stessi undici sono stati riposizionati per ruolo.';render();};
  root.querySelector('#twSearch').oninput=e=>{query=e.target.value;const cursor=e.target.selectionStart;render();const input=root.querySelector('#twSearch');input.focus({preventScroll:true});try{input.setSelectionRange(cursor,cursor)}catch(_){}};
- root.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>selectSlot(+b.dataset.slot));
- root.querySelectorAll('[data-reserve]').forEach(b=>b.onclick=()=>choosePlayer(b.dataset.reserve));
+ root.querySelectorAll('[data-slot]').forEach(b=>{
+  b.onclick=()=>selectSlot(+b.dataset.slot);
+  b.ondragstart=e=>{e.dataTransfer.setData('text/plain','slot:'+b.dataset.slot);e.dataTransfer.effectAllowed='move'};
+  b.ondragover=e=>{e.preventDefault();b.classList.add('drag-over')};
+  b.ondragleave=()=>b.classList.remove('drag-over');
+  b.ondrop=e=>{
+   e.preventDefault();b.classList.remove('drag-over');
+   const data=e.dataTransfer.getData('text/plain'),targetIdx=+b.dataset.slot;
+   if(!data)return;
+   let dragCandidate=null;
+   if(data.startsWith('slot:')){const fromIdx=+data.slice(5);if(fromIdx===targetIdx)return;dragCandidate=state().lineup[fromIdx];}
+   else if(data.startsWith('reserve:'))dragCandidate=data.slice(8);
+   if(!dragCandidate)return;
+   slot=targetIdx;candidate=dragCandidate;render();confirm();
+  };
+ });
+ root.querySelectorAll('[data-reserve]').forEach(b=>{
+  b.onclick=()=>choosePlayer(b.dataset.reserve);
+  if(!b.disabled)b.ondragstart=e=>{e.dataTransfer.setData('text/plain','reserve:'+b.dataset.reserve);e.dataTransfer.effectAllowed='move'};
+ });
  root.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;render()});
  root.querySelectorAll('[data-mentality]').forEach(b=>b.onclick=()=>{save();s.mentality=b.dataset.mentality;render()});
  root.querySelectorAll('[data-setpiece]').forEach(el=>el.onchange=()=>{save();s.setPieces[el.dataset.setpiece]=el.value;notice='Battitore aggiornato.';root.querySelector('.tw-notice').textContent=notice});
@@ -85,4 +103,8 @@ function open(){
 }
 const original=openPrematch;openPrematch=function(){const result=original.apply(this,arguments);open();return result};window.openPrematch=openPrematch;
 window.S9TacticalWorkspace={slots,arrange,compatible,refresh:open};
+/* Feedback visivo per il drag&drop: aggiunto una volta sola, il pannello viene ridisegnato spesso. */
+const dragStyle=document.createElement('style');
+dragStyle.textContent='.tw-player.drag-over{outline:3px solid #74dec9!important;outline-offset:2px}.tw-player[draggable="true"],.tw-reserve[draggable="true"]{cursor:grab}';
+document.head.appendChild(dragStyle);
 })();
