@@ -103,13 +103,21 @@
       // posto di chi esce, anche nel modello 3D e non solo nella lista.
       const players=st.lineup.map(id=>st.players.find(p=>p.id===id)).filter(Boolean);
       const rows=(st.formation||'4-4-2').split('-').map(Number);let cursor=0;
+      // La disposizione libera scelta nell'editor tattico (tactical-workspace.js)
+      // vale anche qui: se presente, sostituisce il calcolo per modulo.
+      const custom=Array.isArray(st.customLayout)&&st.customLayout.length===st.lineup.length?st.customLayout:null;
       for(const player of players){
         const d=find(side,player.id);if(!d)continue;
         let x=5,y=50;
         if(player.pos!=='GK'){
-          let index=cursor++,row=0;
-          while(row<rows.length-1&&index>=rows[row])index-=rows[row++];
-          x=24+row*48/Math.max(1,rows.length-1);y=12+(index+1)*76/(rows[row]+1);
+          const idx=st.lineup.indexOf(player.id);
+          if(custom&&custom[idx]){x=custom[idx].x;y=custom[idx].y;}
+          else{
+            let index=cursor,row=0;
+            while(row<rows.length-1&&index>=rows[row])index-=rows[row++];
+            x=24+row*48/Math.max(1,rows.length-1);y=12+(index+1)*76/(rows[row]+1);
+          }
+          cursor++;
         }
         d.dataset.role=player.pos;d.dataset.baseX=xFor(side,x);d.dataset.baseY=y;
         d.style.left=d.dataset.baseX+'%';d.style.top=y+'%';
