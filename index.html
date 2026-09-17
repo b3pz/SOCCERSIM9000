@@ -1759,7 +1759,7 @@ async function playHalf(a,b){
    for(const e of current.events.filter(x=>x.min===minute))await doEvent(e);
    if(current.invasion&&!current.invasionDone&&minute===current.invasionMinute){
      current.invasionDone=true;
-     if(window.S9PitchInvasion)await S9PitchInvasion.play({h:current.h,a:current.a});
+     if(window.S9PitchInvasion)await S9PitchInvasion.play({h:current.h,a:current.a,channel:current.channel});
      else await wait(400);
    }
  }
@@ -1804,11 +1804,16 @@ async function launchMatch(){
  const sb=$("#startMatch");if(sb){sb.disabled=true;sb.textContent="CARICAMENTO..."}
  let g=current.fixture;let userHome=g[0]===career.user;
  let coinToss=null;
+ /* FIX 2026-09: canale TV scelto UNA VOLTA per partita (non ad ogni singola
+    schermata), cosi' ingresso in campo, tabellino live ed eventuale
+    invasione di campo restano sempre sullo stesso finto canale per tutta
+    la durata dell'incontro. */
+ const matchChannel=window.S9Channel?S9Channel():'S9 90';
  if(window.S9MatchIntro){
-  try{coinToss=await S9MatchIntro.play({h:g[0],a:g[1],key:S9Competition?.key?.()||'seriea',stadium:S9V10?.matchContext?.stadium||teamMeta[g[0]]?.stadium||S9Competition?.stadium?.()})}
+  try{coinToss=await S9MatchIntro.play({h:g[0],a:g[1],key:S9Competition?.key?.()||'seriea',stadium:S9V10?.matchContext?.stadium||teamMeta[g[0]]?.stadium||S9Competition?.stadium?.(),channel:matchChannel})}
   catch(e){console.warn("Introduzione pre-partita",e)}
  }
- current=buildMatch(g[0],g[1]);current._running=true;current.half=1;current.coinToss=coinToss;setupPitch();show("match");updateScore();hidePitch();
+ current=buildMatch(g[0],g[1]);current._running=true;current.half=1;current.coinToss=coinToss;current.channel=matchChannel;setupPitch();show("match");updateScore();hidePitch();
  /* FIX 2026-09: invasione di campo scenica. Ogni 3 partite giocate (contate
     solo quando l'utente guarda davvero la partita, non le simulazioni CPU
     di simOther) c'e' il 50% di probabilita' che scatti, ad un minuto
@@ -1834,6 +1839,9 @@ async function launchMatch(){
  $("#halftimeStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}`;
  const intervalDone=new Promise(r=>halfResolver=r);if(!window.S9Match3D?.showInterval?.())show("halftime");await intervalDone;window.S9Match3D?.endInterval?.();paused=false;$("#pauseBtn").textContent="⏸ PAUSA";show("match");if(window.S9MatchVisual?.kickoff)await S9MatchVisual.kickoff(coinToss?.kickoffSide==='away'?'home':'away');await playHalf(46,90);log("90' FINE PARTITA");
  {const j=window.S9Commentary?.fulltime?.(T(current.h).name,T(current.a).name,current.scoreH,current.scoreA);if(j)log(`90' 🎙️ ${j}`,"neutral");}
+ /* FIX 2026-09: i telecronisti dell'emittente della partita ricompaiono per
+    il riepilogo finale (tap per chiudere subito, altrimenti si chiude da sola). */
+ if(window.S9Anchors?.recap)await S9Anchors.recap({h:T(current.h).name,a:T(current.a).name,scoreH:current.scoreH,scoreA:current.scoreA,channel:current.channel});
  if(window.S9V10?.finishPlayedTie)await S9V10.finishPlayedTie();
  if(!window.S9V10?.matchContext){
  let games=career.fixtures[career.round];for(const [h,a] of games){if(h===current.h&&a===current.a)continue;simOther(h,a)}
@@ -2434,6 +2442,7 @@ renderTeamPicker();
 <script src="js/asset-quality.js?v=1"></script>
 <script src="js/football-3d.js?v=stability-13"></script>
 <script src="js/tv-channels.js?v=1"></script>
+<script src="js/broadcast-anchors.js?v=1"></script>
 <script src="js/kit-presentation.js?v=1"></script>
 <script src="js/match-3d.js?v=stability-13"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
