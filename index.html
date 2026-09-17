@@ -1750,6 +1750,11 @@ async function playHalf(a,b){
    if(window.S9MatchVisual)await S9MatchVisual.openPlay(minute);
    else await wait(175);
    for(const e of current.events.filter(x=>x.min===minute))await doEvent(e);
+   if(current.invasion&&!current.invasionDone&&minute===current.invasionMinute){
+     current.invasionDone=true;
+     if(window.S9PitchInvasion)await S9PitchInvasion.play({h:current.h,a:current.a});
+     else await wait(400);
+   }
  }
  current.minute=b;updateScore();
 }
@@ -1797,6 +1802,15 @@ async function launchMatch(){
   catch(e){console.warn("Introduzione pre-partita",e)}
  }
  current=buildMatch(g[0],g[1]);current._running=true;current.half=1;current.coinToss=coinToss;setupPitch();show("match");updateScore();hidePitch();
+ /* FIX 2026-09: invasione di campo scenica. Ogni 3 partite giocate (contate
+    solo quando l'utente guarda davvero la partita, non le simulazioni CPU
+    di simOther) c'e' il 50% di probabilita' che scatti, ad un minuto
+    casuale, puramente per atmosfera: non tocca mai il risultato, gia'
+    deciso a monte da buildMatch(). */
+ career.matchesWatched=(career.matchesWatched||0)+1;
+ current.invasion=(career.matchesWatched%3===0)&&Math.random()<.5;
+ current.invasionMinute=current.invasion?rand(18,78):-1;
+ current.invasionDone=false;
  const hist=$("#commentary");if(hist)hist.innerHTML="";
  if(coinToss){
   const winner=coinToss.winner==='home'?current.h:current.a,kickoff=coinToss.kickoffSide==='home'?current.h:current.a,field=coinToss.fieldSide==='home'?current.h:current.a;
@@ -2411,6 +2425,7 @@ renderTeamPicker();
 <script src="js/match-3d.js?v=stability-13"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
 <script src="js/match-intro.js?v=stability-13"></script>
+<script src="js/pitch-invasion.js?v=1"></script>
 <script src="js/trophy-ceremony.js?v=lap-close-14"></script>
 <script src="js/exhibition.js?v=stability-13"></script>
 <script src="js/v106-match-experience.js?v=presentation-2"></script>
@@ -2423,5 +2438,6 @@ renderTeamPicker();
 <!-- Patch 15: logo SerieA 9000 SIM aggiornato, logo pagine interne spostato dal centro, sfondo Coppe sostituito con versione trofei/stadio approvata. -->
 <script src="js/tactical-workspace.js?v=tactics-15"></script>
 <script src="js/prematch-flavor.js?v=1"></script>
+<script src="js/parody-names.js?v=1"></script>
 </body>
 </html>

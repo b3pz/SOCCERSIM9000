@@ -6709,3 +6709,16 @@ input:not([type=checkbox]):not([type=radio]){
   -webkit-appearance:none!important;
   appearance:none!important;
 }
+
+/* ===== V111 — Invasione di campo (scenica, non tocca il risultato) ===== */
+#s9PitchInvasion{
+  position:fixed!important;inset:0!important;z-index:100000!important;
+  display:grid!important;place-items:center!important;
+  padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))!important;
+  box-sizing:border-box!important;
+  background:radial-gradient(circle at 50% 48%,#12304be8,#020812fa 76%)!important;
+  color:#f5f7fa!important;-webkit-backdrop-filter:blur(8px)!important;backdrop-filter:blur(8px)!important;
+}
+.s9-invasion-shell{grid-template-rows:auto minmax(0,1fr)!important;height:min(520px,86vh)!important}
+.s9-invasion-shell .s9-intro-stage{border-radius:8px}
+@media(max-width:640px){.s9-invasion-shell{width:100vw!important;height:100dvh!important;border:0!important;border-radius:0!important}}
