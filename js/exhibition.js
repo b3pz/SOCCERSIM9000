@@ -79,6 +79,7 @@ function boot(){
     <button type="button" class="s9-picker-neighbor s9-picker-neighbor-next" id="homeNextPreview" aria-label="Squadra successiva"></button>
    </div>
    <div class="s9-picker-name" id="homeName"></div>
+   <div class="s9-picker-rating" id="homeRating"></div>
   </div>
   <div class="s9-exhibition-vs">VS</div>
   <div class="s9-picker-mini"><div class="s9-picker-mini-label">SQUADRA OSPITE</div>
@@ -90,6 +91,7 @@ function boot(){
     <button type="button" class="s9-picker-neighbor s9-picker-neighbor-next" id="awayNextPreview" aria-label="Squadra successiva"></button>
    </div>
    <div class="s9-picker-name" id="awayName"></div>
+   <div class="s9-picker-rating" id="awayRating"></div>
   </div>
  </div>
  </div>
@@ -181,6 +183,14 @@ function boot(){
   const id=ids[index];if(!id)return;const t=T(id);
   q('#'+side+'Crest').innerHTML=CREST_ASSETS[id]?`<img src="${CREST_ASSETS[id]}" alt="Stemma ${t.name}">`:`<span>${t.name.substring(0,2).toUpperCase()}</span>`;
   q('#'+side+'Name').textContent=`${t.name} ${t.season}`;
+  /* FIX 2026-09: allineata alla schermata di selezione squadra di
+     Carriera/Coppe (che mostra OVR grande + lista MODULI accanto allo
+     stemma) - prima qui in Amichevole si vedevano solo stemma e nome,
+     schermata piu' povera e visivamente diversa dalle altre. Stesse
+     classi CSS (.s9-picker-label/-ovr/-formations) gia' usate li',
+     cosi' l'aspetto e' identico senza bisogno di nuovo CSS. */
+  const ratingEl=q('#'+side+'Rating');
+  if(ratingEl)ratingEl.innerHTML=`<div class="s9-picker-label">OVR</div><div class="s9-picker-ovr">${t.strength}</div><div class="s9-picker-label">MODULI</div><div class="s9-picker-formations">${(t.formations||[]).join('<br>')}</div>`;
   const prevT=T(ids[(index-1+ids.length)%ids.length]),nextT=T(ids[(index+1)%ids.length]);
   q('#'+side+'PrevPreview').innerHTML=neighborCrest(prevT);
   q('#'+side+'NextPreview').innerHTML=neighborCrest(nextT);
