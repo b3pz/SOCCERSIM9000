@@ -106,7 +106,7 @@ function play(options){
  /* FIX 2026-09: stesso canale della partita in corso (index.html lo passa
     in options.channel), cosi' l'invasione non "cambia canale" a meta' gara. */
  const chEl=overlay.querySelector('.s9-intro-live');
- {const chName=options?.channel||(window.S9Channel?window.S9Channel():'S9 90');if(chEl)chEl.innerHTML=`${window.S9ChannelBadge?S9ChannelBadge(chName):chName} <b>LIVE</b>`;}
+ {const chName=options?.channel||(window.S9Channel?window.S9Channel():'S9 90');if(chEl)chEl.innerHTML=`${chName} <b>LIVE</b>`;}
  overlay.hidden=false;window.scrollTo(0,0);
  const has3D=!!(G&&window.S9Match3D&&S9Match3D.mode!=='2d');
  const total=4400,started=performance.now();

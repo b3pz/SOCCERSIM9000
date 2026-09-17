@@ -1,17 +1,16 @@
-/* SerieA 9000 SIM — Telecronisti in studio (V111)
-   Due "giornalisti" fissi (ritratto busto, sempre lo stesso sprite base: cambia
-   solo il colore della cravatta ed il nome, per emittente — "l'importante è
-   la cravatta") che aprono ogni partita con due battute mentre le squadre
-   entrano in campo, commentano durante l'inno (MAI per le nazionali, solo
-   club), poi lasciano la linea al sorteggio della monetina gia' gestito da
-   match-intro.js, e ricompaiono a fine partita per un riepilogo scherzoso.
-   Barra fissa in fondo allo schermo, indipendente dall'overlay attivo, cosi'
-   funziona sia durante l'intro (sopra #s9MatchIntro) sia da sola a fine
-   partita (quando l'intro e' gia' chiusa). Puramente atmosferico: non tocca
-   mai risultato o eventi, gia' decisi altrove. */
+/* SerieA 9000 SIM — Telecronisti in studio (V112)
+   Vero stacco in studio (non un adesivo sul campo): due presentatori "in
+   carne ed ossa" — stessi modelli 3D usati per i giocatori/arbitri, seduti
+   dietro un bancone che nasconde le gambe, giacca scura e cravatta colorata
+   diversa per emittente ("l'importante e' la cravatta") — che aprono la
+   partita, tornano in studio durante l'inno (MAI per le nazionali, solo
+   club) e chiudono con un riepilogo a fine gara prima dell'eventuale
+   cinematica della coppa. Un solo interlocutore alla volta per battuta,
+   cosi' il testo resta leggibile (prima le due battute erano incollate in
+   una riga sola ed era incomprensibile chi dicesse cosa). Puramente
+   atmosferico: non tocca mai risultato o eventi. */
 (function(){
 'use strict';
-
 const TIE_COLORS=['#c0392b','#2980b9','#f1c40f','#27ae60','#8e44ad','#e67e22','#16a085','#2c3e50','#d35400','#c2185b'];
 const ANCHOR_PAIRS=[
  ['Piero Malaspina','Furio Stracci'],
@@ -23,95 +22,144 @@ const ANCHOR_PAIRS=[
  ['Corrado Moviola','Sisto Palombaro'],
  ['Learco Sagoma','Ottavio Recupero']
 ];
-
 function hashStr(s){let h=0;for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0}return Math.abs(h)}
-
-const ENTRANCE=[
- "{a1}: Eccoli, {h} e {a}, entrano in campo — e per una volta non è per litigare col semaforo del parcheggio.",
- "{a2}: Squadre schierate! {a1}, secondo te chi ha vinto lo spareggio del pullman più lento oggi?",
- "{a1}: {h} contro {a} stasera, {a2}, altro che la partitella del giovedì al campetto.",
- "{a2}: Guarda che ingresso solenne, {a1}... peccato manchi solo la musica giusta, ma tant'è.",
- "{a1}: {h} e {a} si affrontano — {a2}, tu su chi punti, o meglio, su chi hai scommesso il caffè?",
- "{a2}: Che atmosfera stasera, {a1}! Altro che il bar sotto casa con la tele appesa storta."
-];
-const ANTHEM=[
- "{a1}: E ora un momento di raccoglimento, {a2}... o almeno ci si prova.",
- "{a2}: Bella intensità, {a1}. Anni fa qui si sentiva meno, ma va detto: anni fa si sentiva anche meno tutto.",
- "{a1}: {a2}, dai un'occhiata alle facce dei giocatori: c'è chi canta e chi conta i minuti al fischio.",
- "{a2}: Un classico prima del fischio d'inizio, {a1}. Ai miei tempi era tutta un'altra cosa, dicono.",
- "{a1}: Emozione palpabile, {a2}. O forse è solo il freddo, sinceramente non si capisce mai bene."
-];
-const FULLTIME=[
- "{a1}: Finisce {h} {sh} - {sa} {a}, {a2}: che ne pensi?",
- "{a2}: {a1}, dico solo che al bar stasera se ne parlerà fino a tardi, come sempre.",
- "{a1}: {h} {sh} - {sa} {a}: risultato che farà discutere, {a2}, come minimo fino a domattina.",
- "{a2}: Si chiude qui, {a1}. Quelli di prima erano altri tempi, dicono sempre tutti, ma va bene così.",
- "{a1}: {h} {sh} - {sa} {a} il finale, {a2}. Buonanotte a tutti, e alla prossima puntata."
-];
-
 const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
 const fill=(tpl,vars)=>tpl.replace(/\{(\w+)\}/g,(_,k)=>vars[k]??'');
 
-let bar,line1,line2,hideTimer=null;
-let ctx={a1:'Piero Malaspina',a2:'Furio Stracci',tie1:'#c0392b',tie2:'#2980b9',h:'',a:''};
+// Ogni voce e' uno scambio a 2 battute (una per anchor): si mostra prima
+// l'una poi l'altra, mai insieme nella stessa riga.
+const ENTRANCE=[
+ ['{a1}: Eccoli, {h} e {a} entrano in campo.','{a2}: Squadre schierate: si parte davvero, {a1}.'],
+ ['{a1}: Stasera {h} contro {a}, atmosfera niente male.','{a2}: Vediamo se regge fino al triplice fischio, {a1}.'],
+ ['{a1}: {h} e {a} si affrontano stasera.','{a2}: Io un pronostico ce l\'ho, {a1}, ma me lo tengo.'],
+ ['{a1}: Che ingresso solenne, eh {a2}?','{a2}: Solenne finche\' non parte la partita vera, {a1}.'],
+ ['{a1}: Squadre pronte per {h} - {a}.','{a2}: E noi pronti a dire la nostra, come sempre, {a1}.']
+];
+const ANTHEM=[
+ ['{a1}: E ora un momento di raccoglimento, {a2}.','{a2}: Ci si prova, {a1}, ci si prova.'],
+ ['{a1}: Bella intensita\' stasera, {a2}.','{a2}: Anni fa si sentiva meno, dicono sempre tutti, {a1}.'],
+ ['{a1}: Guarda le facce dei giocatori, {a2}.','{a2}: C\'e\' chi canta e chi conta i minuti, {a1}.'],
+ ['{a1}: Un classico prima del fischio d\'inizio.','{a2}: Ai miei tempi era tutta un\'altra cosa, dicono.']
+];
+const pick2=bank=>pick(bank);
 
-function ensureBar(){
- if(bar)return;
- bar=document.createElement('div');
- bar.id='s9BroadcastAnchors';bar.hidden=true;
- bar.innerHTML=`<div class="s9-anchor" data-side="1"><div class="s9-anchor-bust"><span class="s9-anchor-tie"></span></div><div class="s9-anchor-name"></div></div>
-  <div class="s9-anchor-speech"></div>
-  <div class="s9-anchor" data-side="2"><div class="s9-anchor-bust"><span class="s9-anchor-tie"></span></div><div class="s9-anchor-name"></div></div>`;
- document.body.appendChild(bar);
- line1=bar.querySelector('[data-side="1"] .s9-anchor-name');
- line2=bar.querySelector('[data-side="2"] .s9-anchor-name');
- bar.addEventListener('click',hide);
-}
+let overlay,canvas,ctx;
+const state={a1:'Piero Malaspina',a2:'Furio Stracci',tie1:'#c0392b',tie2:'#2980b9',h:'',a:'',entranceLines:null,anthemLines:null,fulltimeLines:null};
 
 function setup(options){
- ensureBar();
- const channel=options?.channel||'S9 90';
- const seed=hashStr(channel);
+ const channel=options?.channel||'S9 90',seed=hashStr(channel);
  const pair=ANCHOR_PAIRS[seed%ANCHOR_PAIRS.length];
- const tie1=TIE_COLORS[seed%TIE_COLORS.length],tie2=TIE_COLORS[(seed+3)%TIE_COLORS.length];
- ctx={a1:pair[0],a2:pair[1],tie1,tie2,h:options?.h||'',a:options?.a||''};
- line1.textContent=ctx.a1;line2.textContent=ctx.a2;
- bar.querySelector('[data-side="1"] .s9-anchor-tie').style.background=tie1;
- bar.querySelector('[data-side="2"] .s9-anchor-tie').style.background=tie2;
+ state.a1=pair[0];state.a2=pair[1];
+ state.tie1=TIE_COLORS[seed%TIE_COLORS.length];state.tie2=TIE_COLORS[(seed+3)%TIE_COLORS.length];
+ state.h=options?.h||state.h;state.a=options?.a||state.a;
+ const vars={a1:state.a1,a2:state.a2,h:state.h,a:state.a};
+ state.entranceLines=pick2(ENTRANCE).map(l=>fill(l,vars));
+ state.anthemLines=pick2(ANTHEM).map(l=>fill(l,vars));
+}
+function setResult(options){
+ const {scoreH,scoreA}=options||{};
+ const vars={a1:state.a1,a2:state.a2,h:state.h,a:state.a,sh:scoreH,sa:scoreA};
+ let bank;
+ if(scoreH>scoreA)bank=[
+  ['{a1}: Vittoria per {h}! Finisce {sh} a {sa} su {a}.','{a2}: Che partita, {a1}. Al bar se ne parlera\' fino a tardi.'],
+  ['{a1}: {h} porta a casa i tre punti, {sh} a {sa}.','{a2}: {a} ci riprovera\', {a1}, come sempre.']
+ ];
+ else if(scoreA>scoreH)bank=[
+  ['{a1}: Vittoria per {a}! Finisce {sa} a {sh} su {h}.','{a2}: Serata da dimenticare per {h}, {a1}.'],
+  ['{a1}: {a} vince {sa} a {sh}, altro che pronostico.','{a2}: {h} torna a casa con qualche domanda, {a1}.']
+ ];
+ else bank=[
+  ['{a1}: Finisce pari, {sh} a {sa} tra {h} e {a}.','{a2}: Punticino a testa, {a1}, non scontenta nessuno... o forse si\'.'],
+  ['{a1}: Pareggio tra {h} e {a}, {sh} a {sa}.','{a2}: Giusto cosi\', {a1}, o quasi.']
+ ];
+ state.fulltimeLines=pick2(bank).map(l=>fill(l,vars));
 }
 
-function say(line){
- if(clearTimeout)clearTimeout(hideTimer);
- ensureBar();
- bar.hidden=false;
- bar.querySelector('.s9-anchor-speech').textContent=line;
- const speaker=line.startsWith(ctx.a2+':')?'2':'1';
- bar.querySelectorAll('.s9-anchor').forEach(el=>el.classList.toggle('talking',el.dataset.side===speaker));
+/* Disegna la scena "studio" (bancone + due presentatori 3D) direttamente sul
+   canvas passato dal chiamante — usato sia dall'overlay dedicato (intro e
+   riepilogo finale) sia, mid-cinematica, dal canvas gia' aperto da
+   match-intro.js durante l'inno (nessun secondo overlay sovrapposto).
+   Ritorna la battuta corrente (stringa) da mostrare nella didascalia del
+   chiamante. */
+function drawStudio(ctx,w,h,progress,phase){
+ const g=window.S9Football3D;
+ if(g){
+  const bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#050e1c');bg.addColorStop(1,'#0d2038');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+  const p=g.camera([0,2.35,6.6],[0,1.5,0],w,h,42),scene=g.scene(ctx,p);
+  // Parete di fondo dello studio, con una striscia dorata come identita' grafica.
+  scene.box([0,2.7,-2.8],[9.4,5.2,.3],'#0b2036');
+  scene.box([0,2.55,-2.63],[9.4,.16,.1],'#d5b35f');
+  scene.box([-3.1,2.55,-2.62],[1.5,.16,.1],'#8fffe9');scene.box([3.1,2.55,-2.62],[1.5,.16,.1],'#8fffe9');
+  const suit={shirt:'#20293a',shorts:'#151b26',socks:'#151b26'};
+  g.player(scene,-1.75,0,suit,0,.18,1.08,'',false,0);
+  g.player(scene,1.75,0,suit,0,-.18,1.08,'',false,0);
+  scene.box([-1.75,1.34,.2],[.17,.44,.06],state.tie1);
+  scene.box([1.75,1.34,.2],[.17,.44,.06],state.tie2);
+  // Bancone: davanti ai due presentatori, nasconde gambe/busto basso.
+  scene.box([0,.52,2.35],[7.6,1.04,1.05],'#142943');
+  scene.box([0,1.03,1.82],[7.6,.07,.06],'#d5b35f');
+  scene.flush();
+  ctx.font='900 clamp(10px,1.4vw,13px) Arial';ctx.textAlign='center';ctx.textBaseline='top';
+  [[-1.75,state.a1],[1.75,state.a2]].forEach(([x,name])=>{
+   const pos=p([x,2.05,0]);
+   ctx.fillStyle='#020914cc';ctx.fillRect(pos.x-52,pos.y+2,104,17);
+   ctx.fillStyle='#f4e5b5';ctx.fillText(name,pos.x,pos.y+4);
+  });
+ }else{
+  ctx.fillStyle='#0d2038';ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='#f4e5b5';ctx.font='900 16px Arial';ctx.textAlign='center';ctx.fillText('STUDIO',w/2,h/2);
+ }
+ const lines=phase==='entrance'?state.entranceLines:phase==='anthem'?state.anthemLines:state.fulltimeLines;
+ if(!lines)return '';
+ return lines[progress<.5?0:1]||lines[0]||'';
 }
 
-function entrance(){
- say(fill(pick(ENTRANCE),ctx));
+function ensureOverlay(){
+ if(overlay)return;
+ overlay=document.createElement('div');
+ overlay.id='s9AnchorStudio';overlay.hidden=true;
+ overlay.setAttribute('role','status');overlay.setAttribute('aria-live','polite');
+ overlay.innerHTML=`<div class="s9-intro-shell">
+  <div class="s9-intro-kicker">STUDIO</div>
+  <div class="s9-intro-stage"><canvas></canvas><div class="s9-intro-live"></div><div class="s9-intro-caption"></div></div>
+  <button type="button" class="s9-intro-skip">SALTA ▶</button>
+ </div>`;
+ document.body.appendChild(overlay);
+ canvas=overlay.querySelector('canvas');ctx=canvas.getContext('2d');
 }
-function anthem(isNational){
- // FIX 2026-09: mai durante l'inno delle nazionali, solo club (richiesta utente).
- if(isNational){hide();return}
- say(fill(pick(ANTHEM),ctx));
-}
-function hide(){
- if(!bar)return;
- bar.hidden=true;
- bar.querySelectorAll('.s9-anchor').forEach(el=>el.classList.remove('talking'));
-}
-function recap(options){
- ensureBar();
- setup(options);
- say(fill(pick(FULLTIME),{...ctx,h:options?.h||ctx.h,a:options?.a||ctx.a,sh:options?.scoreH,sa:options?.scoreA}));
+
+function runOverlay(phase,duration){
+ ensureOverlay();
+ overlay.querySelector('.s9-intro-live').innerHTML=`${state.h&&state.a?`${state.h} - ${state.a}`:'S9 90'} <b>LIVE</b>`;
+ const caption=overlay.querySelector('.s9-intro-caption'),skipBtn=overlay.querySelector('.s9-intro-skip');
+ overlay.hidden=false;window.scrollTo(0,0);
+ const started=performance.now();let raf=0;
  return new Promise(resolve=>{
-  const done=()=>{hide();bar.removeEventListener('click',done);clearTimeout(hideTimer);resolve()};
-  hideTimer=setTimeout(done,3600);
-  bar.addEventListener('click',done,{once:true});
+  function finish(){cancelAnimationFrame(raf);overlay.hidden=true;skipBtn.onclick=null;resolve()}
+  skipBtn.onclick=finish;
+  function frame(now){
+   const t=Math.min(1,(now-started)/duration);
+   const w=canvas.clientWidth||900,h=canvas.clientHeight||420,ratio=Math.min(devicePixelRatio||1,1.5);
+   if(canvas.width!==Math.round(w*ratio)||canvas.height!==Math.round(h*ratio)){canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio)}
+   ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,w,h);
+   const line=drawStudio(ctx,w,h,t,phase);
+   if(caption.textContent!==line)caption.textContent=line;
+   if(t>=1){finish();return}
+   raf=requestAnimationFrame(frame);
+  }
+  raf=requestAnimationFrame(frame);
  });
 }
 
-window.S9Anchors={setup,entrance,anthem,hide,recap};
+function studioIntro(options){
+ setup(options);
+ return runOverlay('entrance',4200);
+}
+function recap(options){
+ setup(options);
+ setResult(options);
+ return runOverlay('fulltime',4200);
+}
+
+window.S9Anchors={setup,setResult,drawStudio,studioIntro,recap};
 })();

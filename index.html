@@ -1809,6 +1809,13 @@ async function launchMatch(){
     invasione di campo restano sempre sullo stesso finto canale per tutta
     la durata dell'incontro. */
  const matchChannel=window.S9Channel?S9Channel():'S9 90';
+ /* FIX 2026-09: vero stacco in studio PRIMA dell'ingresso in campo (non piu'
+    un testo sovrapposto al campo): due telecronisti presentano la partita,
+    poi si passa all'ingresso vero e proprio. */
+ if(window.S9Anchors?.studioIntro){
+  try{await S9Anchors.studioIntro({channel:matchChannel,h:`${T(g[0]).name} ${T(g[0]).season}`,a:`${T(g[1]).name} ${T(g[1]).season}`})}
+  catch(e){console.warn("Studio pre-partita",e)}
+ }
  if(window.S9MatchIntro){
   try{coinToss=await S9MatchIntro.play({h:g[0],a:g[1],key:S9Competition?.key?.()||'seriea',stadium:S9V10?.matchContext?.stadium||teamMeta[g[0]]?.stadium||S9Competition?.stadium?.(),channel:matchChannel})}
   catch(e){console.warn("Introduzione pre-partita",e)}

@@ -68,7 +68,6 @@ function finish(){
  if(!active.coinCall)callCoin(Math.random()<.5?'heads':'tails',true);
  if(!active.tossRevealed)revealToss();
  if(!active.decision)active.decision=makeDecision(active,Math.random()<.5?'ball':'field');
- window.S9Anchors?.hide();
  const decision=active.decision,resolver=resolveActive;active=null;resolveActive=null;cancelAnimationFrame(frame);overlay.hidden=true;
  lastFocus?.focus?.({preventScroll:true});resolver?.(decision);
 }
@@ -83,17 +82,21 @@ function skip(){
 function paint(item,now){
  if(item.lastFrame!==null&&!document.hidden)item.elapsed+=Math.min(80,now-item.lastFrame);item.lastFrame=now;
  const reduced=item.reduced,t=reduced?39:Math.min(50,item.elapsed/1000),stage=t<24?0:t<36?1:2;
- if(item.lastAnchorStage!==stage){
-  item.lastAnchorStage=stage;
-  if(stage===0)window.S9Anchors?.entrance();
-  else if(stage===1)window.S9Anchors?.anthem(item.isNational);
-  else window.S9Anchors?.hide();
- }
+ /* FIX 2026-09: vero stacco in studio durante l'inno (mai per le nazionali -
+    "mai quelli delle nazionali"): invece di disegnare ancora il campo, per
+    tutta la durata di questa fase il canvas mostra i due telecronisti,
+    esattamente come farebbe una regia TV vera che stacca dallo stadio allo
+    studio e poi torna in campo per il sorteggio. */
+ const cutaway=stage===1&&!item.isNational;
  const w=canvas.clientWidth||1000,h=canvas.clientHeight||500,ratio=Math.min(devicePixelRatio||1,1.5);
  if(canvas.width!==Math.round(w*ratio)||canvas.height!==Math.round(h*ratio)){canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio)}
  ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,w,h);
- const bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#061323');bg.addColorStop(.55,'#18344c');bg.addColorStop(1,'#071b14');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
  const portrait=w/h<1.05,arrival=clamp(t/24),toss=clamp((t-36)/2.6),brand=item.brand,venue=item.venueStyle;
+ let anthemLine='';
+ if(cutaway){
+  anthemLine=window.S9Anchors?.drawStudio?.(ctx,w,h,clamp((t-24)/12),'anthem')||'';
+ }else{
+ const bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#061323');bg.addColorStop(.55,'#18344c');bg.addColorStop(1,'#071b14');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
  const p=G.camera([0,portrait?10:4.5+arrival*3.5,portrait?26:12+arrival*12],[0,1,-5+arrival*2],w,h,portrait?70:50),scene=G.scene(ctx,p);
  G.pitchSurface(ctx,p,-13,-14,26,21,1.3);
  // Real opening between two stands, with a dark passage, side walls and canopy.
@@ -136,11 +139,12 @@ function paint(item,now){
   ctx.fillStyle='#e8c65f';ctx.strokeStyle='#fff1ba';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(w/2,cy,13,13*spin,0,0,Math.PI*2);ctx.fill();ctx.stroke();
   if(item.tossRevealed){ctx.fillStyle='#182236';ctx.font='900 13px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(item.coinFace==='heads'?'T':'C',w/2,cy)}
  }
+ }
  const ceremonialCaption=item.isNational
   ?`INNO NAZIONALE · ${sideName(item,t<30?'home':'away').toUpperCase()}`
   :item.key==='friendly'?'PRESENTAZIONE DELLE SQUADRE':`SIGLA · ${item.brand.name}`;
  const tossCaption=!item.coinCall?'LANCIO DELLA MONETA · SCEGLI TESTA O CROCE':!item.tossRevealed?'MONETA IN ARIA':`${item.coinFace==='heads'?'TESTA':'CROCE'} · ${sideName(item,item.tossWinner).toUpperCase()} VINCE IL SORTEGGIO`;
- const captions=[`INGRESSO IN CAMPO · ${item.stadium.toUpperCase()}`,ceremonialCaption,tossCaption];
+ const captions=[`INGRESSO IN CAMPO · ${item.stadium.toUpperCase()}`,cutaway?anthemLine:ceremonialCaption,tossCaption];
  const caption=overlay.querySelector('.s9-intro-caption');if(caption.textContent!==captions[stage]&&!item.decision)caption.textContent=captions[stage];
  overlay.querySelectorAll('.s9-intro-progress span').forEach((el,i)=>el.classList.toggle('active',i<=stage));
  if(stage===1&&!item.soundPlayed){item.soundPlayed=true;ceremonialSound(item.isNational)}
@@ -164,12 +168,12 @@ async function play(options){
   /* FIX 2026-09: canale passato da index.html (uguale per tutta la partita,
      scorebug + eventuale invasione compresi); se manca, se ne sceglie uno
      al volo cosi' l'intro resta funzionante anche chiamata da sola. */
-  channel:options.channel||(window.S9Channel?S9Channel():'S9 90'),lastAnchorStage:-1};
+  channel:options.channel||(window.S9Channel?S9Channel():'S9 90')};
  [item.homeKit,item.awayKit]=await Promise.all([G.loadKit(kitPath(h,selectedKits.home)),G.loadKit(kitPath(a,selectedKits.away))]);
  const home=T(h),away=T(a);overlay.style.setProperty('--intro-accent',brand.accent);overlay.querySelector('.s9-intro-kicker').textContent=`${isFinal?'FINALE · ':''}${brand.name} · ${item.stadium}`;
  overlay.querySelector('.s9-intro-home img').src=crest(h);overlay.querySelector('.s9-intro-home strong').textContent=teamLabel(h);
  overlay.querySelector('.s9-intro-away img').src=crest(a);overlay.querySelector('.s9-intro-away strong').textContent=teamLabel(a);
- overlay.querySelector('.s9-intro-live').innerHTML=`${window.S9ChannelBadge?S9ChannelBadge(item.channel):item.channel} <b>LIVE</b>`;
+ overlay.querySelector('.s9-intro-live').innerHTML=`${item.channel} <b>LIVE</b>`;
  /* FIX 2026-09: i due telecronisti dell'emittente scelta per la partita —
     stessa coppia per tutta l'intro, agganciata all'inizio in modo che
     l'ingresso e l'inno (solo club, mai nazionali) usino nomi/cravatta
