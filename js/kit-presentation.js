@@ -12,7 +12,7 @@ async function process(img){
  if(state.canvas?.isConnected)state.canvas.replaceWith(model);else img.after(model);
  state.canvas=model;img.classList.add('s9-kit-source');
 }
-function scan(){document.querySelectorAll('#kitHomeImg,#kitAwayImg,#teamHomeKit,#teamAwayKit,#v10PickerHome,#v10PickerAway').forEach(process)}
+function scan(){document.querySelectorAll('#kitHomeImg,#kitAwayImg,#teamHomeKit,#teamAwayKit,#v10PickerHome,#v10PickerAway,#homeKitHome,#homeKitAway,#awayKitHome,#awayKitAway').forEach(process)}
 window.v7ProcessKits=scan;
 function boot(){scan();new MutationObserver(records=>{if(records.some(r=>r.type==='childList'||r.attributeName==='src'))scan()}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['src']})}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();

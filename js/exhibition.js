@@ -79,6 +79,7 @@ function boot(){
     <button type="button" class="s9-picker-neighbor s9-picker-neighbor-next" id="homeNextPreview" aria-label="Squadra successiva"></button>
    </div>
    <div class="s9-picker-name" id="homeName"></div>
+   <div class="s9-picker-kits"><figure><img id="homeKitHome" alt="Prima divisa"><figcaption>PRIMA DIVISA</figcaption></figure><figure><img id="homeKitAway" alt="Seconda divisa"><figcaption>SECONDA DIVISA</figcaption></figure></div>
    <div class="s9-picker-rating" id="homeRating"></div>
   </div>
   <div class="s9-exhibition-vs">VS</div>
@@ -91,6 +92,7 @@ function boot(){
     <button type="button" class="s9-picker-neighbor s9-picker-neighbor-next" id="awayNextPreview" aria-label="Squadra successiva"></button>
    </div>
    <div class="s9-picker-name" id="awayName"></div>
+   <div class="s9-picker-kits"><figure><img id="awayKitHome" alt="Prima divisa"><figcaption>PRIMA DIVISA</figcaption></figure><figure><img id="awayKitAway" alt="Seconda divisa"><figcaption>SECONDA DIVISA</figcaption></figure></div>
    <div class="s9-picker-rating" id="awayRating"></div>
   </div>
  </div>
@@ -191,6 +193,11 @@ function boot(){
      cosi' l'aspetto e' identico senza bisogno di nuovo CSS. */
   const ratingEl=q('#'+side+'Rating');
   if(ratingEl)ratingEl.innerHTML=`<div class="s9-picker-label">OVR</div><div class="s9-picker-ovr">${t.strength}</div><div class="s9-picker-label">MODULI</div><div class="s9-picker-formations">${(t.formations||[]).join('<br>')}</div>`;
+  /* FIX 2026-09: anteprime maglia (prima/seconda divisa), stessa idea gia'
+     usata in Carriera/Coppe - prima qui in Amichevole non si vedevano. */
+  const homeKitEl=q('#'+side+'KitHome'),awayKitEl=q('#'+side+'KitAway');
+  if(homeKitEl)homeKitEl.src=kitPath(id,'home');
+  if(awayKitEl)awayKitEl.src=kitPath(id,'away');
   const prevT=T(ids[(index-1+ids.length)%ids.length]),nextT=T(ids[(index+1)%ids.length]);
   q('#'+side+'PrevPreview').innerHTML=neighborCrest(prevT);
   q('#'+side+'NextPreview').innerHTML=neighborCrest(nextT);
