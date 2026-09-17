@@ -72,11 +72,17 @@
     });
     const other=opposite(side),spread=[-16,-9,-3,3,9,16,-20,20];
     let marker=0;
+    /* FIX 2026-09: i difensori devono convergere nella STESSA area di rigore
+       verso cui vanno palla/attaccanti/bandierina d'angolo (il proprio
+       portiere compreso) — quindi vanno espressi nel sistema di riferimento
+       di 'side' (chi attacca), non in quello di 'other' (chi difende): con
+       xFor(other,...) finivano specchiati nell'area opposta, quella che
+       'other' sta ATTACCANDO, invece che in quella che sta DIFENDENDO. */
     const defenders=dots(other).filter(d=>!exclude.includes(d)).map(d=>{
-      if(d.dataset.role==='GK')return {el:d,x:xFor(other,96),y:50};
+      if(d.dataset.role==='GK')return {el:d,x:xFor(side,96),y:50};
       const i=marker++;
       const y=clamp(50+spread[i%spread.length]*.85+(target.y-50)*.35,10,90);
-      const x=xFor(other,i<5?89-i%2*3:78);
+      const x=xFor(side,i<5?89-i%2*3:78);
       return {el:d,x,y};
     });
     return [...attackers,...defenders];
@@ -103,21 +109,13 @@
       // posto di chi esce, anche nel modello 3D e non solo nella lista.
       const players=st.lineup.map(id=>st.players.find(p=>p.id===id)).filter(Boolean);
       const rows=(st.formation||'4-4-2').split('-').map(Number);let cursor=0;
-      // La disposizione libera scelta nell'editor tattico (tactical-workspace.js)
-      // vale anche qui: se presente, sostituisce il calcolo per modulo.
-      const custom=Array.isArray(st.customLayout)&&st.customLayout.length===st.lineup.length?st.customLayout:null;
       for(const player of players){
         const d=find(side,player.id);if(!d)continue;
         let x=5,y=50;
         if(player.pos!=='GK'){
-          const idx=st.lineup.indexOf(player.id);
-          if(custom&&custom[idx]){x=custom[idx].x;y=custom[idx].y;}
-          else{
-            let index=cursor,row=0;
-            while(row<rows.length-1&&index>=rows[row])index-=rows[row++];
-            x=24+row*48/Math.max(1,rows.length-1);y=12+(index+1)*76/(rows[row]+1);
-          }
-          cursor++;
+          let index=cursor++,row=0;
+          while(row<rows.length-1&&index>=rows[row])index-=rows[row++];
+          x=24+row*48/Math.max(1,rows.length-1);y=12+(index+1)*76/(rows[row]+1);
         }
         d.dataset.role=player.pos;d.dataset.baseX=xFor(side,x);d.dataset.baseY=y;
         d.style.left=d.dataset.baseX+'%';d.style.top=y+'%';

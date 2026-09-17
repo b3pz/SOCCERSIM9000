@@ -68,6 +68,7 @@ function finish(){
  if(!active.coinCall)callCoin(Math.random()<.5?'heads':'tails',true);
  if(!active.tossRevealed)revealToss();
  if(!active.decision)active.decision=makeDecision(active,Math.random()<.5?'ball':'field');
+ window.S9Anchors?.hide();
  const decision=active.decision,resolver=resolveActive;active=null;resolveActive=null;cancelAnimationFrame(frame);overlay.hidden=true;
  lastFocus?.focus?.({preventScroll:true});resolver?.(decision);
 }
@@ -82,6 +83,12 @@ function skip(){
 function paint(item,now){
  if(item.lastFrame!==null&&!document.hidden)item.elapsed+=Math.min(80,now-item.lastFrame);item.lastFrame=now;
  const reduced=item.reduced,t=reduced?39:Math.min(50,item.elapsed/1000),stage=t<24?0:t<36?1:2;
+ if(item.lastAnchorStage!==stage){
+  item.lastAnchorStage=stage;
+  if(stage===0)window.S9Anchors?.entrance();
+  else if(stage===1)window.S9Anchors?.anthem(item.isNational);
+  else window.S9Anchors?.hide();
+ }
  const w=canvas.clientWidth||1000,h=canvas.clientHeight||500,ratio=Math.min(devicePixelRatio||1,1.5);
  if(canvas.width!==Math.round(w*ratio)||canvas.height!==Math.round(h*ratio)){canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio)}
  ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,w,h);
@@ -153,11 +160,21 @@ async function play(options){
  const controlledSide=S9V10?.matchContext?.spectator?null:career?.user===h?'home':career?.user===a?'away':null;
  const context=S9V10?.matchContext,isFinal=!!context?.final||context?.match?.tie?.stage==='FINAL'||context?.match?.stage==='FINAL';
  const rosters=Object.fromEntries([['home',h],['away',a]].map(([side,id])=>{const st=career?.teamStates?.[id];return [side,(st?.lineup||[]).map(pid=>({number:String(st.players.findIndex(p=>p.id===pid)+1),keeper:st.players.find(p=>p.id===pid)?.pos==='GK'}))]}));
- const item={h,a,key,brand,isFinal,rosters,elapsed:0,lastFrame:null,stadium:options.stadium||S9Competition.stadium(),venueStyle:S9Competition.stadiumStyle(options.stadium||S9Competition.stadium()),isNational:national(h)&&national(a),controlledSide,callingSide:controlledSide||'away',coinCall:null,coinFace:null,callAt:0,callPrompted:false,tossWinner:null,tossRevealed:false,decision:null,decisionAt:0,soundPlayed:false,reduced:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,started:0};
+ const item={h,a,key,brand,isFinal,rosters,elapsed:0,lastFrame:null,stadium:options.stadium||S9Competition.stadium(),venueStyle:S9Competition.stadiumStyle(options.stadium||S9Competition.stadium()),isNational:national(h)&&national(a),controlledSide,callingSide:controlledSide||'away',coinCall:null,coinFace:null,callAt:0,callPrompted:false,tossWinner:null,tossRevealed:false,decision:null,decisionAt:0,soundPlayed:false,reduced:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,started:0,
+  /* FIX 2026-09: canale passato da index.html (uguale per tutta la partita,
+     scorebug + eventuale invasione compresi); se manca, se ne sceglie uno
+     al volo cosi' l'intro resta funzionante anche chiamata da sola. */
+  channel:options.channel||(window.S9Channel?S9Channel():'S9 90'),lastAnchorStage:-1};
  [item.homeKit,item.awayKit]=await Promise.all([G.loadKit(kitPath(h,selectedKits.home)),G.loadKit(kitPath(a,selectedKits.away))]);
  const home=T(h),away=T(a);overlay.style.setProperty('--intro-accent',brand.accent);overlay.querySelector('.s9-intro-kicker').textContent=`${isFinal?'FINALE · ':''}${brand.name} · ${item.stadium}`;
  overlay.querySelector('.s9-intro-home img').src=crest(h);overlay.querySelector('.s9-intro-home strong').textContent=teamLabel(h);
  overlay.querySelector('.s9-intro-away img').src=crest(a);overlay.querySelector('.s9-intro-away strong').textContent=teamLabel(a);
+ overlay.querySelector('.s9-intro-live').innerHTML=`${window.S9ChannelBadge?S9ChannelBadge(item.channel):item.channel} <b>LIVE</b>`;
+ /* FIX 2026-09: i due telecronisti dell'emittente scelta per la partita —
+    stessa coppia per tutta l'intro, agganciata all'inizio in modo che
+    l'ingresso e l'inno (solo club, mai nazionali) usino nomi/cravatta
+    coerenti col resto della cronaca. */
+ window.S9Anchors?.setup({channel:item.channel,h:teamLabel(h),a:teamLabel(a)});
  overlay.querySelector('.s9-intro-home img').alt=`Stemma ${home.name}`;overlay.querySelector('.s9-intro-away img').alt=`Stemma ${away.name}`;
  overlay.querySelector('.s9-intro-call').hidden=true;overlay.querySelector('.s9-intro-choices').hidden=true;overlay.querySelector('.s9-intro-toss-result').hidden=true;overlay.querySelector('.s9-intro-toss-result').textContent='';
  overlay.querySelector('.s9-intro-skip').textContent=item.reduced?'CONTINUA ▶':'SALTA INTRO ▶';lastFocus=document.activeElement;

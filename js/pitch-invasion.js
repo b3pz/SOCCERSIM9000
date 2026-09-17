@@ -52,7 +52,7 @@ function ensureOverlay(){
  overlay.setAttribute('role','status');overlay.setAttribute('aria-live','polite');
  overlay.innerHTML=`<div class="s9-intro-shell s9-invasion-shell">
   <div class="s9-intro-kicker">FUORI PROGRAMMA</div>
-  <div class="s9-intro-stage"><canvas></canvas><div class="s9-intro-live">${window.S9Channel?window.S9Channel():'S9 90'} <b>LIVE</b></div><div class="s9-intro-caption"></div></div>
+  <div class="s9-intro-stage"><canvas></canvas><div class="s9-intro-live">S9 90 <b>LIVE</b></div><div class="s9-intro-caption"></div></div>
   <button type="button" class="s9-intro-skip">SALTA ▶</button>
  </div>`;
  document.body.appendChild(overlay);
@@ -103,6 +103,10 @@ function play(options){
  invaderKit=pick(INVADER_KITS);
  const captions=[pick(OPENERS),pick(CHASES),pick(CATCHES),pick(OUTROS)];
  const caption=overlay.querySelector('.s9-intro-caption');
+ /* FIX 2026-09: stesso canale della partita in corso (index.html lo passa
+    in options.channel), cosi' l'invasione non "cambia canale" a meta' gara. */
+ const chEl=overlay.querySelector('.s9-intro-live');
+ {const chName=options?.channel||(window.S9Channel?window.S9Channel():'S9 90');if(chEl)chEl.innerHTML=`${window.S9ChannelBadge?S9ChannelBadge(chName):chName} <b>LIVE</b>`;}
  overlay.hidden=false;window.scrollTo(0,0);
  const has3D=!!(G&&window.S9Match3D&&S9Match3D.mode!=='2d');
  const total=4400,started=performance.now();
