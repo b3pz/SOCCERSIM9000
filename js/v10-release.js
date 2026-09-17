@@ -359,12 +359,15 @@ function competitionBrand(key){
 }
 function rebuildCupsMenu(){
  const shell=q('#cupsMenu .cups-shell');if(!shell)return;
+ /* FIX 2026-09: aggiunta una coda ironica ad ogni "story", tenendo la
+    frase nostalgica originale (funzionava bene) e chiudendo con una
+    battuta - stesso mix di toni della sezione Notizie in carriera. */
  const cards=[
-  {key:'italia',desc:'32 italiane · eliminazione diretta',story:'Lo stadio di provincia si riempie: stasera arriva una grande. Novanta minuti per farle tremare le gambe. La coppa comincia anche da qui.'},
-  {key:'cdc',desc:'16 club · gironi + A/R',story:'Parte la musica, si alza la sciarpa. Quelle notti le aspettavi tutta la settimana. Adesso sei tu a decidere chi scende in campo.'},
-  {key:'uefa',desc:'16 club · gironi + A/R',story:'La partita in TV, i compiti lasciati a metà. Un campo lontano, una maglia da riconoscere anche nella nebbia. Basta un gol e salta tutto il salotto.'},
-  {key:'world',desc:'Formato Francia 98 · 32 nazionali',story:'Le finestre aperte, le figurine sul tavolo, un urlo che arriva dal balcone accanto. È di nuovo Francia ’98. Stavolta, quel rigore lo giochi tu.'},
-  {key:'euro',desc:'Formato Euro 2000 · 16 nazionali',story:'L’estate del cucchiaio e del fiato sospeso fino all’ultimo pallone. Ci sono finali che fanno ancora male. Riparti da qui, con la tua nazionale.'}
+  {key:'italia',desc:'32 italiane · eliminazione diretta',story:'Lo stadio di provincia si riempie: stasera arriva una grande. Novanta minuti per farle tremare le gambe. La coppa comincia anche da qui. (E il bar sotto la curva ha già finito i panini.)'},
+  {key:'cdc',desc:'16 club · gironi + A/R',story:'Parte la musica, si alza la sciarpa. Quelle notti le aspettavi tutta la settimana. Adesso sei tu a decidere chi scende in campo. Occhio a non farti prendere dall\'ansia da telecronista.'},
+  {key:'uefa',desc:'16 club · gironi + A/R',story:'La partita in TV, i compiti lasciati a metà. Un campo lontano, una maglia da riconoscere anche nella nebbia. Basta un gol e salta tutto il salotto - letteralmente, chiedi al vaso di fiori.'},
+  {key:'world',desc:'Formato Francia 98 · 32 nazionali',story:'Le finestre aperte, le figurine sul tavolo, un urlo che arriva dal balcone accanto. È di nuovo Francia ’98. Stavolta, quel rigore lo giochi tu. Niente scuse, stavolta.'},
+  {key:'euro',desc:'Formato Euro 2000 · 16 nazionali',story:'L’estate del cucchiaio e del fiato sospeso fino all’ultimo pallone. Ci sono finali che fanno ancora male. Riparti da qui, con la tua nazionale - stavolta niente rigori dal dischetto, promesso (forse).'}
  ].map(cfg=>({...cfg,...competitionBrand(cfg.key)}));
  let index=0;
  const saved=readStandaloneState();

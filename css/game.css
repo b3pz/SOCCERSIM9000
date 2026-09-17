@@ -6722,3 +6722,16 @@ input:not([type=checkbox]):not([type=radio]){
 .s9-invasion-shell{grid-template-rows:auto minmax(0,1fr)!important;height:min(520px,86vh)!important}
 .s9-invasion-shell .s9-intro-stage{border-radius:8px}
 @media(max-width:640px){.s9-invasion-shell{width:100vw!important;height:100dvh!important;border:0!important;border-radius:0!important}}
+
+/* ===== FIX 2026-09: stemma piccolo e spostato nella selezione squadra ===== */
+/* .s9-picker-art era a 5 colonne (60px 40px 1fr 40px 60px), pensate per un
+   carosello di miniature squadra-precedente/successiva mai completato in
+   HTML/JS (restano sempre 3 elementi reali: freccia, stemma, freccia). Il
+   browser piazzava quei 3 elementi nelle prime 3 colonne (60/40/1fr),
+   lasciando vuote le ultime due (40/60) a destra: risultato, stemma
+   schiacciato in una colonna da 40px e tutto spinto a sinistra invece che
+   grande e centrato. Tornano le 3 colonne simmetriche originali. */
+:is(#teamStep,#v10CupSetup) .s9-picker-art{grid-template-columns:40px minmax(0,1fr) 40px!important}
+@media(max-width:480px){
+  :is(#teamStep,#v10CupSetup) .s9-picker-art{grid-template-columns:36px minmax(0,1fr) 36px!important;gap:6px!important}
+}
