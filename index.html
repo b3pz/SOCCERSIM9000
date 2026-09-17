@@ -881,6 +881,7 @@ main{max-width:none!important;padding:0!important}
 <button data-view="europe">Europa</button>
 <button data-view="scorers">Marcatori</button>
 <button data-view="assists">Assist</button>
+<button data-view="news">Notizie</button>
 </div>
 <div class="panel" style="margin-top:14px" id="seasonContent"></div>
 </section>
@@ -2321,6 +2322,9 @@ function renderSeasonView(v){
    <p>Nel primo anno la tua squadra non partecipa alle coppe europee, ma il mondo continua: risultati e vincitori sono comunque simulati e visibili.</p>
    <div class="europe-grid">${v4EuropeHTML(career.europe.cdc)}${v4EuropeHTML(career.europe.uefa)}</div>`;
  }
+ if(v==="news"){
+   c.innerHTML=`<h2>NOTIZIE</h2>${window.S9CareerNews?.renderNews?.(career.results,10)||'<p class="muted">Rassegna stampa non disponibile.</p>'}`;
+ }
  if(v==="scorers"||v==="assists"){
    const key=v==="scorers"?"goals":"assists",title=v==="scorers"?"MARCATORI":"ASSIST";
    const list=Object.values(career.pstats).filter(p=>p[key]>0).sort((a,b)=>b[key]-a[key]).slice(0,20);
@@ -2429,6 +2433,7 @@ renderTeamPicker();
 <script src="js/kit-profiles.js?v=1"></script>
 <script src="js/asset-quality.js?v=1"></script>
 <script src="js/football-3d.js?v=stability-13"></script>
+<script src="js/tv-channels.js?v=1"></script>
 <script src="js/kit-presentation.js?v=1"></script>
 <script src="js/match-3d.js?v=stability-13"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
@@ -2448,5 +2453,6 @@ renderTeamPicker();
 <script src="js/prematch-flavor.js?v=1"></script>
 <script src="js/parody-names.js?v=1"></script>
 <script src="js/match-commentary.js?v=1"></script>
+<script src="js/career-news.js?v=1"></script>
 </body>
 </html>

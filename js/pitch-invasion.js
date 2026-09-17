@@ -52,7 +52,7 @@ function ensureOverlay(){
  overlay.setAttribute('role','status');overlay.setAttribute('aria-live','polite');
  overlay.innerHTML=`<div class="s9-intro-shell s9-invasion-shell">
   <div class="s9-intro-kicker">FUORI PROGRAMMA</div>
-  <div class="s9-intro-stage"><canvas></canvas><div class="s9-intro-live">S9 90 <b>LIVE</b></div><div class="s9-intro-caption"></div></div>
+  <div class="s9-intro-stage"><canvas></canvas><div class="s9-intro-live">${window.S9Channel?window.S9Channel():'S9 90'} <b>LIVE</b></div><div class="s9-intro-caption"></div></div>
   <button type="button" class="s9-intro-skip">SALTA ▶</button>
  </div>`;
  document.body.appendChild(overlay);
