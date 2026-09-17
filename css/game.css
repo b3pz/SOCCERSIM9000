@@ -19,7 +19,7 @@ main{max-width:none!important;padding:0!important;margin:0!important}
 
 /* Regola fondamentale: lo sfondo E' la cornice. HTML = dati, non cartoncini. */
 #setup .panel,#season .panel,#prematch .panel,#kits .panel,#halftime .panel,#postmatch .panel,#simpleMessage .main-menu-shell{
- background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;border-radius:0!important
+ background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border-radius:0!important
 }
 
 #setup .welcome-box,#setup .lore-strip,#season .lore-strip,#prematch .lore-strip{background:transparent!important;box-shadow:none!important}
@@ -73,7 +73,7 @@ main{max-width:none!important;padding:0!important;margin:0!important}
 #halftime>.panel,#postmatch>.panel{position:absolute!important;z-index:5!important;left:26%!important;top:35%!important;width:58%!important;margin:0!important;padding:2%!important;color:#111a2c!important}
 
 /* Coppe: qui le card sono contenuto vero, ma alleggeriamo il contenitore */
-#cupsMenu .cups-shell{background:rgba(2,12,35,.42)!important;backdrop-filter:none!important}
+#cupsMenu .cups-shell{background:rgba(2,12,35,.42)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 
 /* Niente doppio 'foglio' nelle viste informative */
 #simpleMessage .main-menu-shell{position:absolute!important;z-index:5!important;left:27%!important;top:28%!important;width:46%!important;color:#f5edd6!important}
@@ -113,7 +113,7 @@ button{touch-action:manipulation}
 
   /* SETUP / NOME MANAGER */
   #setup{display:flex!important;flex-direction:column!important;align-items:center!important;background-position:center top!important}
-  #setup #managerStep{position:relative!important;left:auto!important;top:auto!important;width:min(92%,520px)!important;margin:12vh auto 0!important;padding:18px!important;background:rgba(245,238,216,.18)!important;border:0!important;color:#0d1730!important;text-align:center!important;backdrop-filter:none!important}
+  #setup #managerStep{position:relative!important;left:auto!important;top:auto!important;width:min(92%,520px)!important;margin:12vh auto 0!important;padding:18px!important;background:rgba(245,238,216,.18)!important;border:0!important;color:#0d1730!important;text-align:center!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
   #setup #managerStep .welcome-box{max-width:100%!important}
   #setup #managerStep .lore-strip{padding:0 8px!important;font-size:15px!important;line-height:1.35!important;text-align:left!important}
   #setup #managerStep h2{font-size:23px!important;line-height:1.05!important}
@@ -556,7 +556,7 @@ button{touch-action:manipulation}
   #prematch>.grid>.panel:first-child,
   #prematch>.grid>.panel:nth-child(2){
     background:rgba(238,229,201,.78)!important;
-    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
     -webkit-backdrop-filter:none!important;
   }
 
@@ -641,7 +641,7 @@ button{touch-action:manipulation}
   #prematch .panel,
   #kits .panel{
     box-sizing:border-box!important;
-    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
     -webkit-backdrop-filter:none!important;
   }
 
@@ -1353,7 +1353,7 @@ button{letter-spacing:.15px!important}
     border:1px solid rgba(230,197,94,.86)!important;
     border-radius:52px!important;
     box-shadow:0 22px 70px rgba(0,0,0,.48)!important;
-    backdrop-filter:blur(5px) saturate(.92)!important;
+    -webkit-backdrop-filter:blur(5px) saturate(.92)!important;backdrop-filter:blur(5px) saturate(.92)!important;
     -webkit-backdrop-filter:blur(5px) saturate(.92)!important;
     overflow:hidden!important;
   }
@@ -1603,7 +1603,7 @@ button{letter-spacing:.15px!important}
   #setup #managerStep .lore-strip p{color:#101a2e!important}
   #setup #managerStep .headline{color:#9b6f08!important;text-shadow:none!important}
   #setup #teamStep{padding-top:76px!important}
-  #setup .team-side{background:rgba(3,16,38,.9)!important;border:1px solid rgba(230,197,94,.7)!important;border-radius:12px!important;backdrop-filter:blur(5px)!important;color:#fff!important}
+  #setup .team-side{background:rgba(3,16,38,.9)!important;border:1px solid rgba(230,197,94,.7)!important;border-radius:12px!important;-webkit-backdrop-filter:blur(5px)!important;backdrop-filter:blur(5px)!important;color:#fff!important}
   #setup .team-info-row{padding:7px 0!important;border-bottom:1px solid rgba(230,197,94,.45)!important}
   #setup .team-info-label{color:var(--v72-gold)!important}
   #setup .team-info-value{color:#fff!important}
@@ -2065,6 +2065,7 @@ html.v75-phone-landscape .screen.active{
 /* Match navigation tabs are real interactive controls now. */
 #match .match-tabs span{
   cursor:pointer!important;
+  -webkit-user-select:none!important;
   user-select:none!important;
   min-height:34px!important;
   display:flex!important;
@@ -2131,7 +2132,7 @@ html.v75-phone-landscape .screen.active{
 .v76-report-empty{text-align:center;padding:44px 15px;color:#c8d0dd;font-size:16px}
 
 /* Replace the old cream save card with one clean retro broadcast replay. */
-#match #overlay{background:rgba(0,6,18,.38)!important;backdrop-filter:blur(1.5px)}
+#match #overlay{background:rgba(0,6,18,.38)!important;-webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px)}
 #match #overlayBox{
   background:linear-gradient(180deg,rgba(4,18,48,.97),rgba(2,9,26,.98))!important;
   color:#fff!important;
@@ -2757,7 +2758,7 @@ html.s9-phone-portrait #s9RotateDevice{
   border:2px solid #c5a44c!important;
   background:rgba(4,15,43,.88)!important;
   box-shadow:0 18px 55px rgba(0,0,0,.65)!important;
-  backdrop-filter:blur(3px)!important;
+  -webkit-backdrop-filter:blur(3px)!important;backdrop-filter:blur(3px)!important;
   -webkit-backdrop-filter:blur(3px)!important;
 }
 #s9RotateDevice .s9-rotate-logo{
@@ -3156,7 +3157,7 @@ html.s9-phone-landscape #simpleMessage{
 #v10CupSetup.v10-world{background-image:url('../assets/backgrounds_v10/bg_world_cup.svg')!important}
 #v10CupSetup.v10-euro-nations{background-image:url('../assets/backgrounds_v10/bg_euro_nations.svg')!important}
 
-.v10-shell{width:min(1220px,88vw);margin:5vh auto 0;background:rgba(5,15,42,.86);border:1px solid rgba(208,176,87,.62);box-shadow:0 12px 40px rgba(0,0,0,.38);padding:22px;color:#fff;backdrop-filter:blur(4px)}
+.v10-shell{width:min(1220px,88vw);margin:5vh auto 0;background:rgba(5,15,42,.86);border:1px solid rgba(208,176,87,.62);box-shadow:0 12px 40px rgba(0,0,0,.38);padding:22px;color:#fff;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 .v10-title{font-family:Impact,Arial Narrow,sans-serif;font-size:clamp(28px,3vw,48px);letter-spacing:.7px;color:#fff4cf;text-align:center;border-bottom:2px solid var(--v10-gold);padding-bottom:10px;margin-bottom:14px}
 .v10-subtitle{text-align:center;color:#e5dcc6;margin:-4px 0 14px;font-size:13px}
 .v10-cup-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
@@ -3397,7 +3398,7 @@ header small,#headerRight{font-size:clamp(10px,.85vw,13px);letter-spacing:.06em}
   border:1px solid var(--v104-line)!important;
   border-radius:var(--v104-radius)!important;
   box-shadow:var(--v104-shadow)!important;
-  backdrop-filter:blur(8px) saturate(1.05)!important;
+  -webkit-backdrop-filter:blur(8px) saturate(1.05)!important;backdrop-filter:blur(8px) saturate(1.05)!important;
   -webkit-backdrop-filter:blur(8px) saturate(1.05)!important;
 }
 
@@ -3661,8 +3662,12 @@ input,select{border-radius:6px}
 :is(#teamStep,#v10CupSetup) .s9-picker-ovr{font:900 clamp(40px,7vh,76px)/1.1 Impact,Arial,sans-serif;color:#fff4cf;margin:8px 0 24px}
 :is(#teamStep,#v10CupSetup) .s9-picker-formations{line-height:1.65;margin-top:8px}
 :is(#teamStep,#v10CupSetup) .s9-picker-center{min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:5px}
-:is(#teamStep,#v10CupSetup) .s9-picker-name{font:900 clamp(18px,2.2vw,32px)/1.1 "Trebuchet MS",Arial,sans-serif;color:#fff4cf}
-:is(#teamStep,#v10CupSetup) .s9-picker-year{font-size:14px;color:#d5b85f}
+:is(#teamStep,#v10CupSetup) .s9-picker-name{font:900 clamp(18px,2.2vw,32px)/1.1 "Trebuchet MS",Arial,sans-serif;color:#fff4cf;text-shadow:0 2px 6px #000,0 1px 2px #000}
+/* FIX 2026-09: nome squadra e stagione (es. "1990") stanno sopra l'artwork del
+   trofeo, che include una scritta diagonale ripetuta ("COPPA DEL MONDO") e foto
+   scure — senza un'ombra il testo si fondeva illeggibile con quello sfondo. Stessa
+   tecnica (text-shadow nero) già usata altrove nel gioco per testo su foto. */
+:is(#teamStep,#v10CupSetup) .s9-picker-year{font-size:14px;color:#d5b85f;text-shadow:0 2px 5px #000,0 1px 2px #000;font-weight:700}
 :is(#teamStep,#v10CupSetup) .s9-picker-art{display:grid;grid-template-columns:40px minmax(0,1fr) 40px;align-items:center;gap:10px;width:100%;flex:1;min-height:65px}
 :is(#teamStep,#v10CupSetup) .s9-picker-crest,
 #setup #teamStep #teamEmblem{display:flex!important;align-items:center;justify-content:center;width:100%!important;height:100%!important;min-height:0;max-height:220px;margin:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
@@ -4045,7 +4050,7 @@ body[data-v10-cup-theme="uefa"] #match::after{content:"COPPA UEFA";position:abso
   background:linear-gradient(180deg,rgba(5,18,47,.77),rgba(3,13,37,.72))!important;
   border-color:rgba(238,213,131,.88)!important;
   box-shadow:0 18px 55px rgba(0,0,0,.42),inset 0 0 0 1px rgba(255,255,255,.04)!important;
-  backdrop-filter:blur(2px) saturate(1.05)!important;
+  -webkit-backdrop-filter:blur(2px) saturate(1.05)!important;backdrop-filter:blur(2px) saturate(1.05)!important;
   -webkit-backdrop-filter:blur(2px) saturate(1.05)!important;
 }
 #v10CupSetup[data-v10-competition] .s9-picker-side{
@@ -4059,7 +4064,7 @@ body[data-v10-cup-theme="uefa"] #match::after{content:"COPPA UEFA";position:abso
 #v10Tournament[data-v10-competition] .v10-tournament-shell{
   background:linear-gradient(180deg,rgba(4,15,43,.78),rgba(3,11,31,.72))!important;
   border-color:rgba(238,213,131,.88)!important;
-  backdrop-filter:blur(2px) saturate(1.05)!important;
+  -webkit-backdrop-filter:blur(2px) saturate(1.05)!important;backdrop-filter:blur(2px) saturate(1.05)!important;
   -webkit-backdrop-filter:blur(2px) saturate(1.05)!important;
 }
 #v10Tournament[data-v10-competition] .v10-next-card,
@@ -4140,13 +4145,13 @@ body[data-v10-cup-theme="italia"] :is(#prematch,#kits,#match,#halftime,#postmatc
 }
 #v10CupSetup[data-v10-competition] .s9-team-picker{
   background:linear-gradient(180deg,rgba(3,13,37,.46),rgba(3,13,37,.34))!important;
-  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
   -webkit-backdrop-filter:none!important;
   border-color:rgba(238,213,131,.88)!important;
 }
 #v10CupSetup[data-v10-competition] .s9-picker-side{
   background:rgba(3,13,38,.48)!important;
-  backdrop-filter:blur(1px)!important;
+  -webkit-backdrop-filter:blur(1px)!important;backdrop-filter:blur(1px)!important;
   -webkit-backdrop-filter:blur(1px)!important;
 }
 #v10CupSetup[data-v10-competition] .s9-picker-center{
@@ -4154,7 +4159,7 @@ body[data-v10-cup-theme="italia"] :is(#prematch,#kits,#match,#halftime,#postmatc
 }
 #v10Tournament[data-v10-competition] .v10-tournament-shell{
   background:linear-gradient(180deg,rgba(3,12,34,.50),rgba(3,10,27,.38))!important;
-  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
   -webkit-backdrop-filter:none!important;
 }
 #v10Tournament[data-v10-competition] #v10TournamentContent{
@@ -4229,7 +4234,7 @@ body[data-v10-cup-theme] :is(#prematch,#kits,#match,#halftime,#postmatch)::befor
 body[data-v10-cup-theme] :is(#prematch,#halftime,#postmatch)>.panel,
 body[data-v10-cup-theme] #match .match-shell{
   background:rgba(3,12,34,.70)!important;
-  backdrop-filter:blur(1px)!important;
+  -webkit-backdrop-filter:blur(1px)!important;backdrop-filter:blur(1px)!important;
   -webkit-backdrop-filter:blur(1px)!important;
 }
 
@@ -4350,7 +4355,7 @@ body[data-v10-cup-theme] #match .match-shell{
   color:#fff!important;
   border:1px solid rgba(225,194,96,.70)!important;
   box-shadow:0 14px 36px rgba(0,0,0,.32)!important;
-  backdrop-filter:blur(2px)!important;
+  -webkit-backdrop-filter:blur(2px)!important;backdrop-filter:blur(2px)!important;
   -webkit-backdrop-filter:blur(2px)!important;
 }
 #season>#seasonContent h2,
@@ -4719,7 +4724,7 @@ body:not([data-v10-cup-theme]) #prematch::after{
 #kits #kitContrast{margin:16px auto!important}
 #kits.active{overflow-y:auto!important}
 /* Tactical board keeps the player positions, with a clean technical surface. */
-#prematch.active>.grid>.panel:first-child,#prematch.active>.grid>.panel:nth-child(2){background:#0b254aef!important;border:1px solid #c5ab6577!important;border-radius:6px!important;backdrop-filter:none!important;overflow-y:auto!important}
+#prematch.active>.grid>.panel:first-child,#prematch.active>.grid>.panel:nth-child(2){background:#0b254aef!important;border:1px solid #c5ab6577!important;border-radius:6px!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;overflow-y:auto!important}
 #prematch.active #v63TacticalXI::before{background:#18594f url('../assets/ui/tactical-pitch.svg') center/100% 100% no-repeat!important;border:2px solid #dfc77d!important;box-shadow:0 12px 28px #00132666!important}
 #prematch .v63-name{font-size:11px!important;background:#071c36ed!important;padding:3px 6px!important}
 #halftime>.panel.hero{background:linear-gradient(130deg,#123462f5,#071d3ef5)!important;max-height:calc(100% - 100px)!important;overflow-y:auto!important;padding:26px!important;border-top:3px solid #edcd77!important}
@@ -5952,7 +5957,7 @@ button,input,select{font-family:var(--s9-font-ui)!important}
 #prematch.v107-prematch-upgraded button.primary{background:linear-gradient(180deg,#173c7b,#0c2351)!important;color:#fff8dd!important}
 @keyframes v107PrematchRail{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-#tacticsModal.v107-tactics-upgraded{backdrop-filter:blur(2px)}
+#tacticsModal.v107-tactics-upgraded{-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
 #tacticsModal.v107-tactics-upgraded .v107-tactics-shell{
   background:linear-gradient(180deg,rgba(6,23,50,.98),rgba(3,15,36,.97))!important;
   border:2px solid rgba(223,194,114,.40)!important;
@@ -5998,7 +6003,7 @@ button,input,select{font-family:var(--s9-font-ui)!important}
 #exhibitionSetup[data-exhibition-competition="euro"]{background-image:linear-gradient(rgba(4,12,39,.36),rgba(4,12,39,.72)),url('../assets/competition_themes/euro2000_bg.png')!important;background-size:cover!important;background-position:center!important}
 #exhibitionSetup[data-exhibition-competition="seriea"],#exhibitionSetup[data-exhibition-competition="supercoppa"]{background-image:linear-gradient(rgba(3,12,30,.42),rgba(3,12,30,.74)),url('../assets/backgrounds_v10/bg_career_heritage.jpg')!important;background-size:cover!important;background-position:center!important}
 #exhibitionSetup[data-exhibition-competition="friendly"]{background-image:linear-gradient(rgba(3,13,29,.30),rgba(3,13,29,.72)),url('../assets/backgrounds_v65/bg_match_regia.jpg')!important;background-size:cover!important;background-position:center!important}
-#exhibitionSetup .s9-exhibition-shell{max-width:1120px!important;background:linear-gradient(180deg,rgba(5,20,45,.88),rgba(4,15,34,.94))!important;box-shadow:0 20px 60px rgba(0,0,0,.48)!important;backdrop-filter:blur(2px)}
+#exhibitionSetup .s9-exhibition-shell{max-width:1120px!important;background:linear-gradient(180deg,rgba(5,20,45,.88),rgba(4,15,34,.94))!important;box-shadow:0 20px 60px rgba(0,0,0,.48)!important;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
 .s9-exhibition-comp-carousel{display:grid;grid-template-columns:54px minmax(110px,.45fr) minmax(280px,1.2fr) minmax(110px,.45fr) 54px;gap:12px;align-items:center;margin:14px 0 8px}
 .s9-ex-comp-arrow{height:86px!important;font-size:28px!important;background:linear-gradient(180deg,#183b6f,#071b3c)!important;color:#ffe6a0!important;border:1px solid #d9b75d!important}
 .s9-ex-comp-feature,.s9-ex-comp-side{min-height:180px;border:1px solid rgba(217,186,92,.45);border-radius:9px;background:linear-gradient(180deg,rgba(14,43,82,.94),rgba(5,20,44,.96));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff0c6;overflow:hidden}
@@ -6051,7 +6056,7 @@ button,input,select{font-family:var(--s9-font-ui)!important}
   border:1px solid rgba(223,194,114,.72)!important;
   border-radius:9px!important;
   box-shadow:0 8px 28px rgba(0,0,0,.58),0 0 0 1px rgba(4,13,32,.8)!important;
-  backdrop-filter:blur(5px)!important;
+  -webkit-backdrop-filter:blur(5px)!important;backdrop-filter:blur(5px)!important;
 }
 #prematch.active.v107-prematch-upgraded > .panel:last-of-type .toolbar{
   display:grid!important;
@@ -6130,7 +6135,7 @@ button,input,select{font-family:var(--s9-font-ui)!important}
 #prematch.v110-prematch .v110-prematch-actions{
   position:static!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;
   width:100%!important;min-width:0!important;height:auto!important;margin:0!important;padding:0!important;
-  background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;z-index:auto!important;
+  background:none!important;border:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;z-index:auto!important;
 }
 #prematch.v110-prematch .v110-prematch-actions .toolbar{display:grid!important;grid-template-columns:.85fr 1.15fr!important;gap:8px!important;margin:0!important}
 #prematch.v110-prematch .v110-prematch-actions button{width:100%!important;height:50px!important;min-height:50px!important;padding:5px 8px!important;margin:0!important;font-size:10px!important;line-height:1.05!important;white-space:normal!important}
@@ -6435,7 +6440,7 @@ html.s9-responsive #prematch.active.v110-prematch #mentalityChoices button{flex:
 }
 
 /* V14 — Sala squadra: workflow unico per formazione pre-gara e cambi live. */
-#tacticsModal.s9-squad-room{z-index:100000!important;padding:0!important;background:rgba(1,7,17,.90)!important;backdrop-filter:blur(9px)!important;color:#eef4ff!important}
+#tacticsModal.s9-squad-room{z-index:100000!important;padding:0!important;background:rgba(1,7,17,.90)!important;-webkit-backdrop-filter:blur(9px)!important;backdrop-filter:blur(9px)!important;color:#eef4ff!important}
 #tacticsModal.s9-squad-room .s9-squad-shell{width:min(1180px,96vw);height:min(900px,96dvh);display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto;gap:12px;overflow:hidden;padding:16px;background:linear-gradient(155deg,#071b35 0%,#0b1e35 55%,#071426 100%);border:1px solid #d7b85f;border-radius:16px;box-shadow:0 28px 90px #000b;box-sizing:border-box}
 .s9-squad-scroll{display:contents}
 .s9-squad-head{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:18px;padding-bottom:12px;border-bottom:1px solid #ffffff20}
@@ -6482,7 +6487,7 @@ html.s9-responsive #prematch.active.v110-prematch #mentalityChoices button{flex:
  max-width:920px!important;padding:26px clamp(18px,4vw,42px)!important;
  background:linear-gradient(135deg,rgba(5,18,36,.91),rgba(9,30,50,.78))!important;
  border-top:3px solid var(--s9-gold)!important;border-bottom:1px solid rgba(217,186,92,.38)!important;
- box-shadow:0 24px 70px rgba(0,0,0,.38)!important;backdrop-filter:blur(5px);
+ box-shadow:0 24px 70px rgba(0,0,0,.38)!important;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);
 }
 #season.s9-clean-hub :is(.hub-team b,.hub-date,#managerSummary,.s9-season-strip){color:#f4f7fb!important;text-shadow:0 2px 4px #000!important}
 #season.s9-clean-hub .hub-kicker{color:#f0ce72!important}
@@ -6574,7 +6579,7 @@ html.s9-responsive body>.scanline{pointer-events:none!important}
 /* Pre-match walkout: one cinematic layer, with the teams, officials and toss
    kept inside the real viewport in both orientations. */
 #s9MatchIntro[hidden]{display:none!important}
-#s9MatchIntro{position:fixed;inset:0;z-index:100001;display:grid;place-items:center;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));box-sizing:border-box;background:radial-gradient(circle at 50% 48%,#12304be8,#020812fa 76%);color:#f5f7fa;backdrop-filter:blur(8px)}
+#s9MatchIntro{position:fixed;inset:0;z-index:100001;display:grid;place-items:center;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));box-sizing:border-box;background:radial-gradient(circle at 50% 48%,#12304be8,#020812fa 76%);color:#f5f7fa;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .s9-intro-shell{display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto auto;gap:8px;width:min(1180px,100%);height:min(850px,100%);min-height:0;padding:14px;box-sizing:border-box;background:linear-gradient(155deg,#061427f5,#0b2036ed);border:1px solid color-mix(in srgb,var(--intro-accent,#d5b35f) 70%,#fff);border-radius:12px;box-shadow:0 28px 90px #000c;overflow:hidden}
 .s9-intro-kicker{text-align:center;color:var(--intro-accent,#e2c567);font:900 10px/1.2 var(--s9-font-ui);letter-spacing:.16em;text-transform:uppercase}
 .s9-intro-teams{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:14px}
@@ -6658,7 +6663,7 @@ html.s9-responsive #match.active.s9-broadcast-active #match3dCanvas{object-fit:f
 }
 
 /* The interval lives inside the fullscreen element, so its controls remain reachable. */
-.s9-tv-interval{position:absolute;inset:0;z-index:80;display:grid;place-items:center;padding:20px;background:#04101ed9;backdrop-filter:blur(8px);pointer-events:auto;box-sizing:border-box;overflow:auto}
+.s9-tv-interval{position:absolute;inset:0;z-index:80;display:grid;place-items:center;padding:20px;background:#04101ed9;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);pointer-events:auto;box-sizing:border-box;overflow:auto}
 .s9-tv-interval[hidden]{display:none!important}
 .s9-tv-interval>div{width:min(660px,100%);text-align:center;color:#f5f7ff}
 .s9-tv-interval small{color:#e4c274;font:900 15px var(--s9-font-ui);letter-spacing:.2em}
@@ -6681,3 +6686,26 @@ html body main #prematch.tw-active>:not(.tw-workspace){display:none!important} #
 @media(max-width:760px){html body main #prematch.screen.active.tw-active{padding:14px!important} #prematch.tw-active .tw-heading{grid-template-columns:1fr auto!important;gap:12px!important} #prematch.tw-active .tw-heading>div{grid-column:1/-1!important;grid-row:2!important} #prematch.tw-active .tw-heading h1{font-size:24px!important} #prematch.tw-active .tw-settings{flex-wrap:wrap!important;gap:14px!important} #prematch.tw-active .tw-settings fieldset{flex:1!important} #prematch.tw-active .tw-settings fieldset button{padding:8px!important;font-size:11px!important;flex:1!important} #prematch.tw-active .tw-readiness{margin-left:0!important;width:100%!important;grid-template-columns:auto 1fr auto!important} #prematch.tw-active .tw-readiness button{grid-column:auto!important} #prematch.tw-active .tw-main{grid-template-columns:1fr!important;gap:18px!important} #prematch.tw-active .tw-pitch{height:460px!important} #prematch.tw-active .tw-workspace .tw-player{width:62px!important} #prematch.tw-active .tw-player b{font-size:10px!important} #prematch.tw-active .tw-player small{font-size:8px!important} #prematch.tw-active .tw-player .tw-shirt{width:32px!important;height:30px!important;font-size:15px!important} #prematch.tw-active .tw-reserves{height:310px!important} #prematch.tw-active .tw-transfer{grid-template-columns:1fr 1fr!important;padding:14px!important;gap:14px!important} #prematch.tw-active .tw-transfer>.tw-primary{grid-column:1/-1!important;width:100%!important} #prematch.tw-active .tw-transfer strong{font-size:13px!important} #prematch.tw-active .tw-setpieces>div{grid-template-columns:1fr!important} #prematch.tw-active .tw-settings legend{font-size:9px!important} #prematch.tw-active .tw-board-title{font-size:11px!important}}
 
 html body main #prematch.tw-active #v63TacticalXI{display:none!important}
+
+/* ===== FIX 2026-09: parita' Safari mobile / Chrome mobile ===== */
+/* 1) Su iOS Safari un contenitore con overflow:auto/scroll NON ha lo scroll
+   "a inerzia" (quello morbido, con rimbalzo) a meno che non si imposti
+   esplicitamente -webkit-overflow-scrolling:touch — su Chrome è già cosi'
+   di default. Nel gioco ci sono decine di pannelli scrollabili (rose,
+   panchina, salvataggi, popup tattiche...) che su Safari risultavano
+   "duri"/a scatti al tocco rispetto a Chrome. Applicato in globale, non ha
+   effetto su elementi che non scrollano quindi e' innocuo altrove. */
+*{-webkit-overflow-scrolling:touch}
+
+/* 2) Safari disegna select/pulsanti/input con il proprio "chrome" nativo
+   (bordi arrotondati, sfumatura grigia) sopra gli stili personalizzati
+   se non si disattiva con -webkit-appearance:none — Chrome normalizza
+   questi elementi in modo piu' neutro di suo. Risultato su Safari: select
+   e bottoni con doppio bordo/forma che confligge con lo sfondo colorato
+   scelto nel gioco. Esclusi checkbox/radio, che nel gioco restano nativi
+   (nessuno stile personalizzato li sostituisce). */
+button,select,
+input:not([type=checkbox]):not([type=radio]){
+  -webkit-appearance:none!important;
+  appearance:none!important;
+}
