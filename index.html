@@ -1660,13 +1660,17 @@ async function doEvent(e){
    else{current.stats.shotsA++;if(outcome==="save")current.stats.onA++}
    if(outcome==="save"){
      log(`${e.min}' PARATA DEL PORTIERE!`,e.side);
+     {const j=window.S9Commentary?.chanceSave?.(e.player);if(j)log(`${e.min}' 🎙️ ${j}`,"neutral");}
      if(window.S9Match3D&&S9Match3D.mode!=="2d"){
        if(window.v7ShowEvent)v7ShowEvent('save','PARATA!',`${e.player.name} trova la risposta del portiere`,1500);
        await wait(650);
      }else await ov(S9Popups.html('save',{detail:'Il portiere ferma il tiro.'}),1800);
    }
    else if(outcome==="post")log(`${e.min}' PALO!`,e.side);
-   else log(`${e.min}' TIRO FUORI.`,e.side);
+   else{
+     log(`${e.min}' TIRO FUORI.`,e.side);
+     const j=window.S9Commentary?.chanceMiss?.(e.player);if(j)log(`${e.min}' 🎙️ ${j}`,"neutral");
+   }
    await wait(window.S9Match3D&&S9Match3D.mode!=="2d"?700:1050);
    setupPitch();hidePitch();
  }
@@ -1680,6 +1684,7 @@ async function doEvent(e){
  }
  if(e.type==="yellow"||e.type==="red"){
    log(`${e.min}' ${e.type==="red"?"ESPULSIONE":"AMMONIZIONE"} - ${e.player.name}`,e.side);showPitchImportant();
+   {const j=window.S9Commentary?.card?.(e.player);if(j)log(`${e.min}' 🎙️ ${j}`,"neutral");}
    current.keyEvents.push(`${e.min}' ${e.type==="red"?"Rosso":"Giallo"} ${e.player.name}`);
    if(window.S9Match3D&&S9Match3D.mode!=="2d"){
      if(window.v7ShowEvent)v7ShowEvent(e.type,e.type==="red"?'ESPULSIONE':'AMMONIZIONE',e.player.name+(e.secondYellow?' · seconda ammonizione':e.keeperReason==='time-wasting'?' · perdita di tempo':''),1700);
@@ -1704,6 +1709,7 @@ async function doEvent(e){
    updateScore();
 
    goalRoar();log(`${e.min}' GOOOL! ${e.player.name}`,e.side);
+   {const j=window.S9Commentary?.goal?.(e.player);if(j)log(`${e.min}' 🎙️ ${j}`,"neutral");}
    current.keyEvents.push(`${e.min}' GOL ${e.player.name}${e.assist?" (assist "+e.assist.name+")":""}`);
    {
    const tc=getTeamColors(e.side==="home"?current.h:current.a);
@@ -1817,6 +1823,7 @@ async function launchMatch(){
   log(`00' SORTEGGIO - ${T(winner).name} ${T(winner).season} sceglie ${coinToss.choice==='ball'?'palla':'campo'}. ${T(field).name} ${T(field).season} verso ${coinToss.fieldEnd}.`,"neutral");
   log(`00' CALCIO D'INIZIO - ${T(kickoff).name} ${T(kickoff).season}`,"neutral");
  }else log(`00' CALCIO D'INIZIO - ${T(current.h).name} ${T(current.h).season} contro ${T(current.a).name} ${T(current.a).season}`,"neutral");
+ {const j=window.S9Commentary?.kickoff?.(T(current.h).name,T(current.a).name);if(j)log(`00' 🎙️ ${j}`,"neutral");}
  try{crowd(.035,2.5)}catch(e){console.warn("audio",e)}
  paused=false;
  if(window.S9MatchVisual?.kickoff)await S9MatchVisual.kickoff(coinToss?.kickoffSide||'home');else await wait(500);
@@ -1825,6 +1832,7 @@ async function launchMatch(){
  $("#halftimeScore").innerHTML=`<h2>${T(current.h).name} ${T(current.h).season} ${current.scoreH} - ${current.scoreA} ${T(current.a).name} ${T(current.a).season}</h2>`;
  $("#halftimeStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}`;
  const intervalDone=new Promise(r=>halfResolver=r);if(!window.S9Match3D?.showInterval?.())show("halftime");await intervalDone;window.S9Match3D?.endInterval?.();paused=false;$("#pauseBtn").textContent="⏸ PAUSA";show("match");if(window.S9MatchVisual?.kickoff)await S9MatchVisual.kickoff(coinToss?.kickoffSide==='away'?'home':'away');await playHalf(46,90);log("90' FINE PARTITA");
+ {const j=window.S9Commentary?.fulltime?.(T(current.h).name,T(current.a).name,current.scoreH,current.scoreA);if(j)log(`90' 🎙️ ${j}`,"neutral");}
  if(window.S9V10?.finishPlayedTie)await S9V10.finishPlayedTie();
  if(!window.S9V10?.matchContext){
  let games=career.fixtures[career.round];for(const [h,a] of games){if(h===current.h&&a===current.a)continue;simOther(h,a)}
@@ -2439,5 +2447,6 @@ renderTeamPicker();
 <script src="js/tactical-workspace.js?v=tactics-15"></script>
 <script src="js/prematch-flavor.js?v=1"></script>
 <script src="js/parody-names.js?v=1"></script>
+<script src="js/match-commentary.js?v=1"></script>
 </body>
 </html>
