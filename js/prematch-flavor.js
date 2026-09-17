@@ -47,27 +47,22 @@ const LINES=[
 "Il vecchio dirigente ricorda «ai miei tempi» prima ancora del fischio d’inizio.",
 "Il fotografo di bordocampo ha già scelto il posto migliore per l’esultanza che (forse) arriverà."
 ];
-function pick(seedStr){
+function pick(seedStr,count){
  let h=0;for(const c of String(seedStr))h=(h*31+c.charCodeAt(0))>>>0;
- return LINES[h%LINES.length];
-}
-function inject(){
- const hero=document.querySelector('#prematch .v107-prematch-hero');
- if(!hero)return;
- let el=hero.querySelector('.v107-prematch-flavor');
- if(!el){
-  el=document.createElement('div');el.className='v107-prematch-flavor';
-  el.style.cssText='margin-top:8px;font-style:italic;font-size:12px;line-height:1.4;color:#c9d6e5;opacity:.85;max-width:46ch';
-  hero.appendChild(el);
+ const n=count||1,chosen=[],used=new Set();
+ let x=h||1;
+ while(chosen.length<n&&used.size<LINES.length){
+  const idx=x%LINES.length;
+  if(!used.has(idx)){used.add(idx);chosen.push(LINES[idx]);}
+  x=(x*2654435761+2654435761)>>>0; // varia il seed ad ogni battuta successiva
  }
- const seed=(current?.h||'')+(current?.a||'')+(current?.id||'')+(current?.minute??'');
- el.textContent='» '+pick(seed||Math.random());
+ return chosen;
 }
-function boot(){
- if(typeof openPrematch!=='function'){setTimeout(boot,50);return;}
- const original=openPrematch;
- openPrematch=function(){const r=original.apply(this,arguments);inject();return r};
- window.openPrematch=openPrematch;
-}
-boot();
+/* FIX 2026-09: questo file inseriva la battuta dentro '.v107-prematch-hero', ma
+   quell'elemento viene nascosto da tactical-workspace.js (che sostituisce tutta la
+   schermata pre-partita col nuovo editor titolari) — la battuta veniva scritta in un
+   punto che non si vede più. Esposta qui come funzione globale: è tactical-workspace.js
+   a chiamarla e mostrarla nella sua intestazione, dove è davvero visibile.
+   Ritorna un array di `count` battute distinte (richiesta: 2-3 insieme per partita). */
+window.pickMatchFlavor=function(seed,count){return pick(seed||Math.random(),count||3);};
 })();
