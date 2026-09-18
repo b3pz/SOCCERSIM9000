@@ -33,7 +33,14 @@
       let elapsed=0,last=null;
       function frame(now){
         if(current!==match||match._finished){resolve();return;}
-        if(last!==null&&!paused&&!document.hidden)elapsed+=Math.min(50,now-last)*(realTime?1:api.attacking&&window.S9Match3D?.mode!=='2d'?(Number(speed)>=4?2:Number(speed)>=2?1.5:1):Math.max(1,speed));
+        /* FIX 2026-09: il tetto alla velocità durante un'azione era applicato
+           solo in modalità 3D (`window.S9Match3D?.mode!=='2d'`) - in 2D, con
+           velocità 2x/4x, l'azione avanzava alla velocità piena e un
+           tween di poche centinaia di ms si risolveva in 1-2 fotogrammi:
+           esattamente il "palla avanti e un secondo dopo in porta" segnalato
+           sui calci d'angolo. Il tetto ora vale per QUALSIASI modalità
+           durante un'azione, non solo in 3D. */
+        if(last!==null&&!paused&&!document.hidden)elapsed+=Math.min(50,now-last)*(realTime?1:api.attacking?(Number(speed)>=4?2:Number(speed)>=2?1.5:1):Math.max(1,speed));
         last=now;const progress=Math.min(1,elapsed/ms);
         motions.forEach(t=>{
           // La palla conserva una traiettoria regolare; i giocatori accelerano
@@ -185,7 +192,10 @@
     const target=at(outcome==='save'?95:outcome==='goal'?101:100,y);
     const finish=api.event?.finish||(firstTime?(seed%11===0?'bicycle':seed%2?'header':'volley'):'shot');
     label(({header:'COLPO DI TESTA',bicycle:'ROVESCIATA',volley:'TIRO AL VOLO'})[finish]||'TIRO');
-    await move([{el:keeper,...at(98,clamp(y,45,55)),pose:'dive',direction:y<50?-1:1},{el:shooter,...(firstTime?pos(shooter):{x:pos(shooter).x+(right(side)?1:-1)*2,y:pos(shooter).y}),pose:finish},{el:ball(),...target}],firstTime?540:650);
+    // FIX 2026-09: la conclusione al volo/di testa da azione da fermo
+    // (firstTime) partiva senza alcun arco - un filo di elevazione rende
+    // il tocco credibile invece di un rettilineo palla-porta.
+    await move([{el:keeper,...at(98,clamp(y,45,55)),pose:'dive',direction:y<50?-1:1},{el:shooter,...(firstTime?pos(shooter):{x:pos(shooter).x+(right(side)?1:-1)*2,y:pos(shooter).y}),pose:finish},{el:ball(),...target,lift:firstTime?10:0}],firstTime?620:650,firstTime);
     if(outcome==='save'){
       label('PARATA');await move([{el:ball(),...(keeper?pos(keeper):at(98,clamp(y,45,55)))}],300);possession=opposite(side);carrier=keeper||null;
     }else if(outcome==='post'){
