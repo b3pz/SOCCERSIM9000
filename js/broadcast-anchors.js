@@ -44,11 +44,12 @@ const ANTHEM=[
 const pick2=bank=>pick(bank);
 
 let overlay,canvas,ctx;
-const state={a1:'Piero Malaspina',a2:'Furio Stracci',tie1:'#c0392b',tie2:'#2980b9',h:'',a:'',entranceLines:null,anthemLines:null,fulltimeLines:null};
+const state={a1:'Piero Malaspina',a2:'Furio Stracci',tie1:'#c0392b',tie2:'#2980b9',h:'',a:'',channel:'S9 90',entranceLines:null,anthemLines:null,fulltimeLines:null};
 
 function setup(options){
  const channel=options?.channel||'S9 90',seed=hashStr(channel);
  const pair=ANCHOR_PAIRS[seed%ANCHOR_PAIRS.length];
+ state.channel=channel;
  state.a1=pair[0];state.a2=pair[1];
  state.tie1=TIE_COLORS[seed%TIE_COLORS.length];state.tie2=TIE_COLORS[(seed+3)%TIE_COLORS.length];
  state.h=options?.h||state.h;state.a=options?.a||state.a;
@@ -95,15 +96,28 @@ function drawStudio(ctx,w,h,progress,phase){
   g.player(scene,1.75,0,suit,0,-.18,1.08,'',false,0);
   scene.box([-1.75,1.34,.2],[.17,.44,.06],state.tie1);
   scene.box([1.75,1.34,.2],[.17,.44,.06],state.tie2);
-  // Bancone: davanti ai due presentatori, nasconde gambe/busto basso.
-  scene.box([0,.52,2.35],[7.6,1.04,1.05],'#142943');
-  scene.box([0,1.03,1.82],[7.6,.07,.06],'#d5b35f');
+  /* FIX 2026-09: prima il bancone finiva appena sopra il bacino e ai bordi
+     dell'inquadratura si vedevano i calzoncini - alzato un poco (fino a
+     poco sopra la vita, ~1.15) e reso piu' profondo, cosi' resta un margine
+     di sicurezza. Il pannello frontale porta il nome del canale, come una
+     vera scrivania da studio televisivo. */
+  scene.box([0,.575,2.5],[7.6,1.15,1.3],'#142943');
+  scene.box([0,1.15,1.86],[7.6,.07,.06],'#d5b35f');
   scene.flush();
-  ctx.font='900 clamp(10px,1.4vw,13px) Arial';ctx.textAlign='center';ctx.textBaseline='top';
+  // Nome del canale sul pannello frontale del bancone.
+  {
+   const deskPos=p([0,.75,1.86]);
+   ctx.font='900 clamp(11px,1.6vw,15px) Arial';ctx.textAlign='center';ctx.textBaseline='middle';
+   ctx.fillStyle='#d5b35f';ctx.fillText((state.channel||'S9 90')+' STUDIO',deskPos.x,deskPos.y);
+  }
+  // Targhette coi nomi appoggiate sul bordo del bancone, appena sopra il
+  // piano - non piu' sulle facce dei presentatori.
+  ctx.font='900 clamp(9px,1.3vw,12px) Arial';ctx.textAlign='center';ctx.textBaseline='middle';
   [[-1.75,state.a1],[1.75,state.a2]].forEach(([x,name])=>{
-   const pos=p([x,2.05,0]);
-   ctx.fillStyle='#020914cc';ctx.fillRect(pos.x-52,pos.y+2,104,17);
-   ctx.fillStyle='#f4e5b5';ctx.fillText(name,pos.x,pos.y+4);
+   const pos=p([x,1.28,1.7]);
+   ctx.fillStyle='#020914e6';ctx.fillRect(pos.x-50,pos.y-9,100,18);
+   ctx.strokeStyle='#d5b35f66';ctx.strokeRect(pos.x-50,pos.y-9,100,18);
+   ctx.fillStyle='#f4e5b5';ctx.fillText(name,pos.x,pos.y+1);
   });
  }else{
   ctx.fillStyle='#0d2038';ctx.fillRect(0,0,w,h);
