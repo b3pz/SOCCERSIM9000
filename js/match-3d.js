@@ -34,8 +34,19 @@ function ensureKickoffCaption(){
 function kickoffCineFrame(now){
  const c=kickoffCineState;if(!c)return null;
  const t=Math.max(0,now-c.started),progress=clamp(t/1700,0,1),eased=progress*progress*(3-2*progress);
- const eye=[52.5,34-eased*24,-6+eased*44],target=[52.5,1.1,34],span=46-eased*22;
- return {eye,target,fov:46-eased*10,bounds:[[52.5-span,0,34-span*.55],[52.5+span,0,34-span*.55],[52.5-span,4,34+span*.55],[52.5+span,4,34+span*.55]]};
+ /* FIX 2026-09 (25): "la cinematica del calcio d'inizio e' rotta" - la
+    versione precedente muoveva l'occhio della telecamera lungo z da -6 a
+    38, ma il bersaglio (target) stava fermo a z=34: a meta' animazione
+    l'occhio ATTRAVERSAVA il target (passava da davanti a dietro), e la
+    direzione di ripresa si ribaltava di colpo, dando l'effetto di
+    inquadratura "rotta"/impazzita. Ora l'offset rispetto al target resta
+    sempre positivo su tutti e tre gli assi (si accorcia ma non cambia mai
+    segno, come fa gia' followedCamera piu' sotto), quindi la telecamera
+    scende verso il centrocampo restando sempre dalla stessa parte, senza
+    mai superare il bersaglio. */
+ const offX=15-eased*11,offY=31-eased*23,offZ=44-eased*30;
+ const eye=[52.5+offX,3+offY,34+offZ],target=[52.5,1.1,34],span=42-eased*20;
+ return {eye,target,fov:44-eased*6,bounds:[[52.5-span,0,34-span*.6],[52.5+span,0,34-span*.6],[52.5-span,4,34+span*.6],[52.5+span,4,34+span*.6]]};
 }
 async function kickoffCinematic(label){
  if(mode==='2d')return;
