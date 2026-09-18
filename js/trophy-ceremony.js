@@ -81,6 +81,13 @@ async function nextV2(){
  dialog.style.setProperty('--competition-accent',brand.accent);dialog.style.setProperty('--competition-dark',brand.dark);
  dialog.querySelector('.s9-ceremony-kicker').textContent=item.exhibition?'FINALE DI ESIBIZIONE':'TITOLO CONQUISTATO';dialog.querySelector('h2').textContent=clubLabel;dialog.querySelector('.s9-ceremony-competition').textContent=brand.name;
  dialog.querySelector('.s9-ceremony-caption').textContent=item.exhibition?'Premiazione di esibizione · nessun titolo aggiunto all’albo d’oro':item.key==='finaleight'?'Campione d’Italia · Final Eight conclusa':'Notte da campioni';
+ /* FIX 2026-09 (20): "anche durante la premiazione non ci deve essere la
+    canzone" - la cerimonia e' un dialog sovrapposto, non un cambio di
+    schermata via show(), quindi la musica di menu (che si ferma solo su
+    id==='match') continuava a suonare sopra il giro d'onore. Fermata qui
+    esplicitamente, ripristinata in close() se non si e' nel frattempo
+    tornati in partita. */
+ window.stopMenuMusic?.();
  dialog.hidden=false;dialog.querySelector('button').focus();const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;dialog.querySelector('button').textContent=reduced?'CONTINUA ▶':'SALTA CINEMATICA ▶';
  let elapsed=0,last=null,lastShot=-1;const steps=[...dialog.querySelectorAll('.s9-ceremony-progress span')],clamp=n=>Math.max(0,Math.min(1,n));
  function draw(now){
@@ -153,7 +160,14 @@ async function nextV2(){
  }
  redraw=draw;frame=requestAnimationFrame(draw);
 }
-function close(){if(!active)return;active=null;cancelAnimationFrame(frame);dialog.hidden=true;previousFocus?.focus?.();nextV2()}
+function close(){
+ if(!active)return;active=null;cancelAnimationFrame(frame);dialog.hidden=true;previousFocus?.focus?.();
+ nextV2();
+ // Se non e' partita subito un'altra premiazione (nextV2 sopra l'avrebbe
+ // gia' rifermata) e non si e' tornati in partita nel frattempo, la musica
+ // di menu riprende.
+ if(!active&&!document.getElementById('match')?.classList.contains('active'))window.startMenuMusic?.();
+}
 function boot(){
  window.addEventListener('resize',()=>{if(active&&!frame&&redraw)redraw(performance.now())});
  dialog=document.createElement('div');dialog.id='trophyCeremony';dialog.hidden=true;dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-labelledby','ceremonyTeam');
