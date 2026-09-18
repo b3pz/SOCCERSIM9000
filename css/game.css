@@ -193,6 +193,10 @@ button{touch-action:manipulation}
   #match .match-tabs span{font-size:8px!important;padding:7px 2px!important}
   #match .match-controls{display:grid!important;grid-template-columns:1.2fr 1.7fr .65fr .65fr .65fr!important;gap:4px!important;padding:5px!important}
   #match .match-controls button{width:100%!important;min-width:0!important;min-height:42px!important;padding:5px 2px!important;font-size:10px!important;white-space:normal!important}
+  /* FIX 2026-09: pulsante "incita" aggiunto alla toolbar - qui la griglia ha
+     5 colonne esplicite gia' occupate da pausa/tattica/velocita', quindi va
+     sulla propria riga intera per non spostare quei rapporti di larghezza. */
+  #match .match-controls #incitaBtn{grid-column:1/-1!important}
   #match .match-main-grid{display:flex!important;flex-direction:column!important;gap:8px!important;padding:6px!important;background:transparent!important}
   #match .match-stage{width:100%!important;min-width:0!important}
   #match .action-banner{min-height:72px!important;grid-template-columns:52px minmax(0,1fr)!important;padding:8px!important;gap:8px!important}
@@ -222,6 +226,7 @@ button{touch-action:manipulation}
   #match .score-team{font-size:12px!important}
   #match .match-controls{grid-template-columns:1.15fr 1.55fr .6fr .6fr!important}
   #match .match-controls button[data-speed="4"]{grid-column:1/2!important}
+  #match .match-controls #incitaBtn{grid-column:1/-1!important}
 }
 
 @media (orientation:landscape) and (max-height:600px){
@@ -2392,6 +2397,9 @@ html.v75-phone-landscape .screen.active{
   #match .match-tabs{height:7%!important;min-height:0!important;display:grid!important;grid-template-columns:repeat(4,1fr)!important}
   #match .match-tabs span{padding:2px!important;font-size:6.5px!important;display:grid!important;place-items:center!important}
   #match .match-controls{height:9%!important;min-height:0!important;padding:2px!important;display:grid!important;grid-template-columns:1.15fr 1.65fr .55fr .55fr .55fr!important;gap:2px!important}
+  /* Vista compattissima a percentuali fisse: nessuno spazio per una riga in
+     piu', il pulsante incita resta disponibile nelle altre modalita'. */
+  #match .match-controls #incitaBtn{display:none!important}
   #match .match-controls button{min-height:0!important;height:100%!important;padding:1px 3px!important;font-size:7.5px!important;white-space:nowrap!important}
   #match .match-main-grid{
     height:71%!important;min-height:0!important;padding:3px!important;gap:5px!important;
@@ -4521,6 +4529,12 @@ body:not([data-v10-cup-theme]) #prematch::after{
 @media(max-height:500px){#match .save-replay-art{max-height:150px}#match .match-event-art{height:100px}#match .v76-save-replay{grid-template-columns:1.3fr 1fr}}
 
 #match .match-controls .v104-menu-back{position:static!important;inset:auto!important;margin:0 0 0 auto!important;min-height:36px!important;align-self:stretch!important;padding:5px 10px!important;font-size:11px!important;flex:0 1 auto!important}
+/* FIX 2026-09: "incitare la squadra" - pulsante dedicato, colore oro per
+   distinguerlo da pausa/tattica/velocita'. Disabilitato quando esaurito o
+   a fine partita (ultimi minuti). */
+.s9-incita-btn{background:linear-gradient(180deg,#e7c257,#b5883a)!important;color:#241804!important;border:1px solid #7a5b1e!important;font-weight:900!important}
+.s9-incita-btn span{margin-left:4px;font-weight:900;opacity:.85}
+.s9-incita-btn:disabled{background:#3a3f4b!important;color:#8a93a3!important;border-color:#2a2f3a!important;opacity:.75!important;cursor:not-allowed!important}
 @media(max-height:500px){#match .match-controls{display:flex!important;gap:3px!important}#match .match-controls .v104-menu-back{min-height:30px!important;font-size:9px!important;padding:3px 5px!important}}
 
 @media(max-height:500px){
@@ -6558,8 +6572,9 @@ html.s9-responsive body>.scanline{pointer-events:none!important}
  html.s9-responsive #match.active .match-controls{
   display:grid!important;
   grid-template-columns:repeat(6,minmax(0,1fr))!important;
-  grid-template-rows:44px 44px 40px!important;
-  gap:4px!important;padding:4px!important;min-height:140px!important;
+  /* FIX 2026-09: aggiunta una riga per il pulsante "incita" (44px + gap). */
+  grid-template-rows:44px 44px 40px 40px!important;
+  gap:4px!important;padding:4px!important;min-height:184px!important;
   background:#0a1a31!important;overflow:hidden!important;
  }
  html.s9-responsive #match.active .match-controls>button,
@@ -6576,8 +6591,9 @@ html.s9-responsive body>.scanline{pointer-events:none!important}
  html.s9-responsive #match.active [data-speed="2"]{grid-column:2!important;grid-row:2!important}
  html.s9-responsive #match.active [data-speed="4"]{grid-column:3!important;grid-row:2!important}
  html.s9-responsive #match.active .match-controls>.v104-menu-back{grid-column:4/span 3!important;grid-row:2!important}
+ html.s9-responsive #match.active #incitaBtn{grid-column:1/-1!important;grid-row:3!important;min-height:40px!important;height:100%!important}
  html.s9-responsive #match.active .s9-view-choice{
-  grid-column:1/-1!important;grid-row:3!important;width:100%!important;
+  grid-column:1/-1!important;grid-row:4!important;width:100%!important;
   height:40px!important;margin:0!important;display:block!important;
  }
  html.s9-responsive #match.active .s9-view-choice select{
