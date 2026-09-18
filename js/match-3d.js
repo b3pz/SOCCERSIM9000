@@ -31,22 +31,20 @@ function ensureKickoffCaption(){
  document.getElementById('pitch')?.appendChild(kickoffCaptionEl);
  return kickoffCaptionEl;
 }
-function kickoffCineFrame(now){
- const c=kickoffCineState;if(!c)return null;
- const t=Math.max(0,now-c.started),progress=clamp(t/1700,0,1),eased=progress*progress*(3-2*progress);
- /* FIX 2026-09 (25): "la cinematica del calcio d'inizio e' rotta" - la
-    versione precedente muoveva l'occhio della telecamera lungo z da -6 a
-    38, ma il bersaglio (target) stava fermo a z=34: a meta' animazione
-    l'occhio ATTRAVERSAVA il target (passava da davanti a dietro), e la
-    direzione di ripresa si ribaltava di colpo, dando l'effetto di
-    inquadratura "rotta"/impazzita. Ora l'offset rispetto al target resta
-    sempre positivo su tutti e tre gli assi (si accorcia ma non cambia mai
-    segno, come fa gia' followedCamera piu' sotto), quindi la telecamera
-    scende verso il centrocampo restando sempre dalla stessa parte, senza
-    mai superare il bersaglio. */
- const offX=15-eased*11,offY=31-eased*23,offZ=44-eased*30;
- const eye=[52.5+offX,3+offY,34+offZ],target=[52.5,1.1,34],span=42-eased*20;
- return {eye,target,fov:44-eased*6,bounds:[[52.5-span,0,34-span*.6],[52.5+span,0,34-span*.6],[52.5-span,4,34+span*.6],[52.5+span,4,34+span*.6]]};
+/* FIX 2026-09 (29): "la cinematica e' rotta sempre e durante i supplementari
+   manco parte... cosa possiamo fare per renderlo bello ma non cosi'
+   complicata" - due tentativi precedenti hanno gia' provato a correggere
+   l'animazione (occhio/target che si muovono nel tempo) senza risolvere
+   davvero il problema alla radice. Invece di continuare a rincorrere bug di
+   interpolazione, l'inquadratura ora e' un singolo fotogramma FISSO (occhio
+   e bersaglio non cambiano mai durante i 1.5s in cui resta a schermo): senza
+   nulla che si muova non c'e' piu' nulla che possa "rompersi" a meta'
+   animazione. Resta comunque un'inquadratura dedicata e diversa dal solito
+   (dall'alto, tutto il centrocampo) con la didascalia sopra, solo senza la
+   coreografia della telecamera che continuava a dare problemi. */
+function kickoffCineFrame(){
+ if(!kickoffCineState)return null;
+ return {eye:[52.5,15,50],target:[52.5,1,34],fov:34,bounds:[[30,0,12],[75,0,12],[30,4,56],[75,4,56]]};
 }
 async function kickoffCinematic(label){
  if(mode==='2d')return;
@@ -56,7 +54,7 @@ async function kickoffCinematic(label){
  const match=current;
  await new Promise(resolve=>{
   function tick(){
-   if(current!==match||match._finished||mode==='2d'||!kickoffCineState||visualTime-kickoffCineState.started>=2200){resolve();return}
+   if(current!==match||match._finished||mode==='2d'||!kickoffCineState||visualTime-kickoffCineState.started>=1500){resolve();return}
    requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
@@ -162,16 +160,36 @@ function drawOfficials(actors,now,ball){
     spostate dal lato z~0 (fondo opposto alla telecamera) al lato z~68
     (fondo dalla parte della telecamera, la stessa della tribuna
     "opposta"/vicina in drawField), specchiando tutti gli offset. */
+ /* FIX 2026-09 (29): due segnalazioni sulla panchina:
+    1) "l'allenatore deve guardare la partita, no gli spalti" - l'angolo
+       base era vicino a 0 (guarda verso z crescente, cioe' verso la
+       tribuna dietro la panchina, con le spalle al campo). Il campo sta a
+       z minore della panchina (z~71.5 la panchina, 0-68 il campo), quindi
+       "guardare la partita" vuol dire un angolo vicino a PI (fronte verso
+       z decrescente). Lascia comunque una piccola oscillazione mentre
+       passeggia, ma centrata su PI invece che su 0.
+    2) "chi si allena deve poterlo fare per tutto l'asse della linea del
+       campo, non dietro la panchina a muoversi sul posto" - prima le due
+       riserve oscillavano di un metro appena, sempre appiccicate alla
+       panchina. Ora fanno davvero su e giu' lungo tutta la fascia del
+       proprio campo (onda triangolare per un passo costante, non
+       sinusoidale, cosi' sembra una vera corsetta e non un dondolio), e
+       l'orientamento segue la direzione di marcia invece di restare
+       fisso. */
  const benches=[{x:43,side:'home'},{x:62,side:'away'}];
  for(const b of benches){
   const uni=uniforms[b.side]||{shirt:'#305cad',shorts:'#182436',socks:'#eeeeeb'};
   actors.box([b.x,.55,71.5],[7.4,1.15,1.3],'#0f1c2c');
   const coachKit={shirt:'#101c29',shorts:'#101c29',socks:'#101c29'};
   const pace=Math.sin(now/1500+(b.side==='home'?0:Math.PI));
-  graphics.player(actors,b.x+pace*2.3,70.15,coachKit,Math.abs(pace)*8,pace>0?-.5:.5,1.08,'',false,0);
+  graphics.player(actors,b.x+pace*2.3,70.15,coachKit,Math.abs(pace)*8,Math.PI+pace*.35,1.08,'',false,0);
+  const dir=b.side==='home'?-1:1,centerX=52.5+dir*27;
   for(let i=0;i<2;i++){
-   const wx=b.x+(i?3.6:-3.6)+Math.sin(now/620+i*2)*.7;
-   graphics.player(actors,wx,73.1,uni,now/210+i*3,Math.PI,1.05,'',false,0);
+   const period=9200+i*2600,phase=i*Math.PI*.7;
+   const tri=Math.asin(Math.sin(now/period+phase))*(2/Math.PI);
+   const wx=clamp(centerX+tri*22,4,101);
+   const heading=Math.cos(now/period+phase)>=0?Math.PI/2:-Math.PI/2;
+   graphics.player(actors,wx,73.1,uni,now/210+i*3,heading,1.05,'',false,0);
   }
  }
 }
@@ -759,9 +777,33 @@ function drawField(s,p,w,h,closeUp,paintCtx=ctx,options={}){
   // prima mancavano del tutto, il campo finiva a spigolo vivo.
   for(const [cx,cz,sx,sz] of [[0,0,1,1],[105,0,-1,1],[0,68,1,-1],[105,68,-1,-1]])
    line(Array.from({length:9},(_,i)=>[cx+sx*Math.cos(i*Math.PI/16),.04,cz+sz*Math.sin(i*Math.PI/16)]),Math.max(1,w/900));
+  /* FIX 2026-09 (29): "ci vorrebbero le bandierine" - i 4 angoli avevano
+     solo l'arco di battuta disegnato a terra, senza nessuna bandierina
+     visibile come in un campo vero. Aggiunta un\'asta + vessillo per
+     ciascuno dei 4 angoli, disegnati come volumi 3D veri (non linee),
+     cosi' restano solidi e prospetticamente corretti da ogni telecamera. */
+  if(!closeUp){
+   const flags=graphics.scene(paintCtx,p);
+   for(const [fx,fz,ox,oz] of [[0,0,-1,-1],[105,0,1,-1],[0,68,-1,1],[105,68,1,1]]){
+    flags.box([fx,.78,fz],[.07,1.56,.07],'#eef1ea');
+    flags.box([fx+ox*.3,1.42,fz+oz*.3],[.56,.3,.05],'#e2432c');
+   }
+   flags.flush();
+  }
  }
+ /* FIX 2026-09 (29): "ci vorrebbe una porta con i pali e la traversa per
+    fare il salto di qualita'" - prima la porta era SOLO la rete
+    (wireframe sottile, nessun volume). Aggiunti i due pali e la traversa
+    come veri parallelepipedi bianchi (non linee), cosi' la porta ha
+    davvero spessore e si vede bene anche da lontano, con la rete
+    (wireframe, invariata) dietro come sfondo. */
  for(const x of (closeUp?[closeUp.goalX]:[0,105])){
   const back=x===0?-2:107;
+  const posts=graphics.scene(paintCtx,p);
+  posts.box([x,1.22,30.34],[.12,2.44,.12],'#f4f6f0');
+  posts.box([x,1.22,37.66],[.12,2.44,.12],'#f4f6f0');
+  posts.box([x,2.44,34],[.12,.12,7.44],'#f4f6f0');
+  posts.flush();
   for(let z=30.34;z<38;z+=.61){line([[x,2.44,z],[back,2.44,z],[back,0,z]])}
   for(let y=0;y<=2.44;y+=.61)line([[x,y,30.34],[back,y,30.34],[back,y,37.66],[x,y,37.66]]);
   paintCtx.lineWidth=2;line([[x,0,30.34],[x,2.44,30.34],[x,2.44,37.66],[x,0,37.66]]);

@@ -708,7 +708,7 @@ main{max-width:none!important;padding:0!important}
 @media(max-height:500px){#mainMenu #cupsModeBtn .cups-mode-icon{width:40px!important;height:36px!important}}
 </style>
 
-<link rel="stylesheet" href="css/game.css?v=tactics-23">
+<link rel="stylesheet" href="css/game.css?v=tactics-24">
 <link rel="stylesheet" href="css/v106-match-experience.css?v=2">
 </head>
 <body>
@@ -1283,9 +1283,13 @@ function incitaHorn(){
    fallo partire con 2s di ritardo" - registrazione vera di un boato da
    stadio (confermata come audio ricevuto da un amico presente alla
    partita, con il suo ok). Suona in aggiunta al boato sintetico esistente
-   (goalRoar), non al suo posto, con un ritardo di 2s rispetto al momento
-   del gol come richiesto - il boato sintetico da' il primo "colpo"
-   immediato, questa registrazione arriva subito dopo per l'atmosfera vera. */
+   (goalRoar), non al suo posto - il boato sintetico da' il primo "colpo"
+   immediato, questa registrazione arriva dopo per l'atmosfera vera.
+   FIX 2026-09 (29): "l'esultanza l'audio deve partire con 5 secondi e 10
+   decimi di ritardo" - il ritardo (prima 2s) e' stato allungato a 5.1s per
+   allinearsi con la nuova durata di 5s della cinematica d'esultanza: ora il
+   boato registrato arriva proprio mentre l'inquadratura dei festeggiamenti
+   e' gia' avviata, invece di anticiparla. */
 const S9_GOAL_ROAR_SRC='assets/audio/goal-boato.mp3';
 let s9GoalRoarEl=null,s9GoalRoarTimer=null;
 function s9EnsureGoalRoarEl(){
@@ -1298,7 +1302,7 @@ function playGoalRoarClip(){
  s9GoalRoarTimer=setTimeout(()=>{
   s9GoalRoarTimer=null;
   try{const el=s9EnsureGoalRoarEl();el.pause();el.currentTime=0;el.play().catch(()=>{})}catch(e){}
- },2000);
+ },5100);
 }
 /* FIX 2026-09 (19): "la musica ambientale dev'esserci molto piu rumore di
    tifo" - non si puo' scaricare/ridistribuire audio da YouTube (copyright),
@@ -3005,7 +3009,7 @@ renderTeamPicker();
 <script src="js/tv-channels.js?v=3"></script>
 <script src="js/broadcast-anchors.js?v=4"></script>
 <script src="js/kit-presentation.js?v=1"></script>
-<script src="js/match-3d.js?v=stability-28"></script>
+<script src="js/match-3d.js?v=stability-29"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>
