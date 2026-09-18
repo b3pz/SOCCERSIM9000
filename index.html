@@ -1208,7 +1208,35 @@ function incitaHorn(){
  g.gain.setValueAtTime(.0001,a.currentTime);g.gain.exponentialRampToValueAtTime(.09,a.currentTime+.06);g.gain.setValueAtTime(.09,a.currentTime+.5);g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+.85);
  o.connect(g);o2.connect(g);g.connect(a.destination);o.start();o2.start();o.stop(a.currentTime+.9);o2.stop(a.currentTime+.9);
 }
-window.S9SFX={tone,noiseBurst,kickThud,cardSound,postClang,subChime,offsideBlip,cornerSwoosh,fullTimeWhistle,crowdGroan,crowdCheer,saveSound,incitaHorn};
+/* FIX 2026-09 (19): "la musica ambientale dev'esserci molto piu rumore di
+   tifo" - non si puo' scaricare/ridistribuire audio da YouTube (copyright),
+   quindi il rumore di stadio resta generato via Web Audio come il resto
+   degli SFX, ma ora e' un letto continuo per tutta la durata del match
+   (non piu' solo brevi raffiche sui singoli eventi): rumore filtrato in
+   loop con una leggera oscillazione di volume (LFO sul gain) per dare
+   l'idea di un tifo vivo che sale e scende, sopra il quale restano i colpi
+   secchi (goalRoar/crowdGroan/crowdCheer) per i momenti clou. */
+let s9Ambient=null;
+function startAmbientCrowd(level=.075){
+ if(s9Ambient)return;
+ const a=audio(),len=a.sampleRate*4,buf=a.createBuffer(1,len,a.sampleRate),d=buf.getChannelData(0);
+ for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(.3+Math.sin(i/1700)*.1+Math.sin(i/430)*.05);
+ const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain(),lfo=a.createOscillator(),lfoGain=a.createGain();
+ s.buffer=buf;s.loop=true;f.type="lowpass";f.frequency.value=750;
+ g.gain.setValueAtTime(.0001,a.currentTime);g.gain.exponentialRampToValueAtTime(level,a.currentTime+1.2);
+ lfo.type="sine";lfo.frequency.value=.12;lfoGain.gain.value=level*.35;
+ lfo.connect(lfoGain);lfoGain.connect(g.gain);
+ s.connect(f);f.connect(g);g.connect(a.destination);s.start();lfo.start();
+ s9Ambient={source:s,gain:g,lfo};
+}
+function stopAmbientCrowd(){
+ if(!s9Ambient)return;
+ const {source,gain,lfo}=s9Ambient,a=audio();
+ try{gain.gain.cancelScheduledValues(a.currentTime);gain.gain.setValueAtTime(gain.gain.value,a.currentTime);gain.gain.linearRampToValueAtTime(.0001,a.currentTime+.6)}catch(e){}
+ setTimeout(()=>{try{source.stop()}catch(e){}try{lfo.stop()}catch(e){}},650);
+ s9Ambient=null;
+}
+window.S9SFX={tone,noiseBurst,kickThud,cardSound,postClang,subChime,offsideBlip,cornerSwoosh,fullTimeWhistle,crowdGroan,crowdCheer,saveSound,incitaHorn,startAmbientCrowd,stopAmbientCrowd};
 /* FIX 2026-09 (16): "ci vorrebbe della musica anche nel menu" - la base
    procedurale generata via Web Audio e' stata sostituita con una vera
    colonna sonora: 5 tracce originali (l'utente le ha fornite come proprie
@@ -2050,14 +2078,23 @@ async function launchMatch(){
  try{crowd(.035,2.5)}catch(e){console.warn("audio",e)}
  paused=false;
  if(window.S9MatchVisual?.kickoff)await S9MatchVisual.kickoff(coinToss?.kickoffSide||'home');else await wait(500);
+ /* FIX 2026-09 (19): "molto piu rumore di tifo" - letto di tifo continuo
+    acceso per tutta la durata di ogni tempo, spento durante l'intervallo e
+    a fine partita. */
+ try{window.S9SFX?.startAmbientCrowd?.()}catch(e){console.warn("audio",e)}
  await playHalf(1,45);
+ try{window.S9SFX?.stopAmbientCrowd?.()}catch(e){console.warn("audio",e)}
  paused=true;
  $("#halftimeScore").innerHTML=`<h2>${T(current.h).name} ${T(current.h).season} ${current.scoreH} - ${current.scoreA} ${T(current.a).name} ${T(current.a).season}</h2>`;
  $("#halftimeStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}`;
  /* FIX 2026-09: stacco in studio anche all'intervallo, non solo prima
     dell'ingresso in campo e a fine partita (richiesta di un tester). */
  if(window.S9Anchors?.halftime)await S9Anchors.halftime({h:T(current.h).name,a:T(current.a).name,scoreH:current.scoreH,scoreA:current.scoreA,channel:current.channel});
- const intervalDone=new Promise(r=>halfResolver=r);if(!window.S9Match3D?.showInterval?.())show("halftime");await intervalDone;window.S9Match3D?.endInterval?.();paused=false;$("#pauseBtn").textContent="⏸ PAUSA";show("match");if(window.S9MatchVisual?.kickoff)await S9MatchVisual.kickoff(coinToss?.kickoffSide==='away'?'home':'away');await playHalf(46,90);log("90' FINE PARTITA");
+ const intervalDone=new Promise(r=>halfResolver=r);if(!window.S9Match3D?.showInterval?.())show("halftime");await intervalDone;window.S9Match3D?.endInterval?.();paused=false;$("#pauseBtn").textContent="⏸ PAUSA";show("match");if(window.S9MatchVisual?.kickoff)await S9MatchVisual.kickoff(coinToss?.kickoffSide==='away'?'home':'away');
+ try{window.S9SFX?.startAmbientCrowd?.()}catch(e){console.warn("audio",e)}
+ await playHalf(46,90);
+ try{window.S9SFX?.stopAmbientCrowd?.()}catch(e){console.warn("audio",e)}
+ log("90' FINE PARTITA");
  window.S9SFX?.fullTimeWhistle?.();
  {const j=window.S9Commentary?.fulltime?.(T(current.h).name,T(current.a).name,current.scoreH,current.scoreA);if(j)log(`90' 🎙️ ${j}`,"neutral");}
  /* FIX 2026-09: i telecronisti dell'emittente della partita ricompaiono per
