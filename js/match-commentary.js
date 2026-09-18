@@ -93,6 +93,27 @@ const KICKOFF=[
  "{h} contro {a}: 22 uomini, un pallone, e un telecronista che ha già fame di panino.",
  "Si parte! {h} - {a}, chiudete WhatsApp e godetevi lo spettacolo."
 ];
+/* FIX 2026-09 (10): "in caso di derby dovrebbero esaltare la cosa o se sono
+   tipo inter vs inter" - due situazioni speciali al calcio d'inizio: derby
+   di città vera (stessa città, es. Milano/Roma/Genova/Torino) e sfida tra
+   due epoche dello stesso club (es. Inter 97/98 contro Inter 09/10). In
+   entrambi i casi la battuta di apertura e' garantita (niente probabilità)
+   e cambia registro: molto più carica per il derby, ironica/nostalgica per
+   lo specchio nel tempo. */
+const DERBY=[
+ "{nick}! {h} contro {a}, qui stasera l'aria è diversa: non è una partita come le altre.",
+ "Si scalda tutto per {nick}: {h} - {a}, tifoserie sugli spalti e telecronisti già con la voce tesa.",
+ "{nick} stasera! {h} contro {a}: punteggio pieno di orgoglio cittadino, altro che tre punti.",
+ "Sentite che silenzio prima del fischio? È {nick}, {h} contro {a}: qui non si scherza."
+];
+const SAME_CLUB=[
+ "Curiosità della serata: {h} contro {a}. Stessa maglia, epoche diverse: stasera la storia gioca contro sé stessa.",
+ "{h} contro {a}: praticamente uno specchio nel tempo, con la stessa maglia da due lati opposti del campo.",
+ "Che stranezza bella: {h} sfida {a}. Sarà un derby in famiglia, tifosi divisi solo dal calendario.",
+ "{h} contro {a}: stesso stemma, decenni diversi. Stasera vince solo il tempo che passa."
+];
+const DERBY_NICK={"Milano":"DERBY DELLA MADONNINA","Roma":"DERBY DELLA CAPITALE","Genova":"DERBY DELLA LANTERNA","Torino":"DERBY DELLA MOLE"};
+const clubPrefix=id=>typeof id==='string'?id.replace(/_[0-9][0-9a-z]*$/,''):null;
 const FULLTIME=[
  "Finisce qui: {h} {sh} - {sa} {a}. Il bar sotto casa apre comunque per il commento post-partita.",
  "Triplice fischio: {h} {sh} - {sa} {a}. Si torna a casa, chi contento e chi già a cercare scuse.",
@@ -133,7 +154,13 @@ function sub(outp,inp){
  if(Math.random()>.55)return null;
  return fill(pick(SUB),{});
 }
-function kickoff(h,a){
+function kickoff(h,a,hid,aid){
+ if(hid&&aid){
+  if(clubPrefix(hid)&&clubPrefix(hid)===clubPrefix(aid))return fill(pick(SAME_CLUB),{h,a});
+  const meta=typeof teamMeta!=='undefined'?teamMeta:null;
+  const cityH=meta?.[hid]?.city,cityA=meta?.[aid]?.city;
+  if(cityH&&cityA&&cityH===cityA)return fill(pick(DERBY),{h,a,nick:DERBY_NICK[cityH]||`DERBY DI ${cityH.toUpperCase()}`});
+ }
  if(Math.random()>.9)return null;
  return fill(pick(KICKOFF),{h,a});
 }

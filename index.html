@@ -1964,7 +1964,7 @@ async function launchMatch(){
   log(`00' SORTEGGIO - ${T(winner).name} ${T(winner).season} sceglie ${coinToss.choice==='ball'?'palla':'campo'}. ${T(field).name} ${T(field).season} verso ${coinToss.fieldEnd}.`,"neutral");
   log(`00' CALCIO D'INIZIO - ${T(kickoff).name} ${T(kickoff).season}`,"neutral");
  }else log(`00' CALCIO D'INIZIO - ${T(current.h).name} ${T(current.h).season} contro ${T(current.a).name} ${T(current.a).season}`,"neutral");
- {const j=window.S9Commentary?.kickoff?.(T(current.h).name,T(current.a).name);if(j)log(`00' 🎙️ ${j}`,"neutral");}
+ {const j=window.S9Commentary?.kickoff?.(T(current.h).name,T(current.a).name,current.h,current.a);if(j)log(`00' 🎙️ ${j}`,"neutral");}
  try{crowd(.035,2.5)}catch(e){console.warn("audio",e)}
  paused=false;
  if(window.S9MatchVisual?.kickoff)await S9MatchVisual.kickoff(coinToss?.kickoffSide||'home');else await wait(500);
@@ -2694,7 +2694,7 @@ renderTeamPicker();
 <script src="js/v10-release.js?v=stability-14"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
 <script src="js/match-coherence.js?v=stability-13"></script>
-<script src="js/kit-profiles.js?v=1"></script>
+<script src="js/kit-profiles.js?v=2"></script>
 <script src="js/asset-quality.js?v=1"></script>
 <script src="js/football-3d.js?v=stability-13"></script>
 <script src="js/tv-channels.js?v=3"></script>
@@ -2717,7 +2717,7 @@ renderTeamPicker();
 <script src="js/tactical-workspace.js?v=tactics-17"></script>
 <script src="js/prematch-flavor.js?v=1"></script>
 <script src="js/parody-names.js?v=3"></script>
-<script src="js/match-commentary.js?v=3"></script>
+<script src="js/match-commentary.js?v=4"></script>
 <script src="js/career-news.js?v=1"></script>
 <script src="js/training.js?v=1"></script>
 </body>
