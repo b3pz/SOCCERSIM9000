@@ -6072,13 +6072,22 @@ button,input,select{font-family:var(--s9-font-ui)!important}
 .v108-penalty-score{display:grid;grid-template-columns:1fr 120px 1fr;align-items:center;gap:12px;font:900 clamp(15px,2vw,23px)/1 var(--s9-font-ui);color:#f2f5fb}.v108-penalty-score strong{font:900 34px/1 var(--s9-font-display);color:#ffe08a}
 .v108-penalty-dots{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:10px auto 14px;max-width:700px}.v108-penalty-dots>div{display:flex;justify-content:center;gap:7px;flex-wrap:wrap}.v108-penalty-dots span{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;font:900 13px Arial;background:#172b49;border:1px solid #53637b}.v108-penalty-dots span.goal{background:#1f7a49;border-color:#70d996}.v108-penalty-dots span.save{background:#9a7520;border-color:#f5d06d}.v108-penalty-dots span.miss{background:#8c2d39;border-color:#ef8492}
 .v108-penalty-stage{position:relative;min-height:360px;background:radial-gradient(circle at 50% 20%,#234a6e 0,#102943 42%,#0b1c30 72%);border:1px solid #6f7f91;border-radius:8px;overflow:hidden;padding-top:16px}
-.v108-goal-frame{position:relative;width:min(640px,84vw);height:255px;margin:0 auto;background:linear-gradient(#1d6a3d 55%,#2f7a48 55%);perspective:600px}
-.v108-goal-frame::before{content:"";position:absolute;left:12%;right:12%;top:30px;height:150px;border:8px solid #f4f3eb;border-bottom-width:6px;box-shadow:inset 0 0 0 2px rgba(0,0,0,.1)}
-.v108-net{position:absolute;left:13%;right:13%;top:38px;height:140px;background:repeating-linear-gradient(90deg,transparent 0 28px,rgba(255,255,255,.35) 29px 31px),repeating-linear-gradient(0deg,transparent 0 22px,rgba(255,255,255,.30) 23px 25px)}
-.v108-keeper{position:absolute;width:42px;height:76px;left:50%;top:105px;transform:translateX(-50%);background:linear-gradient(#e6c94b 0 35%,#263a56 35% 100%);border-radius:12px 12px 7px 7px;transition:transform .55s ease,top .55s ease,left .55s ease}.v108-keeper::before{content:"";position:absolute;width:24px;height:24px;border-radius:50%;background:#d4a578;left:9px;top:-17px}.v108-keeper.dive-left{left:31%;top:82px;transform:translateX(-50%) rotate(-58deg)}.v108-keeper.dive-right{left:69%;top:82px;transform:translateX(-50%) rotate(58deg)}
-.v108-ball{position:absolute;width:24px;height:24px;left:50%;top:218px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0 45%,#cfd2d5 46% 62%,#191919 63% 70%,#fff 71%);transition:left .6s cubic-bezier(.2,.7,.1,1),top .6s cubic-bezier(.2,.7,.1,1),transform .6s}.v108-ball.shot-left{left:31%;top:115px}.v108-ball.shot-right{left:69%;top:115px}.v108-ball.shot-left-high{left:25%;top:66px}.v108-ball.shot-right-high{left:75%;top:66px}.v108-ball.shot-wide-left{left:4%;top:80px}.v108-ball.shot-wide-right{left:96%;top:80px}
+.v108-penalty-canvas{display:block;width:min(640px,84vw);height:255px;margin:0 auto;border-radius:6px;background:#0d2618}
 .v108-penalty-player{font:900 15px/1.2 var(--s9-font-ui);color:#e9eef7;margin-top:12px}.v108-penalty-result{font:900 clamp(26px,4vw,46px)/1 var(--s9-font-display);color:#ffe08a;margin-top:7px;min-height:45px}.v108-penalty-stage.goal .v108-penalty-result{color:#7fe3a6}.v108-penalty-stage.save .v108-penalty-result{color:#ffe08a}.v108-penalty-stage.miss .v108-penalty-result{color:#ff8c9c}
-@media(max-width:650px){.v108-penalty-panel{padding:12px}.v108-penalty-score{grid-template-columns:1fr 78px 1fr}.v108-penalty-score strong{font-size:26px}.v108-penalty-stage{min-height:310px}.v108-goal-frame{height:220px}.v108-goal-frame::before{top:24px;height:130px}.v108-net{top:32px;height:120px}.v108-ball{top:188px}}
+@media(max-width:650px){.v108-penalty-panel{padding:12px}.v108-penalty-score{grid-template-columns:1fr 78px 1fr}.v108-penalty-score strong{font-size:26px}.v108-penalty-stage{min-height:310px}.v108-penalty-canvas{height:220px}}
+#v108TakerPicker{position:fixed;inset:0;z-index:9600;display:grid;place-items:center;background:#020913dd;padding:16px}
+.v108-taker-panel{width:min(640px,96vw);max-height:88vh;overflow:auto;background:linear-gradient(180deg,#0c2449,#06142d);border:2px solid #dabc68;border-radius:12px;box-shadow:0 18px 80px #000;padding:18px 20px 20px;text-align:center}
+.v108-taker-title{font:900 clamp(14px,1.9vw,17px)/1.3 var(--s9-font-ui);color:#f2f5fb;margin:8px 0 12px}
+.v108-taker-order{min-height:32px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
+.v108-taker-order span{background:#1f7a49;border:1px solid #70d996;color:#f2fff6;font:900 12px var(--s9-font-ui);padding:4px 10px;border-radius:14px}
+.v108-taker-order em{color:#9fb3ce;font:600 12px var(--s9-font-ui);font-style:normal}
+.v108-taker-list{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px}
+.v108-taker-chip{background:#172b49;border:1px solid #53637b;color:#e9eef7;font:700 12px var(--s9-font-ui);padding:7px 12px;border-radius:8px;cursor:pointer}
+.v108-taker-chip.picked{background:#dabc68;border-color:#f4dfa0;color:#241a04}
+.v108-taker-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.v108-taker-auto,.v108-taker-confirm{font:900 12px var(--s9-font-ui);letter-spacing:.06em;padding:10px 16px;border-radius:8px;cursor:pointer;border:1px solid #53637b;background:#172b49;color:#e9eef7}
+.v108-taker-confirm{background:#dabc68;border-color:#f4dfa0;color:#241a04}
+.v108-taker-confirm:disabled{opacity:.45;cursor:not-allowed}
 
 /* V109 HOTFIX — PREMATCH ACTION DOCK
    La nuova hero V107 aumentava l'altezza utile e le vecchie regole absolute del

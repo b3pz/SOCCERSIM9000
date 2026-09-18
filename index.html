@@ -708,7 +708,7 @@ main{max-width:none!important;padding:0!important}
 @media(max-height:500px){#mainMenu #cupsModeBtn .cups-mode-icon{width:40px!important;height:36px!important}}
 </style>
 
-<link rel="stylesheet" href="css/game.css?v=tactics-20">
+<link rel="stylesheet" href="css/game.css?v=tactics-21">
 <link rel="stylesheet" href="css/v106-match-experience.css?v=2">
 </head>
 <body>
@@ -1153,6 +1153,60 @@ function crowd(level=.025,dur=1.8){
  setTimeout(()=>{try{s.stop()}catch(e){}},dur*1000);
 }
 function goalRoar(){crowd(.09,3.2)}
+/* FIX 2026-09 (10): "dobbiamo aggiungere più suoni possibili" - prima
+   c'erano solo il fischio (whistle) e il rumore di folla (crowd/goalRoar).
+   Tutto qui e' sintetizzato via Web Audio (oscillatori/rumore filtrato),
+   come i due suoni gia' esistenti: nessun file audio da scaricare o
+   caricare, coerente con l'approccio gia' in uso nel gioco. */
+function tone(freq,dur,type='sine',gainPeak=.12,glideTo){
+ const a=audio(),o=a.createOscillator(),g=a.createGain();
+ o.type=type;o.frequency.setValueAtTime(freq,a.currentTime);
+ if(glideTo)o.frequency.exponentialRampToValueAtTime(glideTo,a.currentTime+dur*.85);
+ g.gain.setValueAtTime(.0001,a.currentTime);g.gain.exponentialRampToValueAtTime(gainPeak,a.currentTime+.015);g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+dur);
+ o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+dur+.02);
+}
+function noiseBurst(dur,gainPeak=.18,freq=900,q=1){
+ const a=audio(),len=Math.max(1,Math.round(a.sampleRate*dur)),buf=a.createBuffer(1,len,a.sampleRate),d=buf.getChannelData(0);
+ for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+ const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();
+ s.buffer=buf;f.type="bandpass";f.frequency.value=freq;f.Q.value=q;
+ g.gain.setValueAtTime(.0001,a.currentTime);g.gain.exponentialRampToValueAtTime(gainPeak,a.currentTime+.01);g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+dur);
+ s.connect(f);f.connect(g);g.connect(a.destination);s.start();
+}
+function kickThud(){noiseBurst(.09,.22,220,.6);tone(90,.12,'sine',.14,55)}
+function cardSound(type){
+ if(type==='red'){tone(420,.16,'sawtooth',.13,260);setTimeout(()=>tone(300,.24,'sawtooth',.12,150),90)}
+ else{tone(1100,.1,'square',.09,900);setTimeout(()=>tone(1300,.09,'square',.07,1100),70)}
+}
+function postClang(){tone(1450,.5,'triangle',.16,900);setTimeout(()=>tone(2100,.35,'sine',.08,1600),30)}
+function subChime(){tone(660,.14,'sine',.09,880);setTimeout(()=>tone(880,.18,'sine',.09,1100),120)}
+function offsideBlip(){noiseBurst(.07,.14,2600,3);setTimeout(()=>noiseBurst(.05,.1,2200,3),80)}
+function cornerSwoosh(){
+ const a=audio(),len=a.sampleRate*.5,buf=a.createBuffer(1,len,a.sampleRate),d=buf.getChannelData(0);
+ for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+ const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();
+ s.buffer=buf;f.type="bandpass";f.Q.value=.9;f.frequency.setValueAtTime(300,a.currentTime);f.frequency.exponentialRampToValueAtTime(2400,a.currentTime+.45);
+ g.gain.setValueAtTime(.0001,a.currentTime);g.gain.exponentialRampToValueAtTime(.11,a.currentTime+.15);g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+.5);
+ s.connect(f);f.connect(g);g.connect(a.destination);s.start();setTimeout(()=>{try{s.stop()}catch(e){}},520);
+}
+function fullTimeWhistle(){whistle();setTimeout(whistle,260);setTimeout(whistle,520)}
+function crowdGroan(){
+ const a=audio(),len=a.sampleRate*1.1,buf=a.createBuffer(1,len,a.sampleRate),d=buf.getChannelData(0);
+ for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(.3+Math.sin(i/2600)*.1);
+ const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();
+ s.buffer=buf;f.type="lowpass";f.frequency.setValueAtTime(500,a.currentTime);f.frequency.exponentialRampToValueAtTime(220,a.currentTime+1);
+ g.gain.setValueAtTime(.0001,a.currentTime);g.gain.exponentialRampToValueAtTime(.1,a.currentTime+.08);g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+1.1);
+ s.connect(f);f.connect(g);g.connect(a.destination);s.start();setTimeout(()=>{try{s.stop()}catch(e){}},1150);
+}
+function crowdCheer(){crowd(.055,1.4)}
+function saveSound(){noiseBurst(.05,.14,700,2.2);setTimeout(crowdGroan,120)}
+function incitaHorn(){
+ const a=audio(),o=a.createOscillator(),o2=a.createOscillator(),g=a.createGain();
+ o.type="sawtooth";o.frequency.value=233;o2.type="sawtooth";o2.frequency.value=235;
+ g.gain.setValueAtTime(.0001,a.currentTime);g.gain.exponentialRampToValueAtTime(.09,a.currentTime+.06);g.gain.setValueAtTime(.09,a.currentTime+.5);g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+.85);
+ o.connect(g);o2.connect(g);g.connect(a.destination);o.start();o2.start();o.stop(a.currentTime+.9);o2.stop(a.currentTime+.9);
+}
+window.S9SFX={tone,noiseBurst,kickThud,cardSound,postClang,subChime,offsideBlip,cornerSwoosh,fullTimeWhistle,crowdGroan,crowdCheer,saveSound,incitaHorn};
 const CREST_ASSETS={"samp_9091":"assets/embedded/embedded_005.png","juve_baggio_9091":"assets/embedded/embedded_006.png","foggia_9192":"assets/embedded/embedded_007.png","genoa_9091":"assets/embedded/embedded_008.png","parma_9293":"assets/embedded/embedded_009.png","torino_9293":"assets/embedded/embedded_010.png","juve_9596":"assets/embedded/embedded_011.png","fiorentina_9596":"assets/embedded/embedded_012.png","vicenza_9697":"assets/embedded/embedded_013.png","inter_9798":"assets/embedded/embedded_014.png","juve_9798":"assets/embedded/embedded_015.png","lazio_9798":"assets/embedded/embedded_016.png","udinese_9798":"assets/embedded/embedded_017.png","brescia_9798":"assets/embedded/embedded_018.png","parma_9899":"assets/embedded/embedded_019.png","venezia_9899":"assets/embedded/embedded_020.png","inter_9900":"assets/embedded/embedded_021.png","bari_9900":"assets/embedded/embedded_022.png","reggina_9900":"assets/embedded/embedded_023.png","perugia_9900":"assets/embedded/embedded_024.png","roma_0001":"assets/embedded/embedded_025.png","brescia_0001":"assets/embedded/embedded_026.png","chievo_0102":"assets/embedded/embedded_027.png","reggina_0203":"assets/embedded/embedded_028.png","juve_0203":"assets/embedded/embedded_029.png","milan_0607":"assets/embedded/embedded_030.png","empoli_0607":"assets/embedded/embedded_031.png","palermo_0708":"assets/embedded/embedded_032.png","milan_0809":"assets/embedded/embedded_033.png","udinese_0910":"assets/embedded/embedded_034.png","inter_0910":"assets/embedded/embedded_035.png","milan_9091":"assets/embedded/embedded_036.png"};
 
 function renderTeamPicker(){
@@ -1712,15 +1766,17 @@ async function doEvent(e){
    await animAttack(e.side,outcome);
    if(e.side==="home"){current.stats.shotsH++;if(outcome==="save")current.stats.onH++}
    else{current.stats.shotsA++;if(outcome==="save")current.stats.onA++}
+   window.S9SFX?.kickThud?.();
    if(outcome==="save"){
      log(`${e.min}' PARATA DEL PORTIERE!`,e.side);
+     window.S9SFX?.saveSound?.();
      {const j=window.S9Commentary?.chanceSave?.(e.player);if(j)log(`${e.min}' 🎙️ ${j}`,"neutral");}
      if(window.S9Match3D&&S9Match3D.mode!=="2d"){
        if(window.v7ShowEvent)v7ShowEvent('save','PARATA!',`${e.player.name} trova la risposta del portiere`,1500);
        await wait(650);
      }else await ov(S9Popups.html('save',{detail:'Il portiere ferma il tiro.'}),1800);
    }
-   else if(outcome==="post")log(`${e.min}' PALO!`,e.side);
+   else if(outcome==="post"){log(`${e.min}' PALO!`,e.side);window.S9SFX?.postClang?.();}
    else{
      log(`${e.min}' TIRO FUORI.`,e.side);
      const j=window.S9Commentary?.chanceMiss?.(e.player);if(j)log(`${e.min}' 🎙️ ${j}`,"neutral");
@@ -1738,6 +1794,7 @@ async function doEvent(e){
  }
  if(e.type==="yellow"||e.type==="red"){
    log(`${e.min}' ${e.type==="red"?"ESPULSIONE":"AMMONIZIONE"} - ${e.player.name}`,e.side);showPitchImportant();
+   window.S9SFX?.cardSound?.(e.type);
    {const j=window.S9Commentary?.card?.(e.player);if(j)log(`${e.min}' 🎙️ ${j}`,"neutral");}
    current.keyEvents.push(`${e.min}' ${e.type==="red"?"Rosso":"Giallo"} ${e.player.name}`);
    if(window.S9Match3D&&S9Match3D.mode!=="2d"){
@@ -1919,6 +1976,7 @@ async function launchMatch(){
     dell'ingresso in campo e a fine partita (richiesta di un tester). */
  if(window.S9Anchors?.halftime)await S9Anchors.halftime({h:T(current.h).name,a:T(current.a).name,scoreH:current.scoreH,scoreA:current.scoreA,channel:current.channel});
  const intervalDone=new Promise(r=>halfResolver=r);if(!window.S9Match3D?.showInterval?.())show("halftime");await intervalDone;window.S9Match3D?.endInterval?.();paused=false;$("#pauseBtn").textContent="⏸ PAUSA";show("match");if(window.S9MatchVisual?.kickoff)await S9MatchVisual.kickoff(coinToss?.kickoffSide==='away'?'home':'away');await playHalf(46,90);log("90' FINE PARTITA");
+ window.S9SFX?.fullTimeWhistle?.();
  {const j=window.S9Commentary?.fulltime?.(T(current.h).name,T(current.a).name,current.scoreH,current.scoreA);if(j)log(`90' 🎙️ ${j}`,"neutral");}
  /* FIX 2026-09: i telecronisti dell'emittente della partita ricompaiono per
     il riepilogo finale (tap per chiudere subito, altrimenti si chiude da sola). */
@@ -2093,6 +2151,7 @@ function applyIncita(side){
  current.incitaUsed[side]=used+1;
  const teamName=T(side==='h'?current.h:current.a).name;
  log(`${String(current.minute).padStart(2,"0")}' 📣 INCITAMENTO! Il mister carica ${teamName} dalla panchina!`,side==="h"?"home":"away");
+ window.S9SFX?.incitaHorn?.();
  current._tacticsDirty=true;requestAnimationFrame(refreshTacticsPitch);
  updateIncitaButton();
 }
@@ -2623,7 +2682,7 @@ renderTeamPicker();
 <script src="js/save-manager.js?v=10-final-3"></script>
 <script src="js/save-integration.js?v=20-1"></script>
 <script src="js/match-popups.js?v=11-4"></script>
-<script src="js/v7-release.js?v=13"></script>
+<script src="js/v7-release.js?v=14"></script>
 <script src="js/v71-final-polish.js?v=10-final-3"></script>
 <script src="js/v72-publication-ui.js?v=10-final-3"></script>
 <script src="js/v73-alignment-fix.js?v=stability-13"></script>
@@ -2641,7 +2700,7 @@ renderTeamPicker();
 <script src="js/tv-channels.js?v=3"></script>
 <script src="js/broadcast-anchors.js?v=3"></script>
 <script src="js/kit-presentation.js?v=1"></script>
-<script src="js/match-3d.js?v=stability-18"></script>
+<script src="js/match-3d.js?v=stability-19"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>
@@ -2649,7 +2708,7 @@ renderTeamPicker();
 <script src="js/exhibition.js?v=stability-14"></script>
 <script src="js/v106-match-experience.js?v=presentation-2"></script>
 <script src="js/v107-cup-polish.js?v=team-season-1"></script>
-<script src="js/v108-complete-match-flow.js?v=team-season-1"></script>
+<script src="js/v108-complete-match-flow.js?v=team-season-2"></script>
 <script src="js/v110-prematch-ceremony.js?v=team-season-1"></script>
 <script src="js/presentation.js?v=presentation-2"></script>
 <script src="js/tactics-redesign.js?v=stability-13"></script>

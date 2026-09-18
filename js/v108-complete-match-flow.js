@@ -36,7 +36,7 @@ function ensurePenaltyOverlay(){
    <div class="v108-penalty-score"><span id="v108PenHomeName"></span><strong id="v108PenScore">0 - 0</strong><span id="v108PenAwayName"></span></div>
    <div class="v108-penalty-dots"><div id="v108PenHomeDots"></div><div id="v108PenAwayDots"></div></div>
    <div class="v108-penalty-stage" id="v108PenaltyStage">
-    <div class="v108-goal-frame"><div class="v108-net"></div><div class="v108-keeper" id="v108Keeper"></div><div class="v108-ball" id="v108Ball"></div></div>
+    <canvas class="v108-penalty-canvas" id="v108PenaltyCanvas"></canvas>
     <div class="v108-penalty-player" id="v108PenaltyPlayer"></div>
     <div class="v108-penalty-result" id="v108PenaltyResult"></div>
    </div>
@@ -49,32 +49,158 @@ function updatePenaltyUI(h,a,hs,as,hr,ar){
  $('#v108PenHomeName').textContent=teamName(h);$('#v108PenAwayName').textContent=teamName(a);$('#v108PenScore').textContent=`${hs} - ${as}`;
  $('#v108PenHomeDots').innerHTML=dotHTML(hr);$('#v108PenAwayDots').innerHTML=dotHTML(ar);
 }
-async function animateKick(side,shooter,outcome,kickNo){
- const ball=$('#v108Ball'),gk=$('#v108Keeper'),name=$('#v108PenaltyPlayer'),res=$('#v108PenaltyResult'),stage=$('#v108PenaltyStage');
+/* FIX 2026-09: "i rigori sarebbe belli vederli da dietro il calciatore che
+   calcia" - il vecchio rigore era un'animazione piatta CSS/DOM (porta
+   disegnata con un div, portiere/palla come rettangoli che si spostano in
+   percentuale). Sostituita con una vera scena 3D disegnata su canvas con lo
+   stesso motore prospettico usato dalla partita (window.S9Football3D),
+   inquadratura da dietro/di lato al rigorista come in una diretta vera. La
+   logica di esito (chi para, dove va il pallone) resta identica a prima -
+   cambia solo come viene mostrata. */
+function kitFor(teamId,isKeeper){
+ const colors=(typeof getTeamColors==='function'?getTeamColors(teamId):null)||['#305cad','#eeeeeb'];
+ return isKeeper?{shirt:'#e9b637',shorts:'#202d36',socks:'#e9b637'}:{shirt:colors[0]||'#305cad',shorts:'#182436',socks:colors[1]||colors[0]||'#eeeeeb'};
+}
+function drawPenaltyScene(ctx,w,h,st){
+ const g=window.S9Football3D;
+ if(!g){ctx.fillStyle='#123449';ctx.fillRect(0,0,w,h);return;}
+ const bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#0c2338');bg.addColorStop(.52,'#1a4228');bg.addColorStop(1,'#0d2618');
+ ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+ // Telecamera dietro e leggermente di lato al rigorista, verso la porta -
+ // esattamente l'inquadratura da diretta TV richiesta.
+ const p=g.camera([st.lateral*1.15,1.74,16.8],[0,1.05,0],w,h,40),scene=g.scene(ctx,p);
+ g.pitchSurface(ctx,p,-9,-1.6,18,21,1.9);
+ const post='#f4f3ea';
+ scene.box([-3.66,1.22,0],[.14,2.44,.14],post);
+ scene.box([3.66,1.22,0],[.14,2.44,.14],post);
+ scene.box([0,2.44,0],[7.46,.14,.14],post);
+ scene.box([0,1.1,-.3],[7.3,2.3,.06],'#eef2ff1c');
+ const keeperX=st.dive==='left'?-2.15*st.diveT:st.dive==='right'?2.15*st.diveT:0;
+ const keeperAngle=st.dive==='left'?.55*st.diveT:st.dive==='right'?-.55*st.diveT:0;
+ g.player(scene,keeperX,-.1,st.keeperKit,st.t*6,keeperAngle,1.1,'',true,0);
+ const runX=st.lateral*1.1*(1-st.runProgress*.5),runZ=11.3+(1-st.runProgress)*3.4;
+ g.player(scene,runX,runZ,st.shooterKit,st.t*7,0,1.15,'',false,st.struck?1:0);
+ scene.flush();
+ const bp=p(st.ball),edge=p([st.ball[0]+.11,st.ball[1],st.ball[2]]);
+ const br=Math.max(2,Math.hypot(edge.x-bp.x,edge.y-bp.y)||0);
+ ctx.fillStyle='#fff';ctx.strokeStyle='#1c2836';ctx.lineWidth=1.1;
+ ctx.beginPath();ctx.arc(bp.x,bp.y,br,0,Math.PI*2);ctx.fill();ctx.stroke();
+}
+async function animateKick(side,shooter,outcome,kickNo,teams){
+ const canvas=$('#v108PenaltyCanvas'),name=$('#v108PenaltyPlayer'),res=$('#v108PenaltyResult'),stage=$('#v108PenaltyStage');
  name.textContent=`${kickNo}° RIGORE · ${shooter?.name||'Tiratore'} · ${side==='home'?'CASA':'OSPITI'}`;res.textContent='';
- ball.className='v108-ball';gk.className='v108-keeper';stage.classList.remove('goal','save','miss');
- void ball.offsetWidth;
- await sleep(420);
- const target=Math.random()<.5?'left':'right';
- gk.classList.add(target==='left'?'dive-left':'dive-right');
- if(outcome==='goal')ball.classList.add(target==='left'?'shot-right-high':'shot-left-high');
- else if(outcome==='save')ball.classList.add(target==='left'?'shot-left':'shot-right');
- else ball.classList.add(Math.random()<.5?'shot-wide-left':'shot-wide-right');
- await sleep(700);
- stage.classList.add(outcome);
- res.textContent=outcome==='goal'?'GOL!':outcome==='save'?'PARATA!':'FUORI!';
- await sleep(720);
+ stage.classList.remove('goal','save','miss');
+ if(!canvas||!canvas.getContext){await sleep(420);await sleep(700);await sleep(720);return;}
+ const ctx=canvas.getContext('2d');
+ const ratio=Math.min(window.devicePixelRatio||1,1.5),cw=canvas.clientWidth||640,ch=canvas.clientHeight||255;
+ if(canvas.width!==Math.round(cw*ratio)||canvas.height!==Math.round(ch*ratio)){canvas.width=Math.round(cw*ratio);canvas.height=Math.round(ch*ratio)}
+ ctx.setTransform(ratio,0,0,ratio,0,0);
+ const dive=Math.random()<.5?'left':'right';
+ const isShooterHome=side==='home';
+ const teamH=teams?.h,teamA=teams?.a;
+ const shooterKit=kitFor(isShooterHome?teamH:teamA,false);
+ const keeperKit=kitFor(isShooterHome?teamA:teamH,true);
+ const lateral=(dive==='left'?-1:1)*(.5+Math.random()*.35);
+ let ballEnd;
+ if(outcome==='goal')ballEnd=[dive==='left'?2.65:-2.65,2.05,0];
+ else if(outcome==='save')ballEnd=[dive==='left'?-2.45:2.45,.6,.6];
+ else ballEnd=[Math.random()<.5?-4.7:4.7,1.05,-.6];
+ const ballStart=[0,.13,11.3];
+ window.S9SFX?.tone?.(1650,.08,'square',.05);
+ const RUN=420,FLIGHT=700,HOLD=720,TOTAL=RUN+FLIGHT+HOLD;
+ await new Promise(resolve=>{
+  const t0=performance.now();let struckSound=false,resultShown=false;
+  function frame(now){
+   const el=now-t0;
+   const runProgress=Math.min(1,el/RUN);
+   const struck=el>=RUN;
+   if(struck&&!struckSound){struckSound=true;window.S9SFX?.kickThud?.();}
+   const flightT=struck?Math.min(1,(el-RUN)/FLIGHT):0;
+   const ease=flightT*flightT*(3-2*flightT);
+   const ball=[ballStart[0]+(ballEnd[0]-ballStart[0])*ease,ballStart[1]+(ballEnd[1]-ballStart[1])*ease,ballStart[2]+(ballEnd[2]-ballStart[2])*ease];
+   drawPenaltyScene(ctx,cw,ch,{t:el/1000,lateral,dive,diveT:flightT,runProgress,struck,shooterKit,keeperKit,ball});
+   if(el>=RUN+FLIGHT&&!resultShown){
+    resultShown=true;stage.classList.add(outcome);
+    res.textContent=outcome==='goal'?'GOL!':outcome==='save'?'PARATA!':'FUORI!';
+    if(outcome==='goal')window.S9SFX?.crowdCheer?.();
+    else if(outcome==='save')window.S9SFX?.saveSound?.();
+    else window.S9SFX?.crowdGroan?.();
+   }
+   if(el>=TOTAL){resolve();return;}
+   requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+ });
 }
 function canEndEarly(round,hs,as){
  const homeTaken=Math.ceil(round/2),awayTaken=Math.floor(round/2);
  const homeLeft=Math.max(0,5-homeTaken),awayLeft=Math.max(0,5-awayTaken);
  return hs>as+awayLeft||as>hs+homeLeft;
 }
+/* FIX 2026-09: "ovviamente bisognera' scegliere i rigoristi nel caso in cui
+   si vada ai rigori" - se una delle due squadre e' quella dell'utente, prima
+   di far partire la sequenza si mostra un selettore per scegliere chi tira
+   e in che ordine, invece di usare sempre l'ordine automatico. La squadra
+   CPU (o entrambe, in modalita' spettatore) continua a usare la scelta
+   automatica di penaltyTakers(). */
+let takerPicker=null;
+function ensureTakerPicker(){
+ if(takerPicker)return takerPicker;
+ takerPicker=document.createElement('div');
+ takerPicker.id='v108TakerPicker';takerPicker.hidden=true;
+ takerPicker.innerHTML=`<div class="v108-taker-panel" role="dialog" aria-modal="true" aria-label="Scegli i rigoristi">
+   <div class="v108-penalty-kicker">SI VA AI RIGORI</div>
+   <div class="v108-taker-title" id="v108TakerTitle">Scegli i tuoi rigoristi, in ordine</div>
+   <div class="v108-taker-order" id="v108TakerOrder"></div>
+   <div class="v108-taker-list" id="v108TakerList"></div>
+   <div class="v108-taker-actions">
+     <button type="button" class="v108-taker-auto" id="v108TakerAuto">ORDINE CONSIGLIATO</button>
+     <button type="button" class="v108-taker-confirm" id="v108TakerConfirm" disabled>CONFERMA ▶</button>
+   </div>
+ </div>`;
+ document.body.appendChild(takerPicker);
+ return takerPicker;
+}
+function pickTakers(teamId){
+ return new Promise(resolve=>{
+  ensureTakerPicker();
+  const recommended=penaltyTakers(teamId);
+  const list=recommended.length?recommended:outfield(teamId);
+  let order=[];
+  const listEl=$('#v108TakerList'),orderEl=$('#v108TakerOrder'),confirmBtn=$('#v108TakerConfirm'),autoBtn=$('#v108TakerAuto'),titleEl=$('#v108TakerTitle');
+  titleEl.textContent=`${teamName(teamId)} · scegli i rigoristi (tocca i nomi, nell'ordine in cui devono tirare)`;
+  function renderOrder(){
+   orderEl.innerHTML=order.length?order.map((p,i)=>`<span>${i+1}. ${p.name}</span>`).join(''):'<em>Nessuno selezionato: tocca i giocatori qui sotto, nell\'ordine.</em>';
+   confirmBtn.disabled=order.length===0;
+  }
+  function renderList(){
+   listEl.innerHTML=list.map(p=>`<button type="button" class="v108-taker-chip${order.includes(p)?' picked':''}" data-id="${p.id}">${p.name}</button>`).join('');
+   listEl.querySelectorAll('button').forEach(btn=>{
+    btn.onclick=()=>{
+     const p=list.find(x=>x.id===btn.dataset.id);if(!p)return;
+     const idx=order.indexOf(p);
+     if(idx>=0)order.splice(idx,1);else order.push(p);
+     renderOrder();renderList();
+    };
+   });
+  }
+  autoBtn.onclick=()=>{order=list.slice(0,Math.min(5,list.length));renderOrder();renderList();};
+  confirmBtn.onclick=()=>{
+   takerPicker.hidden=true;
+   resolve(order.length?order:recommended);
+  };
+  order=[];renderOrder();renderList();
+  takerPicker.hidden=false;
+ });
+}
 async function playShootout(h,a){
  ensurePenaltyOverlay();
+ const userTeam=(typeof career!=='undefined'?career?.user:null);
+ const homeTakers=userTeam===h?await pickTakers(h):penaltyTakers(h);
+ const awayTakers=userTeam===a?await pickTakers(a):penaltyTakers(a);
+ const homeKeeper=keeper(h),awayKeeper=keeper(a);
  penaltyOverlay.hidden=false;
  $('#v108PenaltyTitle').textContent=`${teamName(h)} vs ${teamName(a)}`;
- const homeTakers=penaltyTakers(h),awayTakers=penaltyTakers(a),homeKeeper=keeper(h),awayKeeper=keeper(a);
  let hs=0,as=0,hr=[],ar=[],kickIndex=0;
  updatePenaltyUI(h,a,hs,as,hr,ar);
  // primi cinque per parte, con chiusura anticipata se matematicamente deciso
@@ -82,7 +208,7 @@ async function playShootout(h,a){
    const isHome=round%2===0,team=isHome?h:a,takers=isHome?homeTakers:awayTakers,oppKeeper=isHome?awayKeeper:homeKeeper;
    const shooter=takers[Math.floor(round/2)%Math.max(1,takers.length)]||activePlayers(team)[0];
    const outcome=resultForKick(shooter,oppKeeper);kickIndex++;
-   await animateKick(isHome?'home':'away',shooter,outcome,kickIndex);
+   await animateKick(isHome?'home':'away',shooter,outcome,kickIndex,{h,a});
    if(isHome){hr.push(outcome);if(outcome==='goal')hs++;}else{ar.push(outcome);if(outcome==='goal')as++;}
    updatePenaltyUI(h,a,hs,as,hr,ar);
    if(round>=5&&canEndEarly(round+1,hs,as))break;
@@ -94,7 +220,7 @@ async function playShootout(h,a){
      const team=isHome?h:a,takers=isHome?homeTakers:awayTakers,oppKeeper=isHome?awayKeeper:homeKeeper;
      const shooter=takers[(5+sudden)%Math.max(1,takers.length)]||activePlayers(team)[0];
      const outcome=resultForKick(shooter,oppKeeper);kickIndex++;
-     await animateKick(isHome?'home':'away',shooter,outcome,kickIndex);
+     await animateKick(isHome?'home':'away',shooter,outcome,kickIndex,{h,a});
      if(isHome){hr.push(outcome);if(outcome==='goal')hs++;}else{ar.push(outcome);if(outcome==='goal')as++;}
      updatePenaltyUI(h,a,hs,as,hr,ar);
    }

@@ -692,7 +692,18 @@ function render(now){
   const bx=celebration?celebration.centerX+celebration.dir*2.5:ballPos.x;
   const bz=celebration?celebration.centerZ+3:ballPos.z;
   const bl=celebration?0:ballPos.lift;
-  const b=p([bx,.3+bl,bz]),ground=p([bx,.02,bz]);ctx.fillStyle='#06180c88';ctx.beginPath();ctx.ellipse(ground.x,ground.y,4,2,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.strokeStyle='#142537';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(b.x,b.y,Math.max(3,w/260),0,Math.PI*2);ctx.fill();ctx.stroke();}
+  const b=p([bx,.3+bl,bz]),ground=p([bx,.02,bz]);
+  // FIX: il pallone non seguiva la prospettiva (restava sempre della stessa
+  // dimensione anche negli zoom ravvicinati dei replay). Proiettiamo anche
+  // un punto sul bordo del pallone (raggio reale ~11cm) e misuriamo la
+  // distanza sullo schermo tra i due punti: cosi' il pallone si ingrandisce
+  // e rimpicciolisce esattamente come i giocatori quando la telecamera
+  // si avvicina o si allontana.
+  const edge=p([bx+.11,.3+bl,bz]);
+  const br=clamp(Math.hypot(edge.x-b.x,edge.y-b.y)||0,2.2,30);
+  ctx.fillStyle='#06180c88';ctx.beginPath();ctx.ellipse(ground.x,ground.y,Math.max(3,br*1.3),Math.max(1.4,br*.6),0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#fff';ctx.strokeStyle='#142537';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(b.x,b.y,br,0,Math.PI*2);ctx.fill();ctx.stroke();
+ }
  if(celebration){const age=visualTime-celebration.started;const alpha=age<250?1-age/250:age>3900?(age-3900)/300:0;if(alpha>0){ctx.fillStyle='rgba(6,15,24,'+clamp(alpha,0,1)+')';ctx.fillRect(0,0,w,h);}}
  const offside=document.querySelector('#pitch .offside-line');if(offside){const x=parseFloat(offside.style.left)*1.05,a=p([x,.1,0]),b=p([x,.1,68]);ctx.strokeStyle='#ffe061';ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([])}
  if(mode==='highlights'&&!eventActive){ctx.fillStyle='#08182dcc';ctx.fillRect(0,0,w,32);ctx.fillStyle='#e9d797';ctx.font='12px Arial';ctx.textAlign='center';ctx.fillText('AZIONI SALIENTI · Avanzamento alla prossima azione',w/2,21)}
