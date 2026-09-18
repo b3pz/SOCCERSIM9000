@@ -4846,6 +4846,7 @@ body:not([data-v10-cup-theme]) #prematch::after{
 #mainMenu .prototype-note{display:none!important}
 #mainMenu .menu-secondary{margin-top:22px!important}
 #mainMenu .menu-secondary button{border-radius:2px!important}
+#menuMusicToggle.muted-music{opacity:.55;text-decoration:line-through}
 #season>.grid{background:#0b1b30d9!important;border-radius:2px!important;border-top:2px solid #d7bd7e!important}
 #season>#seasonContent{background:#0a192cdb!important;border-radius:2px!important;border-color:#c5ac7088!important}
 #season>.season-nav button{border-radius:1px!important;background:linear-gradient(#ece1c4,#cfc1a0)!important;color:#12223c!important;border:2px outset #ecddb6!important;box-shadow:2px 2px 0 #061123!important}
