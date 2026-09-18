@@ -44,6 +44,35 @@ const CARD=[
  "{p} entra duro e si becca il cartellino: la nonna avrebbe fatto lo stesso fallo, ma piano.",
  "Cartellino per {p}: l'arbitro ha gli occhi buoni, altro che."
 ];
+const OFFSIDE=[
+ "{p} parte troppo presto: fuorigioco netto, altro che millimetrico.",
+ "Il guardalinee alza la bandiera su {p}: partenza anticipata, classica.",
+ "{p} in fuorigioco: aveva già iniziato a esultare, peccato.",
+ "Fuorigioco di {p}: l'orologio del centravanti va sempre avanti."
+];
+const SUB=[
+ "Cambio: dentro energie fresche, fuori chi ha dato tutto.",
+ "Il mister muove la panchina: si cambia qualcosa lì davanti.",
+ "Cambio tattico: vedremo se paga.",
+ "Sostituzione: applausi per chi esce, curiosità per chi entra."
+];
+const FILLER=[
+ ["Bel ritmo in questa fase, eh?","Vero, ma serve più lucidità sotto porta."],
+ ["Il pubblico spinge parecchio stasera.","Si sente da qui, altro che."],
+ ["Partita maschia a centrocampo.","Tanti duelli, poche cose per gli occhi finora."],
+ ["Occhio ai cambi di gioco, qui si può aprire spazio.","Se lo trovano, guai."],
+ ["Il campo regge bene nonostante tutto.","Sì, stasera scivola poco."],
+ ["Manca ancora un po' di qualità nell'ultimo passaggio.","Concordo, tutto un po' impreciso."],
+ ["Difesa alta, rischio fuorigioco costante.","Rischiano grosso, ma finora ha funzionato."],
+ ["Bella pressione appena persa la palla.","Squadre ben organizzate, si vede il lavoro in settimana."],
+ ["Un minuto di stanca, capita.","Succede, la partita è ancora lunga."],
+ ["Il pallone gira bene tra le linee.","Manca solo l'ultimo tocco, per ora."],
+ ["Tifosi sul pezzo anche in questa fase morta.","Meritano spettacolo, prima o poi arriva."],
+ ["Questa squadra ama impostare da dietro.","Rischioso, ma quando funziona è bello da vedere."],
+ ["Attenzione ai cross dalla fascia, lì c'è pericolo.","Vero, serve raddoppio di marcatura."],
+ ["Ritmo che sta salendo, si sente.","Le gambe cominciano a girare meglio."],
+ ["Un po' di nervosismo in campo, normale.","Partita che conta, si capisce dai falli."]
+];
 const KICKOFF=[
  "Si comincia! {h} contro {a}, e qui stasera se ne vedranno delle belle (forse).",
  "Fischio d'inizio tra {h} e {a}: spegnete la TV di cucina, si gioca sul serio.",
@@ -60,30 +89,48 @@ const FULLTIME=[
 const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
 const fill=(tpl,vars)=>tpl.replace(/\{(\w+)\}/g,(_,k)=>vars[k]??'');
 
+/* FIX 2026-09 (6): "voglio tantissimo commento durante le partite" - le
+   soglie di probabilita' erano troppo basse e la telecronaca risultava rada.
+   Alzate decisamente (quasi sempre presente sugli episodi veri), e aggiunta
+   chiacchiera di riempimento (FILLER, vedi filler() sotto) nei minuti senza
+   eventi, cosi' i due telecronisti commentano in continuazione e non solo
+   su gol/tiri/cartellini. */
 function chanceMiss(player){
- if(!player||Math.random()>.3)return null;
+ if(!player||Math.random()>.7)return null;
  return fill(pick(CHANCE_MISS),{p:player.name});
 }
 function chanceSave(player){
- if(!player||Math.random()>.3)return null;
+ if(!player||Math.random()>.7)return null;
  return fill(pick(CHANCE_SAVE),{p:player.name});
 }
 function goal(player){
- if(!player||Math.random()>.5)return null;
+ if(!player)return null;
  return fill(pick(GOAL),{p:player.name});
 }
 function card(player){
- if(!player||Math.random()>.35)return null;
+ if(!player||Math.random()>.75)return null;
  return fill(pick(CARD),{p:player.name});
 }
+function offside(player){
+ if(!player||Math.random()>.55)return null;
+ return fill(pick(OFFSIDE),{p:player.name});
+}
+function sub(outp,inp){
+ if(Math.random()>.55)return null;
+ return fill(pick(SUB),{});
+}
 function kickoff(h,a){
- if(Math.random()>.6)return null;
+ if(Math.random()>.9)return null;
  return fill(pick(KICKOFF),{h,a});
 }
 function fulltime(h,a,sh,sa){
  // Sempre presente: e' la battuta di chiusura, un piccolo "sipario".
  return fill(pick(FULLTIME),{h,a,sh,sa});
 }
+function filler(a1,a2){
+ const lines=pick(FILLER);
+ return [`${a1}: ${lines[0]}`,`${a2}: ${lines[1]}`];
+}
 
-window.S9Commentary={chanceMiss,chanceSave,goal,card,kickoff,fulltime};
+window.S9Commentary={chanceMiss,chanceSave,goal,card,offside,sub,kickoff,fulltime,filler};
 })();

@@ -185,7 +185,7 @@ function ensureOverlay(){
 
 function runOverlay(phase,duration){
  ensureOverlay();
- overlay.querySelector('.s9-intro-live').innerHTML=`${state.h&&state.a?`${state.h} - ${state.a}`:'S9 90'} <b>LIVE</b>`;
+ {const bug=window.S9ChannelBug?window.S9ChannelBug(state.channel):'',label=state.h&&state.a?`${state.h} - ${state.a}`:(state.channel||'S9 90');overlay.querySelector('.s9-intro-live').innerHTML=`<span class="s9-tv-bug">${bug}</span>${label} <b>LIVE</b>`;}
  const caption=overlay.querySelector('.s9-intro-caption'),skipBtn=overlay.querySelector('.s9-intro-skip');
  overlay.hidden=false;window.scrollTo(0,0);
  const started=performance.now();let raf=0;
@@ -224,5 +224,11 @@ function halftime(options){
  return runOverlay('halftime',3600);
 }
 
-window.S9Anchors={setup,setResult,setChampion,drawStudio,studioIntro,recap,halftime};
+/* FIX 2026-09 (6): serve un modo per far usare ai commenti "spiccioli" in
+   telecronaca (match-commentary.js, chiacchiera di riempimento) gli stessi
+   due nomi dei presentatori gia' assegnati a questa partita/canale, cosi'
+   sembrano davvero le stesse due persone che parlano dall'inizio alla fine. */
+function current(){return {a1:firstName(state.a1)||'Il telecronista',a2:firstName(state.a2)||"L'altro"}}
+
+window.S9Anchors={setup,setResult,setChampion,drawStudio,studioIntro,recap,halftime,current};
 })();

@@ -77,6 +77,7 @@
       if(e&&e.type==='offside'){
         while(paused) await wait(250); current.minute=e.min; updateScore(); if(window.S9MatchVisual)await S9MatchVisual.offside(e); whistle();
         log(`${e.min}' FUORIGIOCO - ${e.player?.name||'attaccante'}`,e.side); showPitchImportant();
+        {const j=window.S9Commentary?.offside?.(e.player);if(j)log(`${e.min}' 🎙️ ${j}`,"neutral");}
         current.keyEvents.push(`${e.min}' Fuorigioco ${e.player?.name||''}`.trim());
         await wait(1250); hidePitch(); return;
       }
@@ -85,6 +86,7 @@
         const sw=aiSub(e); if(sw){
           const team=T(e.teamId||(e.side==='home'?current.h:current.a));
           log(`${e.min}' CAMBIO ${team.name}: ${sw.out.name} ↓  ${sw.inp.name} ↑`,e.side);
+          {const j=window.S9Commentary?.sub?.(sw.out,sw.inp);if(j)log(`${e.min}' 🎙️ ${j}`,"neutral");}
           current.keyEvents.push(`${e.min}' Cambio ${team.name}: ${sw.out.name} / ${sw.inp.name}`);
           setupPitch(); await wait(1100);
         }

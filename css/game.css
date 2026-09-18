@@ -6477,7 +6477,13 @@ html.s9-responsive :is(.prototype-note,.s9-view-hint,.v110-logo-runner){animatio
 /* Higher-grade cinematic treatment shared by walkout and toss. */
 .s9-intro-stage::before{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at 50% 55%,transparent 38%,rgba(0,0,0,.34) 76%,rgba(0,0,0,.72) 100%);box-shadow:inset 0 16px 0 #02070d,inset 0 -16px 0 #02070d}
 .s9-intro-stage::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;opacity:.18;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.045) 4px)}
-.s9-intro-live{position:absolute;right:18px;top:22px;z-index:4;padding:5px 8px;background:#061526bb;border-bottom:2px solid var(--intro-accent,#d5b35f);font:900 9px Arial;letter-spacing:.08em;text-shadow:0 2px 3px #000}.s9-intro-live b{margin-left:5px;color:#ff5965}
+.s9-intro-live{position:absolute;right:18px;top:22px;z-index:4;display:flex;align-items:center;padding:5px 8px;background:#061526bb;border-bottom:2px solid var(--intro-accent,#d5b35f);font:900 9px Arial;letter-spacing:.08em;text-shadow:0 2px 3px #000}.s9-intro-live b{margin-left:5px;color:#ff5965}
+/* FIX 2026-09 (6): bollino/logo TV originale (non un vero logo di rete
+   esistente) accanto al nome del canale finto - piccolo e volutamente
+   semplice (una forma + 1-2 lettere), come i "bug" delle emittenti anni
+   90-2000, mai un marchio elaborato o riconoscibile. */
+.s9-tv-bug{display:inline-flex;flex:0 0 auto;width:15px;height:15px;margin-right:6px;filter:drop-shadow(0 1px 1px #000a)}
+.s9-tv-channel .s9-tv-bug{width:14px;height:14px;margin-right:0}
 .s9-intro-caption{z-index:4!important}
 @media(prefers-reduced-motion:reduce){html.s9-responsive *,html.s9-responsive *::before,html.s9-responsive *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 #seasonPage.screen,#seasonPage[data-view="calendar"]{background:linear-gradient(105deg,#071624ce,#0c2536bb),url('../assets/backgrounds_v10/bg_cups_trophies_cinematic.jpg') center/cover!important}

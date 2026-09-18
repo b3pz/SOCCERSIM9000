@@ -173,7 +173,7 @@ async function play(options){
  const home=T(h),away=T(a);overlay.style.setProperty('--intro-accent',brand.accent);overlay.querySelector('.s9-intro-kicker').textContent=`${isFinal?'FINALE · ':''}${brand.name} · ${item.stadium}`;
  overlay.querySelector('.s9-intro-home img').src=crest(h);overlay.querySelector('.s9-intro-home strong').textContent=teamLabel(h);
  overlay.querySelector('.s9-intro-away img').src=crest(a);overlay.querySelector('.s9-intro-away strong').textContent=teamLabel(a);
- overlay.querySelector('.s9-intro-live').innerHTML=`${item.channel} <b>LIVE</b>`;
+ {const bug=window.S9ChannelBug?window.S9ChannelBug(item.channel):'';overlay.querySelector('.s9-intro-live').innerHTML=`<span class="s9-tv-bug">${bug}</span>${item.channel} <b>LIVE</b>`;}
  /* FIX 2026-09: i due telecronisti dell'emittente scelta per la partita —
     stessa coppia per tutta l'intro, agganciata all'inizio in modo che
     l'ingresso e l'inno (solo club, mai nazionali) usino nomi/cravatta

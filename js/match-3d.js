@@ -290,7 +290,7 @@ function updateBroadcastHud(){
  const actionMinute=document.querySelector('#currentAction .action-minute')?.textContent||minute;
  const signature=[actionMinute,current.h,current.a,current.scoreH,current.scoreA,minute,half,action,celebrationState?.scorerName||'',paused,speed].join('|');if(signature===broadcastSignature)return;broadcastSignature=signature;
  const put=(selector,value)=>{const el=broadcastHud.querySelector(selector);if(el)el.textContent=value};
- const chEl=broadcastHud.querySelector('.s9-tv-channel');if(chEl){const chTxt=current?.channel||(window.S9Channel?window.S9Channel():'S9 90');if(chEl.dataset.ch!==chTxt){chEl.dataset.ch=chTxt;chEl.innerHTML=`${chTxt} <i>LIVE</i>`}}
+ const chEl=broadcastHud.querySelector('.s9-tv-channel');if(chEl){const chTxt=current?.channel||(window.S9Channel?window.S9Channel():'S9 90');if(chEl.dataset.ch!==chTxt){chEl.dataset.ch=chTxt;const bug=window.S9ChannelBug?window.S9ChannelBug(chTxt):'';chEl.innerHTML=`<span class="s9-tv-bug">${bug}</span>${chTxt} <i>LIVE</i>`}}
  put('.s9-tv-clock',`${half}  ${minute}`);put('.s9-tv-home-name',`${home.name} ${home.season}`);put('.s9-tv-away-name',`${away.name} ${away.season}`);put('.s9-tv-home-score',current.scoreH);put('.s9-tv-away-score',current.scoreA);put('.s9-tv-event-minute',actionMinute);put('.s9-tv-event-text',action);
  const scorersFor=side=>(current.events||[]).filter(e=>e.type==='goal'&&e.side===side&&e.min<=current.minute).map(e=>`${(e.player?.name||'').trim().split(' ').pop()} ${e.min}'`).join(', ');
  put('.s9-tv-scorers-h',scorersFor('home'));put('.s9-tv-scorers-a',scorersFor('away'));
