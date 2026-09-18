@@ -6258,6 +6258,18 @@ button,input,select{font-family:var(--s9-font-ui)!important}
 #seasonPage :is(.standing-box,.v10-group,.v10-round) h3{color:#ddc887;font:700 18px var(--s9-font-ui)}
 #seasonPage .europe-grid{display:grid;gap:10px}
 #seasonPage .euro-card button{min-height:44px;margin:8px 8px 8px 0}
+/* FIX 2026-09: schermata Allenamento - 4 focus selezionabili, stesso tema
+   oro/trasparente delle altre pagine stagione. */
+#seasonPage .training-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:14px 0}
+#seasonPage .training-card{background:#0d2037b3;border:1px solid #d9ba5c40;border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:8px}
+#seasonPage .training-card h3{margin:0;font:700 15px var(--s9-font-ui);color:#f0dc9b}
+#seasonPage .training-card p{margin:0;font-size:12px;color:#c9d3e0;flex:1 0 auto}
+#seasonPage .training-card button{min-height:42px;background:linear-gradient(180deg,#e7c257,#b5883a);color:#241804;border:1px solid #7a5b1e;font-weight:900}
+#seasonPage .training-card button:disabled{background:#2c3444;color:#7c869a;border-color:#222a38;cursor:not-allowed}
+#seasonPage .training-log-title{color:#ddc887;font:700 16px var(--s9-font-ui);margin:18px 0 8px}
+#seasonPage .training-log{display:grid;gap:8px}
+#seasonPage .training-log-row{border-bottom:1px solid #bfcfdd30;padding:8px 0;font-size:13px;color:#e8edf3}
+#seasonPage .training-log-row small{color:#aab6c6}
 #seasonPage .v10-bracket{display:flex;gap:28px;overflow-x:auto;overscroll-behavior-x:contain}
 #seasonPage .v10-round{flex:1 0 260px}
 #seasonPage .v10-scoreline{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;padding:7px 0}
