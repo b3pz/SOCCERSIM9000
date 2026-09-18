@@ -382,9 +382,13 @@ function updateBroadcastHud(){
  if(bugEl){const chTxt=current?.channel||(window.S9Channel?window.S9Channel():'S9 90');if(bugEl.dataset.ch!==chTxt){bugEl.dataset.ch=chTxt;bugEl.innerHTML=`<span class="s9-tv-bug-icon">${window.S9ChannelBug?window.S9ChannelBug(chTxt):''}</span><span class="s9-tv-bug-label">${window.escapeHTML?escapeHTML(chTxt):chTxt}</span>`}}
  // FIX 2026-09 (8): riquadro sottotitoli con le ultime 2 battute dei
  // telecronisti (current.tvCommentary, aggiornato da log() in index.html).
+ // FIX 2026-09 (17): "il commento rimane sovraimpresso su chi ha fatto gol"
+ // - durante il banner "GOL / marcatore" (celebrationState attivo) il
+ // riquadro sottotitoli va nascosto, altrimenti le due cose si sovrappongono
+ // visivamente proprio nel momento clou.
  const cbox=broadcastHud.querySelector('.s9-tv-commentary');
  if(cbox){
-  const lines=(current.tvCommentary||[]).slice(-2);
+  const lines=celebrationState?[]:(current.tvCommentary||[]).slice(-2);
   cbox.hidden=!lines.length;
   cbox.innerHTML=lines.map(l=>{
    const raw=window.escapeHTML?escapeHTML(l):String(l);
@@ -719,7 +723,11 @@ function render(now){
   // e rimpicciolisce esattamente come i giocatori quando la telecamera
   // si avvicina o si allontana.
   const edge=p([bx+.11,.3+bl,bz]);
-  const br=clamp(Math.hypot(edge.x-b.x,edge.y-b.y)||0,2.2,46);
+  // FIX 2026-09 (17): "guarda che palla piccola" - nelle inquadrature
+  // larghe (specie il replay) il pallone diventava un puntino quasi
+  // invisibile. Alzato il raggio minimo cosi' resta sempre ben visibile,
+  // pur continuando a ingrandirsi negli zoom ravvicinati.
+  const br=clamp(Math.hypot(edge.x-b.x,edge.y-b.y)||0,4.5,46);
   ctx.fillStyle='#06180c88';ctx.beginPath();ctx.ellipse(ground.x,ground.y,Math.max(3,br*1.3),Math.max(1.4,br*.6),0,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#fff';ctx.strokeStyle='#142537';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(b.x,b.y,br,0,Math.PI*2);ctx.fill();ctx.stroke();
  }
