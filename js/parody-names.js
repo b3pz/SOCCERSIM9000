@@ -38,7 +38,7 @@ const STAR_MAP={
  "Francesco Totti":"Francesco Pupone",
  "Gianluigi Buffon":"Gianluigi Guantone",
  "Fabio Cannavaro":"Fabio Corazza",
- "Filippo Inzaghi":"Superpippo Golgetta",
+ "Filippo Inzaghi":"SuperPippo Inzaghi",
  "Christian Vieri":"Bobo Bombardo",
  "Javier Zanetti":"Pupi Trattore",
  "Cristiano Zanetti":"Cristiano Zanardi",
