@@ -109,6 +109,44 @@ function followedCamera(now,ball){
  return c.view={eye:[c.x,38-c.blend*14,c.z+76-c.blend*32],target:[c.x,.7,c.z],fov:43,
   bounds:[[c.x-span,0,-3+c.blend*18],[c.x+span,0,-3+c.blend*18],[c.x-span,3.5,71-c.blend*18],[c.x+span,3.5,71-c.blend*18]],spanX:span};
 }
+/* FIX 2026-09 (24): "dobbiamo aggiungere le panchine, l'allenatore che si
+   muove, i giocatori che si scaldano, l'arbitro ed il guardalinee" - prima
+   in campo c'erano solo i 22 giocatori e il pallone. Aggiunta qui una
+   presenza scenica (non arbitrale/tattica: l'esito degli episodi resta
+   deciso com'era da match-coherence.js) per rendere il campo meno vuoto:
+   un arbitro che insegue vagamente il gioco con un lieve ritardo/offset
+   (mai esattamente sopra il pallone, come in una vera diretta), due
+   guardalinee che scorrono lungo le rispettive fasce seguendo la x del
+   pallone, e due panchine (una per squadra) con un allenatore che
+   passeggia avanti e indietro e un paio di riserve che corrono sul posto
+   per scaldarsi. Tutto puramente visivo/deterministico via seno/coseno sul
+   tempo, nessuna nuova logica di gioco. */
+let refereeState={x:52.5,z:38},lineState=[{x:52.5},{x:52.5}],officialsLastT=0;
+function stepToward(cur,target,maxStep){const d=target-cur;return Math.abs(d)<=maxStep?target:cur+Math.sign(d)*maxStep}
+function drawOfficials(actors,now,ball){
+ const dt=officialsLastT?Math.min(.12,(now-officialsLastT)/1000):.016;officialsLastT=now;
+ const refKit={shirt:'#171b1f',shorts:'#171b1f',socks:'#f2c94c'};
+ const refTargetX=clamp(ball.x+(ball.z>34?-4.5:4.5),3,102),refTargetZ=clamp(ball.z+(ball.x>52.5?-3:3),4,64);
+ refereeState.x=stepToward(refereeState.x,refTargetX,dt*11);refereeState.z=stepToward(refereeState.z,refTargetZ,dt*11);
+ const refAngle=Math.atan2(ball.x-refereeState.x,ball.z-refereeState.z);
+ graphics.player(actors,refereeState.x,refereeState.z,refKit,now/260,refAngle,1.2,'',false,0);
+ const lsTargetX=clamp(ball.x,4,101);
+ lineState[0].x=stepToward(lineState[0].x,lsTargetX,dt*13);lineState[1].x=stepToward(lineState[1].x,lsTargetX,dt*13);
+ graphics.player(actors,lineState[0].x,-1.35,refKit,now/300,Math.PI/2,1.08,'',false,0);
+ graphics.player(actors,lineState[1].x,69.35,refKit,now/300,-Math.PI/2,1.08,'',false,0);
+ const benches=[{x:43,side:'home'},{x:62,side:'away'}];
+ for(const b of benches){
+  const uni=uniforms[b.side]||{shirt:'#305cad',shorts:'#182436',socks:'#eeeeeb'};
+  actors.box([b.x,.55,-3.5],[7.4,1.15,1.3],'#0f1c2c');
+  const coachKit={shirt:'#101c29',shorts:'#101c29',socks:'#101c29'};
+  const pace=Math.sin(now/1500+(b.side==='home'?0:Math.PI));
+  graphics.player(actors,b.x+pace*2.3,-2.15,coachKit,Math.abs(pace)*8,pace>0?.5:-.5,1.08,'',false,0);
+  for(let i=0;i<2;i++){
+   const wx=b.x+(i?3.6:-3.6)+Math.sin(now/620+i*2)*.7;
+   graphics.player(actors,wx,-5.1,uni,now/210+i*3,0,1.05,'',false,0);
+  }
+ }
+}
 function makeCelebrationState(side,scorerId){
  const info=attackInfo(side),all=playerDots.filter(d=>d.classList.contains(side)&&d.dataset.role!=='GK');
  const leader=all.find(d=>d.dataset.pid===scorerId)||all[all.length-1];if(!leader)return null;
@@ -761,6 +799,7 @@ function render(now){
    graphics.player(actors,x,z,kit,phase,angle,1.35,d.textContent,d.dataset.role==='GK',celebrating,d.dataset.action?{kind:d.dataset.action,progress:Number(d.dataset.actionProgress)||0,direction:Number(d.dataset.actionDirection)||1}:null,d.dataset.skin||null,d.dataset.hair?{hair:d.dataset.hair}:null);
   }
  }
+ if(!kickoffCine)drawOfficials(actors,visualTime,ballPos);
  actors.flush();
  const ball=document.getElementById('ball');if(ball){
   const bx=celebration?celebration.centerX+celebration.dir*2.5:ballPos.x;
@@ -774,11 +813,14 @@ function render(now){
   // e rimpicciolisce esattamente come i giocatori quando la telecamera
   // si avvicina o si allontana.
   const edge=p([bx+.11,.3+bl,bz]);
-  // FIX 2026-09 (17): "guarda che palla piccola" - nelle inquadrature
-  // larghe (specie il replay) il pallone diventava un puntino quasi
-  // invisibile. Alzato il raggio minimo cosi' resta sempre ben visibile,
-  // pur continuando a ingrandirsi negli zoom ravvicinati.
-  const br=clamp(Math.hypot(edge.x-b.x,edge.y-b.y)||0,4.5,46);
+  // FIX 2026-09 (17, poi 24): "guarda che palla piccola" / "non siamo
+  // riusciti ad aggiustare la palla che nei replay risulta sempre
+  // piccolissima" - il primo alzamento del raggio minimo (2.2 -> 4.5) non
+  // e' bastato: su schermi normali 4.5px di raggio (9px di diametro) resta
+  // comunque un puntino. Alzato molto di piu' (8) e portato anche il
+  // massimo un po' piu' su, cosi' negli zoom ravvicinati il pallone non
+  // sembra sproporzionato rispetto al nuovo minimo.
+  const br=clamp(Math.hypot(edge.x-b.x,edge.y-b.y)||0,8,52);
   ctx.fillStyle='#06180c88';ctx.beginPath();ctx.ellipse(ground.x,ground.y,Math.max(3,br*1.3),Math.max(1.4,br*.6),0,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#fff';ctx.strokeStyle='#142537';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(b.x,b.y,br,0,Math.PI*2);ctx.fill();ctx.stroke();
  }
