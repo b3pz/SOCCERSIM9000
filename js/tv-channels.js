@@ -42,12 +42,40 @@ const SHAPES={
  hex:'<polygon points="16,2 29,9 29,23 16,30 3,23 3,9"/>',
  rounded:'<rect x="2" y="2" width="28" height="28" rx="9"/>'
 };
+function bugSpec(name){return BUG[name]||{shape:'circle',color:'#1f6fb0',glyph:(name||'S9')[0]}}
+window.S9ChannelBugSpec=bugSpec;
 window.S9ChannelBug=function(name){
- const cfg=BUG[name]||{shape:'circle',color:'#1f6fb0',glyph:(name||'S9')[0]};
+ const cfg=bugSpec(name);
  const fs=cfg.glyph.length>1?11:15;
  return `<svg viewBox="0 0 32 32" width="100%" height="100%" aria-hidden="true" focusable="false">`+
   `<g fill="${cfg.color}" fill-opacity=".92" stroke="#fff" stroke-opacity=".85" stroke-width="1.3">${SHAPES[cfg.shape]||SHAPES.circle}</g>`+
   `<text x="16" y="21" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="${fs}" fill="#fff">${cfg.glyph}</text>`+
   `</svg>`;
+};
+/* FIX 2026-09 (7): "il logo lo voglio sullo schermo dello stadio, più
+   realistico" - il maxitabellone nello stadio (il tabellone che si vede
+   sopra il campo, sia in 2D che in 3D: vedi stadiumScoreboardTexture in
+   match-3d.js) e' un canvas disegnato a mano, non HTML/SVG, quindi il
+   bollino li' va ridisegnato con i comandi canvas invece che come <svg>. */
+window.S9ChannelBugDrawCanvas=function(ctx,cx,cy,r,name){
+ const cfg=bugSpec(name);
+ ctx.save();
+ ctx.fillStyle=cfg.color;ctx.strokeStyle='rgba(255,255,255,.88)';ctx.lineWidth=Math.max(1,r*.1);
+ ctx.beginPath();
+ if(cfg.shape==='diamond'){
+  ctx.moveTo(cx,cy-r);ctx.lineTo(cx+r,cy);ctx.lineTo(cx,cy+r);ctx.lineTo(cx-r,cy);ctx.closePath();
+ }else if(cfg.shape==='hex'){
+  for(let i=0;i<6;i++){const a=Math.PI/6+i*Math.PI/3,x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}
+  ctx.closePath();
+ }else if(cfg.shape==='rounded'){
+  const rr=r*.34;ctx.moveTo(cx-r+rr,cy-r);ctx.arcTo(cx+r,cy-r,cx+r,cy+r,rr);ctx.arcTo(cx+r,cy+r,cx-r,cy+r,rr);ctx.arcTo(cx-r,cy+r,cx-r,cy-r,rr);ctx.arcTo(cx-r,cy-r,cx+r,cy-r,rr);ctx.closePath();
+ }else{
+  ctx.arc(cx,cy,r,0,Math.PI*2);
+ }
+ ctx.fill();ctx.stroke();
+ ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
+ ctx.font=`900 ${Math.round(cfg.glyph.length>1?r*.82:r*1.05)}px Arial`;
+ ctx.fillText(cfg.glyph,cx,cy+r*.06);
+ ctx.restore();
 };
 })();

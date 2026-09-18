@@ -187,7 +187,7 @@ function stadiumScoreboardTexture(match,identity,brand,onReady){
   }
  }
  const minute=Math.max(0,Number(match.minute)||0),scoreH=Number(match.scoreH)||0,scoreA=Number(match.scoreA)||0;
- const signature=[minute,match.half,scoreH,scoreA,brand?.dark,brand?.accent,identity?.venue].join('|');
+ const signature=[minute,match.half,scoreH,scoreA,brand?.dark,brand?.accent,identity?.venue,match.channel].join('|');
  if(entry.signature!==signature){
   entry.signature=signature;const c=entry.canvas.getContext('2d'),w=1024,h=288;
   c.clearRect(0,0,w,h);c.fillStyle='#02070d';c.fillRect(0,0,w,h);
@@ -203,7 +203,13 @@ function stadiumScoreboardTexture(match,identity,brand,onReady){
   c.fillStyle='#f7f4e9';c.textAlign='center';c.font='900 96px Arial';c.fillText(`${scoreH} : ${scoreA}`,512,132);
   c.fillStyle=brand?.accent||'#e7cf77';c.font='900 25px Arial';c.fillText(`${match.half===2?'2° TEMPO':'1° TEMPO'}  ·  ${String(minute).padStart(2,'0')}'`,512,205);
   c.fillStyle='rgba(255,255,255,.78)';c.font='700 16px Arial';c.fillText((identity?.venue||'SERIEA 9000 SIM').toUpperCase(),512,43,285);
-  c.fillStyle='rgba(255,255,255,.62)';c.font='700 15px Arial';c.textAlign='left';c.fillText('LIVE',44,208);c.textAlign='right';c.fillText('SERIEA 9000 SIM',980,208);
+  /* FIX 2026-09 (7): bollino/logo del canale finto direttamente sul
+     maxischermo dello stadio (piu' realistico che solo nell'HUD TV), accanto
+     alla scritta "LIVE" - stessa forma/colore del canale scelto per questa
+     partita (match.channel, coerente per tutta la gara). */
+  if(match.channel&&window.S9ChannelBugDrawCanvas){window.S9ChannelBugDrawCanvas(c,42,208,14,match.channel);c.fillStyle='rgba(255,255,255,.62)';c.font='700 15px Arial';c.textAlign='left';c.fillText('LIVE',62,208);}
+  else{c.fillStyle='rgba(255,255,255,.62)';c.font='700 15px Arial';c.textAlign='left';c.fillText('LIVE',44,208);}
+  c.fillStyle='rgba(255,255,255,.62)';c.font='700 15px Arial';c.textAlign='right';c.fillText('SERIEA 9000 SIM',980,208);
   for(let y=26;y<238;y+=6){c.fillStyle='rgba(0,0,0,.08)';c.fillRect(24,y,976,2)}
   const owners=identity?.clubs?.map(club=>club.name.toUpperCase()).join(' E ');
   c.fillStyle='#101923';c.fillRect(20,244,984,38);c.fillStyle=brand?.accent||'#e7cf77';c.fillRect(20,244,984,3);
