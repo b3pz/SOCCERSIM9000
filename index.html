@@ -962,6 +962,7 @@ main{max-width:none!important;padding:0!important}
   <div class="match-controls">
     <button id="pauseBtn">⏸ PAUSA</button>
     <button id="tacticsBtn">⚙ TATTICA / CAMBI</button>
+    <button id="incitaBtn" class="s9-incita-btn" type="button" title="Carica la squadra dalla panchina">📣 INCITA <span id="incitaCount">2/2</span></button>
     <button data-speed="1" class="active">1x</button><button data-speed="2">2x</button><button data-speed="4">4x</button>
   </div>
 
@@ -1439,17 +1440,28 @@ function nonGoalOutcome(p,keeper,posts=0){
  const r=Math.random(),post=.025/(1+posts*3);
  return r<post?'post':r<post+on?'save':'miss';
 }
-function buildMatch(h,a){
- const hp=lineupPower(h)*mentalityMult(career.teamStates[h].mentality),ap=lineupPower(a)*mentalityMult(career.teamStates[a].mentality);
- const attack=id=>avg(attackers(id).filter(p=>p.pos!=='GK').map(shotQuality));
- const hg=Math.min(6,poisson(Math.max(.25,1.16+(hp-ap)/22+(attack(h)-keeperQuality(a))*.014)));
- const ag=Math.min(6,poisson(Math.max(.2,1.02+(ap-hp)/22+(attack(a)-keeperQuality(h))*.014)));
+function buildMatch(h,a,opts){
+ /* FIX 2026-09: "incitare la squadra" - opts permette di rigenerare solo
+    la parte RESIDUA di una partita gia' in corso (fromMin..toMin) con un
+    moltiplicatore temporaneo di potenza su un lato, invece di riscrivere
+    l'intera gara. Con opts assente il comportamento e' identico a prima
+    (fromMin=0,toMin=90,span=1 → stesso range rand(4,89) di sempre). */
+ opts=opts||{};
+ const fromMin=opts.fromMin??0,toMin=opts.toMin??90,boost=opts.boost||null;
+ const span=Math.max(.08,(toMin-fromMin)/90);
+ const bmult=side=>boost&&boost.side===side?boost.mult:1;
+ const hp=lineupPower(h)*mentalityMult(career.teamStates[h].mentality)*bmult('h'),ap=lineupPower(a)*mentalityMult(career.teamStates[a].mentality)*bmult('a');
+ const attack=id=>avg(attackers(id).filter(p=>p.pos!=='GK').map(shotQuality))*(id===h?bmult('h'):bmult('a'));
+ const hg=Math.min(6,poisson(Math.max(.25,1.16+(hp-ap)/22+(attack(h)-keeperQuality(a))*.014)*span));
+ const ag=Math.min(6,poisson(Math.max(.2,1.02+(ap-hp)/22+(attack(a)-keeperQuality(h))*.014)*span));
  const ev=[],goalMinutes=[];
+ const minLo=Math.max(4,fromMin),minHi=Math.max(minLo,Math.min(89,toMin));
+ const randMin=()=>rand(minLo,minHi);
  // Battitore designato dalla tattica del club per angoli e punizioni dirette.
  const setPieceTaker=(id,key)=>{const st=career.teamStates[id],pid=st.setPieces?.[key];return st.players.find(p=>p.id===pid&&st.lineup.includes(p.id))};
  const goalEv=(id,count,side)=>{for(let i=0;i<count;i++){
   const scorer=weightedAttacker(id),pool=attackers(id).filter(x=>x.id!==scorer.id&&x.pos!=='GK');
-  let min=rand(4,89);for(let tries=0;tries<30&&goalMinutes.some(m=>Math.abs(m-min)<3);tries++)min=rand(4,89);
+  let min=randMin();for(let tries=0;tries<30&&goalMinutes.some(m=>Math.abs(m-min)<3);tries++)min=randMin();
   goalMinutes.push(min);
   // Una quota realistica delle reti nasce da palla inattiva invece che da
   // azione manovrata: punizione diretta (rara) o angolo (piu' frequente).
@@ -1468,9 +1480,9 @@ function buildMatch(h,a){
  }};
  goalEv(h,hg,'home');goalEv(a,ag,'away');
  const share=Math.max(.22,Math.min(.78,.5+(hp-ap)/110));let posts=0;
- const chances=rand(4,7)+(Math.random()<.12?rand(1,3):0);
+ const chances=Math.max(1,Math.round((rand(4,7)+(Math.random()<.12?rand(1,3):0))*span));
  for(let i=0;i<chances;i++){
-  const min=rand(4,88),lead=ev.filter(e=>e.min<min&&e.side==='home').length-ev.filter(e=>e.min<min&&e.side==='away').length;
+  const min=randMin(),lead=ev.filter(e=>e.min<min&&e.side==='home').length-ev.filter(e=>e.min<min&&e.side==='away').length;
   const chase=min>55?Math.max(-.06,Math.min(.06,-lead*.025)):0;
   const side=Math.random()<share+chase?'home':'away',id=side==='home'?h:a;
   const dead=Math.random(),isFreekick=dead<.08,isCorner=!isFreekick&&dead<.28;
@@ -1487,22 +1499,22 @@ function buildMatch(h,a){
   }
  }
  // Penalties during normal play are engine events, with one stored outcome.
- if(Math.random()<.27){
+ if(Math.random()<.27*span){
   const side=Math.random()<share?'home':'away',id=side==='home'?h:a,opponent=side==='home'?a:h;
   const designated=setPieceTaker(id,'penalty'),st=career.teamStates[id];
   const taker=designated&&st.lineup.includes(designated.id)?designated:weightedAttacker(id);
   const probability=Math.max(.62,Math.min(.88,.76+(shotQuality(taker)-keeperQuality(opponent))*.003));
   const outcome=Math.random()<probability?'goal':Math.random()<.72?'save':'miss';
-  ev.push({min:rand(7,87),type:outcome==='goal'?'goal':'chance',outcome,side,player:taker,taker,assist:null,source:'penalty'});
+  ev.push({min:randMin(),type:outcome==='goal'?'goal':'chance',outcome,side,player:taker,taker,assist:null,source:'penalty'});
  }
  const foulers=id=>career.teamStates[id].players.filter(p=>p.pos!=='GK'&&career.teamStates[id].lineup.includes(p.id));
- for(const type of ['card','foul'])for(let i=0,n=type==='card'?rand(1,4):rand(2,4);i<n;i++){
+ for(const type of ['card','foul'])for(let i=0,n=Math.max(0,Math.round((type==='card'?rand(1,4):rand(2,4))*span));i<n;i++){
   const side=Math.random()<.5?'home':'away',pool=foulers(side==='home'?h:a);if(!pool.length)continue;
-  ev.push({min:rand(5,88),type:type==='card'?(Math.random()<.04?'red':'yellow'):'foul',side,player:pick(pool)});
+  ev.push({min:randMin(),type:type==='card'?(Math.random()<.04?'red':'yellow'):'foul',side,player:pick(pool)});
  }
  // Totale angoli della gara: numero aggregato per le statistiche (non ogni
  // angolo diventa un evento sulla linea del tempo, solo quelli pericolosi).
- const cornersH=rand(3,8),cornersA=rand(3,8);
+ const cornersH=Math.round(rand(3,8)*span),cornersA=Math.round(rand(3,8)*span);
  return {h,a,scoreH:0,scoreA:0,minute:0,events:ev.sort((x,y)=>x.min-y.min),stats:{shotsH:0,shotsA:0,onH:0,onA:0,cornersH,cornersA},keyEvents:[]};
 }
 
@@ -1733,6 +1745,7 @@ async function doEvent(e){
 
 function updateScore(){
  if(!current)return;
+ if(typeof updateIncitaButton==="function")updateIncitaButton();
  const ht=T(current.h),at=T(current.a);
  const hn=$("#homeTeamName"),an=$("#awayTeamName"),hs=$("#homeScoreNum"),as=$("#awayScoreNum");
  if(hn)hn.textContent=`${ht.name} ${ht.season}`;
@@ -1820,7 +1833,7 @@ async function launchMatch(){
   try{coinToss=await S9MatchIntro.play({h:g[0],a:g[1],key:S9Competition?.key?.()||'seriea',stadium:S9V10?.matchContext?.stadium||teamMeta[g[0]]?.stadium||S9Competition?.stadium?.(),channel:matchChannel})}
   catch(e){console.warn("Introduzione pre-partita",e)}
  }
- current=buildMatch(g[0],g[1]);current._running=true;current.half=1;current.coinToss=coinToss;current.channel=matchChannel;setupPitch();show("match");updateScore();hidePitch();
+ current=buildMatch(g[0],g[1]);current._running=true;current.half=1;current.coinToss=coinToss;current.channel=matchChannel;current.incitaUsed=0;setupPitch();show("match");updateScore();hidePitch();updateIncitaButton();
  /* FIX 2026-09: invasione di campo scenica. Ogni 3 partite giocate (contate
     solo quando l'utente guarda davvero la partita, non le simulazioni CPU
     di simOther) c'e' il 50% di probabilita' che scatti, ad un minuto
@@ -1920,6 +1933,37 @@ function openTactics(){
  $("#subsCount").textContent=st.subs+"/3";bindSubRows();updateSubButton();$("#tacticsModal").style.display="flex"
 }
 $("#tacticsBtn").onclick=openTactics;$("#halfTactics").onclick=openTactics;
+/* FIX 2026-09: "incitare la squadra" - richiesta di un tester (Kelvin):
+   dare qualcosa da fare durante la simulazione oltre ai cambi. Il mister
+   può caricare la squadra dalla panchina fino a 2 volte a partita: rigenera
+   solo la parte di gara non ancora giocata (buildMatch con fromMin/boost),
+   quindi ha un effetto reale sulle occasioni/gol residui, non e' solo
+   estetico. Gli eventi già passati restano intatti.
+*/
+const INCITA_CAP=2;
+function incitaEligible(){return current&&(current.h===career.user||current.a===career.user)}
+function updateIncitaButton(){
+ const btn=$("#incitaBtn");if(!btn)return;
+ const used=current?.incitaUsed||0,left=Math.max(0,INCITA_CAP-used);
+ $("#incitaCount").textContent=`${left}/${INCITA_CAP}`;
+ btn.disabled=!current||!current._running||!incitaEligible()||left<=0||current.minute>=88;
+}
+function applyIncita(){
+ if(!current||!current._running||!incitaEligible())return;
+ const used=current.incitaUsed||0;if(used>=INCITA_CAP)return;
+ if(current.minute>=88)return;
+ const side=current.h===career.user?'h':'a';
+ const fromMin=Math.min(89,current.minute+1);
+ const rebuilt=buildMatch(current.h,current.a,{fromMin,toMin:90,boost:{side,mult:1.14}});
+ const keptEvents=current.events.filter(e=>e.min<=current.minute);
+ current.events=keptEvents.concat(rebuilt.events).sort((x,y)=>x.min-y.min);
+ current.incitaUsed=used+1;
+ const teamName=T(career.user).name;
+ log(`${String(current.minute).padStart(2,"0")}' 📣 INCITAMENTO! Il mister carica ${teamName} dalla panchina!`,side==="h"?"home":"away");
+ current._tacticsDirty=true;requestAnimationFrame(refreshTacticsPitch);
+ updateIncitaButton();
+}
+$("#incitaBtn").onclick=applyIncita;
 $("#doSub").onclick=()=>{
  let st=career.teamStates[career.user];
  if(!window._prematchEdit&&st.subs>=3)return alert("Hai già effettuato 3 sostituzioni.");
