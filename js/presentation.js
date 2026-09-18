@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 const $=s=>document.querySelector(s),esc=escapeHTML;
-const titles={results:'RISULTATI',table:'GIRONI A / B',calendar:'CALENDARIO',europe:'COPPE',scorers:'MARCATORI',assists:'ASSIST',next:'PROSSIMO IMPEGNO'};
+const titles={results:'RISULTATI',table:'GIRONI A / B',calendar:'CALENDARIO',europe:'COPPE',training:'ALLENAMENTO',scorers:'MARCATORI',assists:'ASSIST',next:'PROSSIMO IMPEGNO'};
 let month=null,calendarCareer=null,renderingHub=false;
 const dateKey=d=>{d=new Date(d);return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`};
 const crest=id=>CREST_ASSETS[id]||T(id)?.crest||'';
