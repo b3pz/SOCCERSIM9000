@@ -1229,7 +1229,7 @@ function s9ShuffleOrder(){
 }
 function s9EnsureMusicEl(){
  if(s9MusicEl)return s9MusicEl;
- s9MusicEl=new Audio();s9MusicEl.volume=.38;s9MusicEl.preload='none';
+ s9MusicEl=new Audio();s9MusicEl.volume=.20;s9MusicEl.preload='none';
  s9MusicEl.addEventListener('ended',()=>{
   s9MusicIdx++;if(s9MusicIdx>=s9MusicOrder.length){s9MusicOrder=s9ShuffleOrder();s9MusicIdx=0}
   s9PlayCurrentTrack();
