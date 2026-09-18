@@ -175,8 +175,11 @@ function makeCelebrationState(side,scorerId){
 }
 function celebrationFrame(now){
  const c=celebrationState;if(!c)return null;
- const t=Math.max(0,now-c.started),progress=clamp(t/(c.variant===1?2500:1600),0,1),cut=t<1350?0:t<3050?1:2;
- const eye=cut===0?[c.centerX-c.dir*7,9.5,c.centerZ+31]:cut===1?[c.centerX+c.dir*(7+(t-1350)/260),8.5,c.centerZ+27]:[c.centerX,17,c.centerZ+46];
+ /* FIX 2026-09 (25): "devono essere 5 i secondi dell'esultanza" - durata
+    totale portata da 4.2s a 5s (vedi anche il tetto in waitForCelebration
+    piu' sotto), tagli di camera riscalati proporzionalmente. */
+ const t=Math.max(0,now-c.started),progress=clamp(t/(c.variant===1?3000:1900),0,1),cut=t<1600?0:t<3600?1:2;
+ const eye=cut===0?[c.centerX-c.dir*7,9.5,c.centerZ+31]:cut===1?[c.centerX+c.dir*(7+(t-1600)/280),8.5,c.centerZ+27]:[c.centerX,17,c.centerZ+46];
  const span=cut===2?13:9;
  return {...c,eye,target:[c.centerX,cut===2?1.2:1.55,c.centerZ],fov:cut===2?39:34,
   bounds:[[c.centerX-span,0,c.centerZ-15],[c.centerX+span,0,c.centerZ-15],[c.centerX-span,4,c.centerZ+8],[c.centerX+span,4,c.centerZ+8]],
@@ -186,7 +189,7 @@ async function waitForCelebration(){
  const state=celebrationState,match=current;if(!state)return;
  await new Promise(resolve=>{
   function tick(){
-   if(current!==match||match._finished||mode==='2d'||!celebrationState||visualTime-state.started>=4200){resolve();return;}
+   if(current!==match||match._finished||mode==='2d'||!celebrationState||visualTime-state.started>=5000){resolve();return;}
    requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
