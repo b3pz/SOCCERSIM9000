@@ -1279,6 +1279,27 @@ function incitaHorn(){
  g.gain.setValueAtTime(.0001,a.currentTime);g.gain.exponentialRampToValueAtTime(.09,a.currentTime+.06);g.gain.setValueAtTime(.09,a.currentTime+.5);g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+.85);
  o.connect(g);o2.connect(g);g.connect(a.destination);o.start();o2.start();o.stop(a.currentTime+.9);o2.stop(a.currentTime+.9);
 }
+/* FIX 2026-09 (24): "quando fanno gol ti ho allegato l'audio da mettere,
+   fallo partire con 2s di ritardo" - registrazione vera di un boato da
+   stadio (confermata come audio ricevuto da un amico presente alla
+   partita, con il suo ok). Suona in aggiunta al boato sintetico esistente
+   (goalRoar), non al suo posto, con un ritardo di 2s rispetto al momento
+   del gol come richiesto - il boato sintetico da' il primo "colpo"
+   immediato, questa registrazione arriva subito dopo per l'atmosfera vera. */
+const S9_GOAL_ROAR_SRC='assets/audio/goal-boato.mp3';
+let s9GoalRoarEl=null,s9GoalRoarTimer=null;
+function s9EnsureGoalRoarEl(){
+ if(s9GoalRoarEl)return s9GoalRoarEl;
+ s9GoalRoarEl=new Audio(S9_GOAL_ROAR_SRC);s9GoalRoarEl.volume=.5;s9GoalRoarEl.preload='none';
+ return s9GoalRoarEl;
+}
+function playGoalRoarClip(){
+ if(s9GoalRoarTimer)clearTimeout(s9GoalRoarTimer);
+ s9GoalRoarTimer=setTimeout(()=>{
+  s9GoalRoarTimer=null;
+  try{const el=s9EnsureGoalRoarEl();el.pause();el.currentTime=0;el.play().catch(()=>{})}catch(e){}
+ },2000);
+}
 /* FIX 2026-09 (19): "la musica ambientale dev'esserci molto piu rumore di
    tifo" - non si puo' scaricare/ridistribuire audio da YouTube (copyright),
    quindi il rumore di stadio resta generato via Web Audio come il resto
@@ -2056,7 +2077,7 @@ async function doEvent(e){
    }
    updateScore();
 
-   goalRoar();log(`${e.min}' GOOOL! ${e.player.name}`,e.side);
+   goalRoar();playGoalRoarClip();log(`${e.min}' GOOOL! ${e.player.name}`,e.side);
    {const j=window.S9Commentary?.goal?.(e.player);if(j)log(`${e.min}' 🎙️ ${j}`,"neutral");}
    current.keyEvents.push(`${e.min}' GOL ${e.player.name}${e.assist?" (assist "+e.assist.name+")":""}`);
    {
