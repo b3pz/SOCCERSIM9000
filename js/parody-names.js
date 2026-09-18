@@ -24,25 +24,31 @@
 // gli altri (centinaia di giocatori non da copertina) resta la
 // trasformazione automatica piu' leggera qui sotto.
 const STAR_MAP={
- "Roberto Baggio":"Uberto Codino",
+ // FIX 2026-09 (2): il tester ha fatto notare che "Uberto Codino" non ha
+ // senso - Baggio ha un soprannome vero e notissimo ("Il Divin Codino"),
+ // quindi qui usiamo direttamente quello invece di un'invenzione a caso.
+ // Ripassati anche gli altri: dove esiste un soprannome italiano davvero
+ // iconico lo usiamo (o lo richiamiamo da vicino), altrimenti resta
+ // un'invenzione a tema sul nome/ruolo del giocatore.
+ "Roberto Baggio":"Divin Codino",
  "Dino Baggio":"Nino Baggetti",
  "Paolo Maldini":"Paolo Muraglia",
- "Alessandro Del Piero":"Alessandro Pennello",
+ "Alessandro Del Piero":"Alessandro Pinturicchio",
  "Alessandro Nesta":"Alessandro Marmo",
- "Francesco Totti":"Francesco Pupazzo",
+ "Francesco Totti":"Francesco Pupone",
  "Gianluigi Buffon":"Gianluigi Guantone",
  "Fabio Cannavaro":"Fabio Corazza",
- "Filippo Inzaghi":"Filippo Golgetta",
- "Christian Vieri":"Cristiano Bombardo",
- "Javier Zanetti":"Xavier Trattore",
+ "Filippo Inzaghi":"Superpippo Golgetta",
+ "Christian Vieri":"Bobo Bombardo",
+ "Javier Zanetti":"Pupi Trattore",
  "Cristiano Zanetti":"Cristiano Zanardi",
  "Cristiano Ronaldo":"Cristiano Settebello",
  "Ronaldo":"Rolando Fenomeno",
  "Ronaldinho":"Ronaldino Sorriso",
- "Zinedine Zidane":"Zinedine Testadoro",
- "Zinédine Zidane":"Zinedine Testadoro",
+ "Zinedine Zidane":"Zizou Testadoro",
+ "Zinédine Zidane":"Zizou Testadoro",
  "David Beckham":"David Piedidoro",
- "Thierry Henry":"Terenzio Velocista",
+ "Thierry Henry":"Titi Velocista",
  "Luís Figo":"Luís Serpente",
  "Didier Deschamps":"Didier Acquaiolo",
  "Peter Schmeichel":"Peter Vichingo",
@@ -60,8 +66,8 @@ const STAR_MAP={
  "Angelo Peruzzi":"Angelo Portone",
  "Francesco Toldo":"Francesco Paratutto",
  "Marco Materazzi":"Marco Materasso",
- "Gabriel Batistuta":"Gabriel Golcannone",
- "Diego Simeone":"Diego Grintoso",
+ "Gabriel Batistuta":"Gabriel Batigol",
+ "Diego Simeone":"Cholo Grintoso",
  "Taribo West":"Taribo Treccine",
  "Gianluca Pagliuca":"Gianluca Paglietta",
  "Giuseppe Bergomi":"Giuseppe Zione",
@@ -76,16 +82,16 @@ const COACH_STAR_MAP={
  "Giovanni Trapattoni":"Giovanni Trapiantoni",
  "Fabio Capello":"Fabio Cappello",
  "Marcello Lippi":"Marcello Lippone",
- "Carlo Ancelotti":"Carlo Ancellotti",
+ "Carlo Ancelotti":"Carletto Ancellotti",
  "Claudio Ranieri":"Claudio Ranierotto",
  "José Mourinho":"José Misterioso",
- "Franz Beckenbauer":"Franz Baronbauer",
- "Sven-Göran Eriksson":"Sven Ericsson",
+ "Franz Beckenbauer":"Franz Kaiserbauer",
+ "Sven-Göran Eriksson":"Svennis Ericsson",
  "Jürgen Klinsmann":"Jürgen Klingsmann",
  "Dino Zoff":"Dino Zaffo",
  "Vicente del Bosque":"Vicente del Bosco",
- "Otto Rehhagel":"Otto Rehagel",
- "Terry Venables":"Terry Venabile"
+ "Otto Rehhagel":"Re Otto Rehagel",
+ "Terry Venables":"Tel Venabile"
 };
 // Etichette generiche presenti nel database che NON sono nomi propri di
 // persona: vanno lasciate esattamente come sono.
