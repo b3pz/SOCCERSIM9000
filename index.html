@@ -708,7 +708,7 @@ main{max-width:none!important;padding:0!important}
 @media(max-height:500px){#mainMenu #cupsModeBtn .cups-mode-icon{width:40px!important;height:36px!important}}
 </style>
 
-<link rel="stylesheet" href="css/game.css?v=tactics-17">
+<link rel="stylesheet" href="css/game.css?v=tactics-18">
 <link rel="stylesheet" href="css/v106-match-experience.css?v=2">
 </head>
 <body>
@@ -1081,6 +1081,14 @@ function wait(ms){return new Promise(r=>setTimeout(r,ms/speed))}
 function log(txt,side="neutral"){
  const box=$("#currentAction"),hist=$("#commentary");
  const mm=String(txt).match(/^(\d+)'/);
+ // FIX 2026-09 (8): tiene un buffer delle sole battute dei telecronisti
+ // (🎙️) per il riquadro sottotitoli in modalità TV (vedi updateBroadcastHud
+ // in match-3d.js), separato dal tabellino testuale completo.
+ if(current&&String(txt).includes('🎙️')){
+  if(!current.tvCommentary)current.tvCommentary=[];
+  current.tvCommentary.push(String(txt).replace(/^\d+'\s*🎙️\s*/,'').trim());
+  if(current.tvCommentary.length>8)current.tvCommentary.shift();
+ }
 
  if(box){
    box.className="action-banner "+(side||"neutral");
@@ -2600,7 +2608,7 @@ renderTeamPicker();
 <script src="js/tv-channels.js?v=3"></script>
 <script src="js/broadcast-anchors.js?v=3"></script>
 <script src="js/kit-presentation.js?v=1"></script>
-<script src="js/match-3d.js?v=stability-15"></script>
+<script src="js/match-3d.js?v=stability-16"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>

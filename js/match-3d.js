@@ -199,16 +199,22 @@ function stadiumScoreboardTexture(match,identity,brand,onReady){
   drawCoverImage(c,entry.images.get(match.h),42,49,94,94);drawCoverImage(c,entry.images.get(match.a),888,49,94,94);
   c.textBaseline='middle';c.fillStyle='#fff';c.textAlign='left';fitCanvasText(c,`${home.name} ${home.season}`,188,29,18);c.fillText(`${home.name} ${home.season}`,148,94,188);
   c.textAlign='right';fitCanvasText(c,`${away.name} ${away.season}`,188,29,18);c.fillText(`${away.name} ${away.season}`,876,94,188);
+  /* FIX 2026-09 (8): "i marcatori devono andare nel maxischermo dello
+     stadio" - riga con i marcatori (nome + minuto) sotto al nome di ogni
+     squadra, direttamente sul tabellone dello stadio (non solo nell'angolo
+     dell'HUD TV). Il logo del canale invece NON va qui: e' stato spostato
+     nell'HUD della modalita' TV (vedi installBroadcastLayer/updateBroadcastHud). */
+  {
+   const scorersFor=side=>(match.events||[]).filter(e=>e.type==='goal'&&e.side===side&&e.min<=minute).map(e=>`${(e.player?.name||'').trim().split(' ').pop()} ${e.min}'`).join(', ');
+   c.font='700 14px Arial';c.fillStyle='rgba(255,255,255,.72)';
+   const hs=scorersFor('home');if(hs){c.textAlign='left';fitCanvasText(c,hs,188,22,14);c.fillText(hs,148,118,188)}
+   const as=scorersFor('away');if(as){c.textAlign='right';fitCanvasText(c,as,188,22,14);c.fillText(as,876,118,188)}
+  }
   c.fillStyle='rgba(0,0,0,.62)';c.fillRect(352,22,320,212);
   c.fillStyle='#f7f4e9';c.textAlign='center';c.font='900 96px Arial';c.fillText(`${scoreH} : ${scoreA}`,512,132);
   c.fillStyle=brand?.accent||'#e7cf77';c.font='900 25px Arial';c.fillText(`${match.half===2?'2° TEMPO':'1° TEMPO'}  ·  ${String(minute).padStart(2,'0')}'`,512,205);
   c.fillStyle='rgba(255,255,255,.78)';c.font='700 16px Arial';c.fillText((identity?.venue||'SERIEA 9000 SIM').toUpperCase(),512,43,285);
-  /* FIX 2026-09 (7): bollino/logo del canale finto direttamente sul
-     maxischermo dello stadio (piu' realistico che solo nell'HUD TV), accanto
-     alla scritta "LIVE" - stessa forma/colore del canale scelto per questa
-     partita (match.channel, coerente per tutta la gara). */
-  if(match.channel&&window.S9ChannelBugDrawCanvas){window.S9ChannelBugDrawCanvas(c,42,208,14,match.channel);c.fillStyle='rgba(255,255,255,.62)';c.font='700 15px Arial';c.textAlign='left';c.fillText('LIVE',62,208);}
-  else{c.fillStyle='rgba(255,255,255,.62)';c.font='700 15px Arial';c.textAlign='left';c.fillText('LIVE',44,208);}
+  c.fillStyle='rgba(255,255,255,.62)';c.font='700 15px Arial';c.textAlign='left';c.fillText('LIVE',44,208);
   c.fillStyle='rgba(255,255,255,.62)';c.font='700 15px Arial';c.textAlign='right';c.fillText('SERIEA 9000 SIM',980,208);
   for(let y=26;y<238;y+=6){c.fillStyle='rgba(0,0,0,.08)';c.fillRect(24,y,976,2)}
   const owners=identity?.clubs?.map(club=>club.name.toUpperCase()).join(' E ');
@@ -294,17 +300,28 @@ function updateBroadcastHud(){
  if(!broadcastHud||!current)return;
  const home=T(current.h),away=T(current.a),action=document.querySelector('#currentAction .action-text')?.textContent||'',minute=String(current.minute||0).padStart(2,'0')+"'",half=(current.half===2||current.minute>45)?'2T':'1T';
  const actionMinute=document.querySelector('#currentAction .action-minute')?.textContent||minute;
- const signature=[actionMinute,current.h,current.a,current.scoreH,current.scoreA,minute,half,action,celebrationState?.scorerName||'',paused,speed].join('|');if(signature===broadcastSignature)return;broadcastSignature=signature;
+ const commentaryTail=(current.tvCommentary||[]).slice(-2).join('¦');
+ const signature=[actionMinute,current.h,current.a,current.scoreH,current.scoreA,minute,half,action,celebrationState?.scorerName||'',paused,speed,commentaryTail].join('|');if(signature===broadcastSignature)return;broadcastSignature=signature;
  const put=(selector,value)=>{const el=broadcastHud.querySelector(selector);if(el)el.textContent=value};
- const chEl=broadcastHud.querySelector('.s9-tv-channel');if(chEl){const chTxt=current?.channel||(window.S9Channel?window.S9Channel():'S9 90');if(chEl.dataset.ch!==chTxt){chEl.dataset.ch=chTxt;const bug=window.S9ChannelBug?window.S9ChannelBug(chTxt):'';chEl.innerHTML=`<span class="s9-tv-bug">${bug}</span>${chTxt} <i>LIVE</i>`}}
+ const chEl=broadcastHud.querySelector('.s9-tv-channel');if(chEl){const chTxt=current?.channel||(window.S9Channel?window.S9Channel():'S9 90');if(chEl.dataset.ch!==chTxt){chEl.dataset.ch=chTxt;chEl.innerHTML=`${chTxt} <i>LIVE</i>`}}
  put('.s9-tv-clock',`${half}  ${minute}`);put('.s9-tv-home-name',`${home.name} ${home.season}`);put('.s9-tv-away-name',`${away.name} ${away.season}`);put('.s9-tv-home-score',current.scoreH);put('.s9-tv-away-score',current.scoreA);put('.s9-tv-event-minute',actionMinute);put('.s9-tv-event-text',action);
- const scorersFor=side=>(current.events||[]).filter(e=>e.type==='goal'&&e.side===side&&e.min<=current.minute).map(e=>`${(e.player?.name||'').trim().split(' ').pop()} ${e.min}'`).join(', ');
- put('.s9-tv-scorers-h',scorersFor('home'));put('.s9-tv-scorers-a',scorersFor('away'));
  const event=broadcastHud.querySelector('.s9-tv-event');if(event)event.hidden=current.minute>parseInt(actionMinute,10)+1||!/(GOL|TIRO|PARAT|PALO|FUORIGIOCO|FALLO|AMMON|ESPUL|RIGORE|ANGOLO|PUNIZIONE)/i.test(action);
  const hi=broadcastHud.querySelector('.s9-tv-home-crest'),ai=broadcastHud.querySelector('.s9-tv-away-crest');if(hi&&hi.dataset.team!==current.h){hi.dataset.team=current.h;hi.src=crestSource(current.h)}if(ai&&ai.dataset.team!==current.a){ai.dataset.team=current.a;ai.src=crestSource(current.a)}
  const goal=broadcastHud.querySelector('.s9-tv-goal');if(goal){goal.querySelector('strong').textContent=celebrationState?.scorerName||'GOL';goal.querySelector('span').textContent=celebrationState?.teamName||'';goal.hidden=!celebrationState;goal.classList.toggle('show',!!celebrationState)}
  const pause=broadcastHud.querySelector('.s9-tv-pause');if(pause){pause.textContent=paused?'▶':'Ⅱ';pause.setAttribute('aria-label',paused?'Riprendi la partita':'Metti in pausa la partita')}
  put('.s9-tv-speed',`${speed}×`);
+ // FIX 2026-09 (8): bollino/logo del canale, grande e ben visibile in basso
+ // a destra (non piu' minuscolo nella scorebug in alto).
+ const bugEl=broadcastHud.querySelector('.s9-tv-bug-corner');
+ if(bugEl){const chTxt=current?.channel||(window.S9Channel?window.S9Channel():'S9 90');if(bugEl.dataset.ch!==chTxt){bugEl.dataset.ch=chTxt;bugEl.innerHTML=window.S9ChannelBug?window.S9ChannelBug(chTxt):''}}
+ // FIX 2026-09 (8): riquadro sottotitoli con le ultime 2 battute dei
+ // telecronisti (current.tvCommentary, aggiornato da log() in index.html).
+ const cbox=broadcastHud.querySelector('.s9-tv-commentary');
+ if(cbox){
+  const lines=(current.tvCommentary||[]).slice(-2);
+  cbox.hidden=!lines.length;
+  cbox.innerHTML=lines.map(l=>`<p>🎙️ ${(window.escapeHTML?escapeHTML(l):String(l))}</p>`).join('');
+ }
 }
 function parkTacticsForBroadcast(){
  const modal=document.getElementById('tacticsModal'),wrap=document.getElementById('pitchWrap90');if(!modal||!wrap)return;
@@ -323,7 +340,12 @@ function cycleBroadcastSpeed(){
 function openBroadcastTactics(){parkTacticsForBroadcast();document.getElementById('tacticsBtn')?.click();broadcastSignature='';updateBroadcastHud()}
 function installBroadcastLayer(){
  const wrap=document.getElementById('pitchWrap90');if(!wrap||wrap.querySelector('.s9-tv-layer'))return;
- broadcastHud=document.createElement('div');broadcastHud.className='s9-tv-layer';broadcastHud.innerHTML=`<div class="s9-tv-scorebug"><div class="s9-tv-channel">${current?.channel||(window.S9Channel?window.S9Channel():'S9 90')} <i>LIVE</i></div><div class="s9-tv-clock">1T&nbsp;&nbsp;00'</div><div class="s9-tv-team"><img class="s9-tv-home-crest" alt=""><span class="s9-tv-home-name">CASA</span><b class="s9-tv-home-score">0</b></div><div class="s9-tv-scorers s9-tv-scorers-h"></div><div class="s9-tv-team"><img class="s9-tv-away-crest" alt=""><span class="s9-tv-away-name">OSPITI</span><b class="s9-tv-away-score">0</b></div><div class="s9-tv-scorers s9-tv-scorers-a"></div></div><div class="s9-tv-watermark">SERIEA 9000 SIM</div><div class="s9-tv-event" hidden><b class="s9-tv-event-minute">00'</b><span class="s9-tv-event-text"></span></div><div class="s9-tv-goal" hidden aria-live="polite"><small>GOL</small><strong>MARCATORE</strong><span></span></div><div class="s9-tv-controls" aria-label="Comandi partita"><button type="button" class="s9-tv-pause" aria-label="Metti in pausa la partita">Ⅱ</button><button type="button" class="s9-tv-speed" aria-label="Cambia velocità">1×</button><button type="button" class="s9-tv-incita" aria-label="Incita la squadra">📣 2/2</button><button type="button" class="s9-tv-tactics" aria-label="Apri tattica e cambi">⚙</button></div><button type="button" class="s9-tv-exit" aria-label="Esci dalla modalità televisiva">✕</button>`;
+ /* FIX 2026-09 (8): il bollino/logo del canale finto va qui (in basso a
+    destra, ben visibile) e NON piu' sul maxischermo dello stadio (quello e'
+    invece dove vanno i marcatori, vedi stadiumScoreboardTexture sopra). In
+    piu' un riquadro sottotitoli con i commenti dei due telecronisti, che ora
+    parlano molto piu' spesso (vedi match-commentary.js). */
+ broadcastHud=document.createElement('div');broadcastHud.className='s9-tv-layer';broadcastHud.innerHTML=`<div class="s9-tv-scorebug"><div class="s9-tv-channel">${current?.channel||(window.S9Channel?window.S9Channel():'S9 90')} <i>LIVE</i></div><div class="s9-tv-clock">1T&nbsp;&nbsp;00'</div><div class="s9-tv-team"><img class="s9-tv-home-crest" alt=""><span class="s9-tv-home-name">CASA</span><b class="s9-tv-home-score">0</b></div><div class="s9-tv-team"><img class="s9-tv-away-crest" alt=""><span class="s9-tv-away-name">OSPITI</span><b class="s9-tv-away-score">0</b></div></div><div class="s9-tv-watermark">SERIEA 9000 SIM</div><div class="s9-tv-event" hidden><b class="s9-tv-event-minute">00'</b><span class="s9-tv-event-text"></span></div><div class="s9-tv-goal" hidden aria-live="polite"><small>GOL</small><strong>MARCATORE</strong><span></span></div><div class="s9-tv-commentary" hidden aria-live="polite"></div><div class="s9-tv-bug-corner" aria-hidden="true"></div><div class="s9-tv-controls" aria-label="Comandi partita"><button type="button" class="s9-tv-pause" aria-label="Metti in pausa la partita">Ⅱ</button><button type="button" class="s9-tv-speed" aria-label="Cambia velocità">1×</button><button type="button" class="s9-tv-incita" aria-label="Incita la squadra">📣 2/2</button><button type="button" class="s9-tv-tactics" aria-label="Apri tattica e cambi">⚙</button></div><button type="button" class="s9-tv-exit" aria-label="Esci dalla modalità televisiva">✕</button>`;
  /* FIX 2026-09 (5): "INCITA LA SQUADRA" viveva solo nella toolbar sotto al
     campo (.match-controls), FUORI dall'elemento che va a schermo intero
     (#pitchWrap90) - in modalita' TV/fullscreen quindi il pulsante spariva

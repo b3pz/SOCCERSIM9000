@@ -6455,8 +6455,17 @@ html.s9-responsive :is(.prototype-note,.s9-view-hint,.v110-logo-runner){animatio
 .s9-tv-clock{display:inline-block;padding:4px 8px;background:#183759e8;color:#fff3c8;font:900 11px/1 Arial}
 .s9-tv-team{display:grid;grid-template-columns:25px minmax(0,1fr) 31px;align-items:center;min-height:28px;background:linear-gradient(90deg,#102e50f2,#071829e8);border-top:1px solid #ffffff30}
 .s9-tv-team img{width:21px;height:21px;margin:auto;object-fit:contain}.s9-tv-team span{padding:0 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:800 12px/1 Arial;text-shadow:0 1px 2px #000}.s9-tv-team b{display:grid;place-items:center;align-self:stretch;background:#eee8d8;color:#07111d;font:900 17px Arial}
-.s9-tv-scorers{min-height:0;padding:0 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#04121fe0;color:#d9e7f5;font:700 italic 9.5px/1.7 Arial;letter-spacing:.02em;border-top:1px solid #ffffff14;transition:padding .15s}.s9-tv-scorers:empty{padding:0;line-height:0}
 .s9-tv-watermark{position:absolute;right:2.4%;top:4.4%;padding:5px 8px;background:#07162799;border-bottom:2px solid var(--competition-accent,#dfbf71);color:#fff;font:900 10px/1 Arial;letter-spacing:.08em;text-shadow:0 2px 3px #000}
+/* FIX 2026-09 (8): riquadro sottotitoli con i commenti dei due telecronisti
+   in modalita' TV (sopra i pulsanti, a sinistra, non sopra al ticker eventi
+   veri che sta piu' in basso). */
+.s9-tv-commentary{position:absolute;left:2.2%;bottom:10%;z-index:4;display:flex;flex-direction:column;gap:4px;max-width:54%;pointer-events:none}
+.s9-tv-commentary p{margin:0;padding:6px 10px;background:#071829d9;border-left:3px solid var(--competition-accent,#dfbf71);color:#f4f0e7;font:700 italic 11px/1.35 Arial;text-shadow:0 1px 2px #000;box-shadow:0 3px 8px #0007}
+.s9-tv-commentary[hidden]{display:none!important}
+/* FIX 2026-09 (8): "il logo lo voglio in basso a destra, ben visibile, in
+   modalita' TV" - bollino grande sopra la barra dei comandi, non piu' nella
+   scorebug in alto (dove restava minuscolo). */
+.s9-tv-bug-corner{position:absolute;right:2.4%;bottom:9.6%;z-index:5;width:40px;height:40px;filter:drop-shadow(0 3px 7px #000c);opacity:.96;pointer-events:none}
 .s9-tv-event{position:absolute;left:2.2%;bottom:3.4%;display:flex;align-items:center;max-width:58%;min-height:30px;background:#071829dc;border-left:4px solid var(--competition-accent,#dfbf71);box-shadow:0 3px 9px #0008;transition:opacity .18s}.s9-tv-event b{align-self:stretch;display:grid;place-items:center;padding:0 9px;background:#1b4877;color:#fff;font:900 12px Arial}.s9-tv-event span{padding:6px 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f4f0e7;font:700 12px/1.2 Arial}
 .s9-tv-event[hidden]{display:none!important}
 .s9-tv-controls{pointer-events:auto;position:absolute;right:6.1%;bottom:3.2%;z-index:5;display:flex;gap:6px;padding:4px;background:#030a12b8;border:1px solid #ffffff3d;border-radius:22px;box-shadow:0 4px 16px #0009;opacity:.78;transition:opacity .15s}
@@ -6471,7 +6480,7 @@ html.s9-responsive :is(.prototype-note,.s9-view-hint,.v110-logo-runner){animatio
 #match[data-cinematic="goal"].s9-broadcast-active .s9-tv-event{opacity:0}
 #match.s9-broadcast-active .s9-fullscreen-btn{display:none!important}
 @media(max-width:700px),(max-height:500px){
- .s9-tv-scorebug{left:1.5%;top:2%;width:min(270px,58%)}.s9-tv-channel,.s9-tv-clock{font-size:8px;padding:3px 5px}.s9-tv-team{grid-template-columns:20px minmax(0,1fr) 25px;min-height:23px}.s9-tv-team img{width:17px;height:17px}.s9-tv-team span{font-size:9px;padding:0 5px}.s9-tv-team b{font-size:13px}.s9-tv-scorers{font-size:8px;padding:0 5px;line-height:1.5}.s9-tv-watermark{right:1.5%;top:2%;font-size:7px}.s9-tv-event{left:1.5%;bottom:2%;max-width:51%;min-height:25px}.s9-tv-event b,.s9-tv-event span{font-size:9px}.s9-tv-controls{right:7%;bottom:1.5%;gap:3px;padding:3px;opacity:.94}.s9-tv-controls button{width:31px!important;height:29px!important;min-width:31px!important;min-height:29px!important}.s9-tv-controls .s9-tv-speed{width:38px!important}.s9-tv-exit{right:1.5%!important;bottom:2%!important;width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important}.s9-tv-goal{bottom:7%;min-width:min(360px,76%)}.s9-tv-goal small{font-size:11px}.s9-tv-goal strong{font-size:15px}
+ .s9-tv-scorebug{left:1.5%;top:2%;width:min(270px,58%)}.s9-tv-channel,.s9-tv-clock{font-size:8px;padding:3px 5px}.s9-tv-team{grid-template-columns:20px minmax(0,1fr) 25px;min-height:23px}.s9-tv-team img{width:17px;height:17px}.s9-tv-team span{font-size:9px;padding:0 5px}.s9-tv-team b{font-size:13px}.s9-tv-watermark{right:1.5%;top:2%;font-size:7px}.s9-tv-event{left:1.5%;bottom:2%;max-width:51%;min-height:25px}.s9-tv-event b,.s9-tv-event span{font-size:9px}.s9-tv-controls{right:7%;bottom:1.5%;gap:3px;padding:3px;opacity:.94}.s9-tv-controls button{width:31px!important;height:29px!important;min-width:31px!important;min-height:29px!important}.s9-tv-controls .s9-tv-speed{width:38px!important}.s9-tv-exit{right:1.5%!important;bottom:2%!important;width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important}.s9-tv-goal{bottom:7%;min-width:min(360px,76%)}.s9-tv-goal small{font-size:11px}.s9-tv-goal strong{font-size:15px}.s9-tv-commentary{left:1.5%;bottom:13%;max-width:66%;gap:3px}.s9-tv-commentary p{padding:4px 7px;font-size:9px}.s9-tv-bug-corner{right:1.5%;bottom:12.5%;width:28px;height:28px}
 }
 
 /* Higher-grade cinematic treatment shared by walkout and toss. */
@@ -6483,7 +6492,6 @@ html.s9-responsive :is(.prototype-note,.s9-view-hint,.v110-logo-runner){animatio
    semplice (una forma + 1-2 lettere), come i "bug" delle emittenti anni
    90-2000, mai un marchio elaborato o riconoscibile. */
 .s9-tv-bug{display:inline-flex;flex:0 0 auto;width:15px;height:15px;margin-right:6px;filter:drop-shadow(0 1px 1px #000a)}
-.s9-tv-channel .s9-tv-bug{width:14px;height:14px;margin-right:0}
 .s9-intro-caption{z-index:4!important}
 @media(prefers-reduced-motion:reduce){html.s9-responsive *,html.s9-responsive *::before,html.s9-responsive *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 #seasonPage.screen,#seasonPage[data-view="calendar"]{background:linear-gradient(105deg,#071624ce,#0c2536bb),url('../assets/backgrounds_v10/bg_cups_trophies_cinematic.jpg') center/cover!important}
