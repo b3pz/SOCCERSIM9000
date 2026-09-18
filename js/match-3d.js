@@ -244,8 +244,23 @@ function stadiumScoreboardTexture(match,identity,brand,onReady){
   c.fillStyle=homeColors[0];c.fillRect(22,22,330,212);c.fillStyle=awayColors[0];c.fillRect(672,22,330,212);
   c.fillStyle='rgba(255,255,255,.09)';c.fillRect(22,22,330,7);c.fillRect(672,22,330,7);
   drawCoverImage(c,entry.images.get(match.h),42,49,94,94);drawCoverImage(c,entry.images.get(match.a),888,49,94,94);
-  c.textBaseline='middle';c.fillStyle='#fff';c.textAlign='left';fitCanvasText(c,`${home.name} ${home.season}`,188,29,18);c.fillText(`${home.name} ${home.season}`,148,94,188);
-  c.textAlign='right';fitCanvasText(c,`${away.name} ${away.season}`,188,29,18);c.fillText(`${away.name} ${away.season}`,876,94,188);
+  /* FIX 2026-09 (11): "se una squadra ha lo sfondo bianco nel monitor non
+     si leggono i marcatori" - nome squadra e marcatori erano sempre scritti
+     in bianco, illeggibili sui pannelli con colore societario chiaro (es.
+     maglie bianche). Ora il colore del testo si sceglie in base alla
+     luminosita' del colore di sfondo del pannello (scuro su chiaro, chiaro
+     su scuro), sia per il nome che per la riga dei marcatori. */
+  const panelTextColor=hex=>{
+   const h=String(hex||'').replace('#','');if(h.length<3)return '#fff';
+   const full=h.length===3?h.split('').map(c=>c+c).join(''):h;
+   const r=parseInt(full.slice(0,2),16)||0,g=parseInt(full.slice(2,4),16)||0,b=parseInt(full.slice(4,6),16)||0;
+   return (0.299*r+0.587*g+0.114*b)/255>.62?'#0b1420':'#fff';
+  };
+  const homeTextColor=panelTextColor(homeColors[0]),awayTextColor=panelTextColor(awayColors[0]);
+  const homeScorerColor=homeTextColor==='#fff'?'rgba(255,255,255,.78)':'rgba(11,20,32,.82)';
+  const awayScorerColor=awayTextColor==='#fff'?'rgba(255,255,255,.78)':'rgba(11,20,32,.82)';
+  c.textBaseline='middle';c.fillStyle=homeTextColor;c.textAlign='left';fitCanvasText(c,`${home.name} ${home.season}`,188,29,18);c.fillText(`${home.name} ${home.season}`,148,94,188);
+  c.fillStyle=awayTextColor;c.textAlign='right';fitCanvasText(c,`${away.name} ${away.season}`,188,29,18);c.fillText(`${away.name} ${away.season}`,876,94,188);
   /* FIX 2026-09 (8): "i marcatori devono andare nel maxischermo dello
      stadio" - riga con i marcatori (nome + minuto) sotto al nome di ogni
      squadra, direttamente sul tabellone dello stadio (non solo nell'angolo
@@ -253,9 +268,9 @@ function stadiumScoreboardTexture(match,identity,brand,onReady){
      nell'HUD della modalita' TV (vedi installBroadcastLayer/updateBroadcastHud). */
   {
    const scorersFor=side=>(match.events||[]).filter(e=>e.type==='goal'&&e.side===side&&e.min<=minute).map(e=>`${(e.player?.name||'').trim().split(' ').pop()} ${e.min}'`).join(', ');
-   c.font='700 14px Arial';c.fillStyle='rgba(255,255,255,.72)';
-   const hs=scorersFor('home');if(hs){c.textAlign='left';fitCanvasText(c,hs,188,22,14);c.fillText(hs,148,118,188)}
-   const as=scorersFor('away');if(as){c.textAlign='right';fitCanvasText(c,as,188,22,14);c.fillText(as,876,118,188)}
+   c.font='700 14px Arial';
+   const hs=scorersFor('home');if(hs){c.fillStyle=homeScorerColor;c.textAlign='left';fitCanvasText(c,hs,188,22,14);c.fillText(hs,148,118,188)}
+   const as=scorersFor('away');if(as){c.fillStyle=awayScorerColor;c.textAlign='right';fitCanvasText(c,as,188,22,14);c.fillText(as,876,118,188)}
   }
   c.fillStyle='rgba(0,0,0,.62)';c.fillRect(352,22,320,212);
   c.fillStyle='#f7f4e9';c.textAlign='center';c.font='900 96px Arial';c.fillText(`${scoreH} : ${scoreA}`,512,132);
@@ -357,10 +372,14 @@ function updateBroadcastHud(){
  const goal=broadcastHud.querySelector('.s9-tv-goal');if(goal){goal.querySelector('strong').textContent=celebrationState?.scorerName||'GOL';goal.querySelector('span').textContent=celebrationState?.teamName||'';goal.hidden=!celebrationState;goal.classList.toggle('show',!!celebrationState)}
  const pause=broadcastHud.querySelector('.s9-tv-pause');if(pause){pause.textContent=paused?'▶':'Ⅱ';pause.setAttribute('aria-label',paused?'Riprendi la partita':'Metti in pausa la partita')}
  put('.s9-tv-speed',`${speed}×`);
- // FIX 2026-09 (8): bollino/logo del canale, grande e ben visibile in basso
- // a destra (non piu' minuscolo nella scorebug in alto).
+ // FIX 2026-09 (8, 12): bollino/logo del canale in basso a destra. "si legge
+ // meglio quello in alto a sinistra" - il bollino da solo (solo icona) era
+ // meno leggibile del box in alto a sinistra: ora sotto al logo compare
+ // anche il nome del canale in un'etichetta con sfondo, stessa fusione
+ // "logo + nome" della scorebug in alto, ma restando in basso a destra;
+ // in alto a sinistra restano invariati tempo/tempo di gioco e punteggio.
  const bugEl=broadcastHud.querySelector('.s9-tv-bug-corner');
- if(bugEl){const chTxt=current?.channel||(window.S9Channel?window.S9Channel():'S9 90');if(bugEl.dataset.ch!==chTxt){bugEl.dataset.ch=chTxt;bugEl.innerHTML=window.S9ChannelBug?window.S9ChannelBug(chTxt):''}}
+ if(bugEl){const chTxt=current?.channel||(window.S9Channel?window.S9Channel():'S9 90');if(bugEl.dataset.ch!==chTxt){bugEl.dataset.ch=chTxt;bugEl.innerHTML=`<span class="s9-tv-bug-icon">${window.S9ChannelBug?window.S9ChannelBug(chTxt):''}</span><span class="s9-tv-bug-label">${window.escapeHTML?escapeHTML(chTxt):chTxt}</span>`}}
  // FIX 2026-09 (8): riquadro sottotitoli con le ultime 2 battute dei
  // telecronisti (current.tvCommentary, aggiornato da log() in index.html).
  const cbox=broadcastHud.querySelector('.s9-tv-commentary');
@@ -700,7 +719,7 @@ function render(now){
   // e rimpicciolisce esattamente come i giocatori quando la telecamera
   // si avvicina o si allontana.
   const edge=p([bx+.11,.3+bl,bz]);
-  const br=clamp(Math.hypot(edge.x-b.x,edge.y-b.y)||0,2.2,30);
+  const br=clamp(Math.hypot(edge.x-b.x,edge.y-b.y)||0,2.2,46);
   ctx.fillStyle='#06180c88';ctx.beginPath();ctx.ellipse(ground.x,ground.y,Math.max(3,br*1.3),Math.max(1.4,br*.6),0,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#fff';ctx.strokeStyle='#142537';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(b.x,b.y,br,0,Math.PI*2);ctx.fill();ctx.stroke();
  }
