@@ -879,6 +879,7 @@ main{max-width:none!important;padding:0!important}
 <button data-view="table">Gironi A/B</button>
 <button data-view="calendar">Calendario</button>
 <button data-view="europe">Europa</button>
+<button data-view="training">Allenamento</button>
 <button data-view="scorers">Marcatori</button>
 <button data-view="assists">Assist</button>
 <button data-view="news">Notizie</button>
@@ -2384,6 +2385,9 @@ function renderSeasonView(v){
  if(v==="news"){
    c.innerHTML=`<h2>NOTIZIE</h2>${window.S9CareerNews?.renderNews?.(career.results,10)||'<p class="muted">Rassegna stampa non disponibile.</p>'}`;
  }
+ if(v==="training"){
+   c.innerHTML=window.S9Training?.renderTraining?.()||'<h2>ALLENAMENTO</h2><p class="muted">Non disponibile.</p>';
+ }
  if(v==="scorers"||v==="assists"){
    const key=v==="scorers"?"goals":"assists",title=v==="scorers"?"MARCATORI":"ASSIST";
    const list=Object.values(career.pstats).filter(p=>p[key]>0).sort((a,b)=>b[key]-a[key]).slice(0,20);
@@ -2514,5 +2518,6 @@ renderTeamPicker();
 <script src="js/parody-names.js?v=1"></script>
 <script src="js/match-commentary.js?v=1"></script>
 <script src="js/career-news.js?v=1"></script>
+<script src="js/training.js?v=1"></script>
 </body>
 </html>
