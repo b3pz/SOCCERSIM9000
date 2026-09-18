@@ -525,7 +525,14 @@ function drawField(s,p,w,h,closeUp,paintCtx=ctx,options={}){
      margine oltre quella soglia evita che la tribuna finisca a ridosso
      della camera stessa nei momenti piu' stretti. */
   const activeMatch=options.match||(typeof current!=='undefined'?current:null);
-  const homeColor=teamMeta?.[activeMatch?.h]?.colors?.[0],awayColor=teamMeta?.[activeMatch?.a]?.colors?.[0];
+  /* FIX 2026-09 (20): "avevamo detto di mettere le bandiere sugli spalti" -
+     c'erano gia', ma la sorgente colore (teamMeta) copre solo un piccolo
+     sottoinsieme di squadre: per tutte le altre (la maggior parte dei club
+     esteri e delle nazionali) restava undefined e le bandiere finivano
+     grigie/generiche, quasi invisibili come "colore squadra". uniforms[side]
+     e' invece la vera divisa assegnata alla partita in corso ed esiste
+     sempre, quindi ora e' la fonte primaria (con teamMeta come riserva). */
+  const homeColor=uniforms.home?.shirt||teamMeta?.[activeMatch?.h]?.colors?.[0],awayColor=uniforms.away?.shirt||teamMeta?.[activeMatch?.a]?.colors?.[0];
   const flagPhase=Math.floor(performance.now()/450)%6;
   const tierBox=(cx,cz,dx,dz,recedeX,recedeZ,standIndex,flagColor)=>{const crowd=crowdTexture(brand,stadiumStyle,standIndex,flagPhase,flagColor);for(let tier=0;tier<(standIndex?stadiumStyle.endTiers||stadiumStyle.tiers:stadiumStyle.tiers);tier++)s.box([cx+(recedeX||0)*tier,.75+tier*1.6,cz+(recedeZ||0)*tier],[dx,1.5,dz],tier%2?stadiumStyle.seats:brand.dark,0,crowd)};
   tierBox(52.5,back,124,3,0,-3,0);      // tribuna principale, di fronte alla telecamera (anelli via via piu' arretrati)
@@ -707,7 +714,7 @@ function render(now){
    const shadow=p([x,.03,z]);ctx.fillStyle='#071f2466';ctx.beginPath();ctx.ellipse(shadow.x,shadow.y,Math.max(3,w/160),Math.max(1.5,w/440),0,0,Math.PI*2);ctx.fill();
    if(!celebration&&S9MatchVisual.carrier===d){ctx.strokeStyle='#f5db79';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(shadow.x,shadow.y,Math.max(5,w/110),Math.max(2,w/330),0,0,Math.PI*2);ctx.stroke();}
    if(d.dataset.action)angle=attackInfo(side).attacksRight?Math.PI/2:-Math.PI/2;
-   graphics.player(actors,x,z,kit,phase,angle,1.35,d.textContent,d.dataset.role==='GK',celebrating,d.dataset.action?{kind:d.dataset.action,progress:Number(d.dataset.actionProgress)||0,direction:Number(d.dataset.actionDirection)||1}:null);
+   graphics.player(actors,x,z,kit,phase,angle,1.35,d.textContent,d.dataset.role==='GK',celebrating,d.dataset.action?{kind:d.dataset.action,progress:Number(d.dataset.actionProgress)||0,direction:Number(d.dataset.actionDirection)||1}:null,d.dataset.skin||null,d.dataset.hair?{hair:d.dataset.hair}:null);
   }
  }
  actors.flush();

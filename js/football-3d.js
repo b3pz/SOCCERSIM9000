@@ -75,8 +75,17 @@ function pitchSurface(ctx,project,x,z,width,depth,stripWidth){
  for(let i=0;i<Math.ceil(width/stripWidth);i++)layer(x+i*stripWidth,Math.min(x+width,x+(i+1)*stripWidth),i%2?'rgba(222,240,179,.045)':'rgba(0,24,7,.055)');
  layer(-.045,.045,'#e2eddb');
 }
-function player(s,x,z,kit,phase=0,angle=0,scale=1,number='',keeper=false,celebration=0,pose=null){
- const skin='#c88f68',shirt=keeper?'#e9b637':kit.shirt,shorts=keeper?'#202d36':kit.shorts,socks=keeper?'#e9b637':kit.socks;
+/* FIX 2026-09 (19): "ci sono in ghana sono tutti bianchi... impossibile" -
+   prima ogni giocatore (di qualunque nazionale o club) usava lo stesso
+   identico colore di pelle fisso. Aggiunti due parametri opzionali in coda
+   (per non rompere le chiamate esistenti, che restano valide col default):
+   skinTone (calcolato altrove in base alla nazione della squadra, vedi
+   s9SkinFor() in index.html) e look (capigliatura), per un tocco "simpatico
+   e raro di quegli anni" su alcuni giocatori iconici (Baggio col codino,
+   Ronaldo il Fenomeno pelato, ecc. - vedi S9_ICONIC_LOOKS). */
+function player(s,x,z,kit,phase=0,angle=0,scale=1,number='',keeper=false,celebration=0,pose=null,skinTone=null,look=null){
+ const skin=skinTone||'#c88f68',shirt=keeper?'#e9b637':kit.shirt,shorts=keeper?'#202d36':kit.shorts,socks=keeper?'#e9b637':kit.socks;
+ const hair=look?.hair||'normal',hairColor=look?.hairColor||'#30231e';
  const c=Math.cos(angle),sn=Math.sin(angle);
  const box=(dx,y,dz,w,h,d,color,texture,lean=0)=>s.box([x+(dx*c+dz*sn)*scale,y*scale,z+(-dx*sn+dz*c)*scale],[w*scale,h*scale,d*scale],color,angle,texture,lean,posed);
  const action=pose?.kind,progress=pose?.progress||0,arc=Math.sin(progress*Math.PI);
@@ -114,11 +123,20 @@ function player(s,x,z,kit,phase=0,angle=0,scale=1,number='',keeper=false,celebra
   limb(shoulder,elbow,.19,.22,shirt);limb(elbow,hand,.15,.17,skin);
  }
  box(0,1.59,0,.16,.14,.17,skin);box(0,1.78,0,.3,.32,.29,skin);
- box(0,1.96,-.02,.32,.09,.3,'#30231e');box(0,1.81,-.14,.31,.25,.06,'#30231e');
+ // "pelato" (bald): niente calotta di capelli, solo un accenno di nuca; per
+ // tutti gli altri resta la calotta di sempre, colorabile (hairColor).
+ if(hair!=='bald'){
+  box(0,1.96,-.02,.32,.09,.3,hairColor);box(0,1.81,-.14,.31,.25,.06,hairColor);
+ }
+ // "codino" (ponytail): un piccolo ciuffo che sporge dietro la nuca.
+ if(hair==='ponytail'){
+  box(0,1.68,-.24,.09,.16,.09,hairColor);
+ }
  // The back carries the live lineup number rather than the source sprite number.
  if(number){const key=shirt+':'+number;let n=numberCache.get(key);if(!n){n=document.createElement('canvas');n.width=64;n.height=80;const nc=n.getContext('2d');nc.fillStyle=shirt;nc.fillRect(0,0,64,80);const hex=shirt.replace('#',''),rgb=hex.length===3?hex.split('').map(c=>parseInt(c+c,16)):[0,2,4].map(i=>parseInt(hex.slice(i,i+2),16));
  const light=rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722>145;
- nc.fillStyle=light?'#07101c':'#ffffff';nc.strokeStyle=light?'#ffffff':'#07101c';nc.lineWidth=5;nc.lineJoin='round';nc.font='900 48px Arial';nc.textAlign='center';nc.strokeText(number,32,55);nc.fillText(number,32,55);numberCache.set(key,n);}
+ const txt=String(number),small=txt.length>2;
+ nc.fillStyle=light?'#07101c':'#ffffff';nc.strokeStyle=light?'#ffffff':'#07101c';nc.lineWidth=small?4:5;nc.lineJoin='round';nc.font=small?'900 34px Arial':'900 48px Arial';nc.textAlign='center';nc.strokeText(txt,32,small?50:55);nc.fillText(txt,32,small?50:55);numberCache.set(key,n);}
   const points=[[-.26,.95,-.156],[.26,.95,-.156],[.26,1.53,-.156],[-.26,1.53,-.156]].map(([dx,y,dz])=>[x+(dx*c+dz*sn)*scale,y*scale,z+(-dx*sn+dz*c)*scale]);s.face(points.map(posed),shirt,n);
  }
 }

@@ -1075,6 +1075,77 @@ let career=null,current=null,paused=false,speed=1,halfResolver=null,tacticsWasPa
 
 function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));$("#"+id).classList.add("active");if(id!=='match')startMenuMusic();else stopMenuMusic()}
 function T(id){return teams.find(t=>t.id===id)}
+/* FIX 2026-09 (19): "sto guardando che in ghana sono tutti bianchi...
+   impossibile" - i giocatori usavano tutti lo stesso identico colore di
+   pelle. Qui si costruisce, per ogni squadra (club o nazionale, hanno
+   entrambe un campo "country"), una tonalita' per ciascun giocatore pescata
+   da una distribuzione pesata legata alla nazione, con un hash stabile
+   sull'id del giocatore cosi' resta sempre la stessa persona/stesso colore
+   a ogni partita (niente sfarfallio o casualita' ad ogni render). Non e' una
+   pretesa di precisione antropologica - e' una semplificazione ragionevole
+   per un gioco retro con omini a blocchi - ma elimina l'assurdita' di
+   nazionali come Ghana, Nigeria, Camerun, Senegal, Costa d'Avorio o
+   Sudafrica interamente "bianche". */
+const S9_SKIN_TONES={L1:'#f2cba0',L2:'#e0ae7c',M:'#c88f68',D1:'#8f5a37',D2:'#5c3820',D3:'#3a2213'};
+const S9_DIST_EURO=[[S9_SKIN_TONES.L1,.38],[S9_SKIN_TONES.L2,.34],[S9_SKIN_TONES.M,.18],[S9_SKIN_TONES.D1,.06],[S9_SKIN_TONES.D2,.03],[S9_SKIN_TONES.D3,.01]];
+const S9_DIST_EURO_DIVERSE=[[S9_SKIN_TONES.L1,.20],[S9_SKIN_TONES.L2,.26],[S9_SKIN_TONES.M,.18],[S9_SKIN_TONES.D1,.18],[S9_SKIN_TONES.D2,.13],[S9_SKIN_TONES.D3,.05]];
+const S9_DIST_AFRICA=[[S9_SKIN_TONES.D1,.20],[S9_SKIN_TONES.D2,.45],[S9_SKIN_TONES.D3,.30],[S9_SKIN_TONES.M,.05]];
+const S9_DIST_LATIN=[[S9_SKIN_TONES.L2,.18],[S9_SKIN_TONES.M,.28],[S9_SKIN_TONES.D1,.26],[S9_SKIN_TONES.D2,.18],[S9_SKIN_TONES.L1,.05],[S9_SKIN_TONES.D3,.05]];
+const S9_DIST_ASIA=[[S9_SKIN_TONES.L1,.30],[S9_SKIN_TONES.L2,.55],[S9_SKIN_TONES.M,.15]];
+const S9_DIST_MENA=[[S9_SKIN_TONES.L2,.30],[S9_SKIN_TONES.M,.35],[S9_SKIN_TONES.D1,.20],[S9_SKIN_TONES.L1,.15]];
+const S9_COUNTRY_DIST={
+ GHA:S9_DIST_AFRICA,NGA:S9_DIST_AFRICA,CMR:S9_DIST_AFRICA,SEN:S9_DIST_AFRICA,CIV:S9_DIST_AFRICA,RSA:S9_DIST_AFRICA,
+ BRA:S9_DIST_LATIN,ARG:S9_DIST_LATIN,URU:S9_DIST_LATIN,CHI:S9_DIST_LATIN,PAR:S9_DIST_LATIN,COL:S9_DIST_LATIN,MEX:S9_DIST_LATIN,CRC:S9_DIST_LATIN,
+ JPN:S9_DIST_ASIA,KOR:S9_DIST_ASIA,
+ TUR:S9_DIST_MENA,MAR:S9_DIST_MENA,KSA:S9_DIST_MENA,
+ ENG:S9_DIST_EURO_DIVERSE,FRA:S9_DIST_EURO_DIVERSE,NED:S9_DIST_EURO_DIVERSE,BEL:S9_DIST_EURO_DIVERSE,POR:S9_DIST_EURO_DIVERSE,USA:S9_DIST_EURO_DIVERSE
+};
+function s9Hash01(str){
+ let h=2166136261;
+ for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}
+ return ((h>>>0)%100000)/100000;
+}
+function s9PickWeighted(dist,r){
+ let acc=0;for(const[val,w]of dist){acc+=w;if(r<=acc)return val}
+ return dist[dist.length-1][0];
+}
+function s9SkinFor(country,pid){
+ const dist=S9_COUNTRY_DIST[country]||S9_DIST_EURO;
+ return s9PickWeighted(dist,s9Hash01('skin:'+pid));
+}
+/* FIX 2026-09 (19): "provare a trovare la numerazione delle squadre
+   corretta... zamorano che aveva 1+8... totti iconico 10, del piero uguale,
+   baggio ovunque il 10, pirlo il 21" - il numero di maglia era sempre e solo
+   l'indice del giocatore in rosa (arbitrario). Per un pugno di giocatori
+   davvero iconici forziamo il numero storico; se quel numero era gia' preso
+   da un altro compagno di squadra si scambiano semplicemente i due numeri,
+   cosi' la rosa resta completa e senza doppioni. Zamorano e' un caso a
+   parte: il "numero" mostrato sulla schiena e' proprio la stringa "1+8"
+   (la sua trovata dopo che Ronaldo/Recoba gli avevano preso la 9 e la 10 a
+   Inter), lo slot numerico usato per evitare doppioni resta 18. */
+const S9_ICONIC_LOOKS={
+ "Roberto Baggio":{hair:'ponytail',number:10},
+ "Alessandro Del Piero":{number:10},
+ "Francesco Totti":{number:10},
+ "Andrea Pirlo":{number:21},
+ "Ronaldinho":{hair:'ponytail'},
+ "Ronaldo":{hair:'bald'},
+ "Iván Zamorano":{number:18,display:'1+8'}
+};
+function s9SquadNumbers(st){
+ if(st._numMap)return st._numMap;
+ const n=st.players.length,numbers=st.players.map((_,i)=>i+1);
+ st.players.forEach((p,idx)=>{
+  const look=S9_ICONIC_LOOKS[p.name];
+  if(!look?.number||look.number<1||look.number>n)return;
+  const takenAt=numbers.indexOf(look.number);
+  if(takenAt===idx)return;
+  const mine=numbers[idx];numbers[idx]=look.number;if(takenAt>=0)numbers[takenAt]=mine;
+ });
+ const map={};st.players.forEach((p,i)=>{const look=S9_ICONIC_LOOKS[p.name];map[p.id]=look?.display||String(numbers[i])});
+ st._numMap=map;
+ return map;
+}
 function escapeHTML(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
 function pick(a){return a[Math.floor(Math.random()*a.length)]}
@@ -1217,7 +1288,7 @@ function incitaHorn(){
    l'idea di un tifo vivo che sale e scende, sopra il quale restano i colpi
    secchi (goalRoar/crowdGroan/crowdCheer) per i momenti clou. */
 let s9Ambient=null;
-function startAmbientCrowd(level=.075){
+function startProceduralAmbient(level=.075){
  if(s9Ambient)return;
  const a=audio(),len=a.sampleRate*4,buf=a.createBuffer(1,len,a.sampleRate),d=buf.getChannelData(0);
  for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(.3+Math.sin(i/1700)*.1+Math.sin(i/430)*.05);
@@ -1229,12 +1300,43 @@ function startAmbientCrowd(level=.075){
  s.connect(f);f.connect(g);g.connect(a.destination);s.start();lfo.start();
  s9Ambient={source:s,gain:g,lfo};
 }
-function stopAmbientCrowd(){
+function stopProceduralAmbient(){
  if(!s9Ambient)return;
  const {source,gain,lfo}=s9Ambient,a=audio();
  try{gain.gain.cancelScheduledValues(a.currentTime);gain.gain.setValueAtTime(gain.gain.value,a.currentTime);gain.gain.linearRampToValueAtTime(.0001,a.currentTime+.6)}catch(e){}
  setTimeout(()=>{try{source.stop()}catch(e){}try{lfo.stop()}catch(e){}},650);
  s9Ambient=null;
+}
+/* FIX 2026-09 (20): "la musica ambientale dev'esserci molto piu rumore di
+   tifo" + l'utente ha poi caricato una registrazione vera fatta da lui allo
+   stadio (effetti_stadio.mp3, confermato di sua proprieta': "sono effetti
+   estratti da un video di una partita che sono andato a vedere", senza
+   esultanze di gol). Questa registrazione reale sostituisce ora il rumore
+   sintetico come sorgente principale del tifo ambientale durante il match
+   (molto piu' autentica), con la sintesi Web Audio tenuta solo come riserva
+   nel raro caso in cui il file non riesca a caricare. */
+const S9_STADIUM_AMBIENCE_SRC='assets/audio/stadium-ambience.mp3';
+let s9StadiumEl=null,s9StadiumFailed=false;
+function s9EnsureStadiumEl(){
+ if(s9StadiumEl)return s9StadiumEl;
+ s9StadiumEl=new Audio(S9_STADIUM_AMBIENCE_SRC);
+ s9StadiumEl.loop=true;s9StadiumEl.volume=.16;s9StadiumEl.preload='none';
+ s9StadiumEl.addEventListener('error',()=>{s9StadiumFailed=true});
+ return s9StadiumEl;
+}
+function startAmbientCrowd(level=.075){
+ if(!s9StadiumFailed){
+  const el=s9EnsureStadiumEl();
+  if(el.paused){
+   el.play().catch(()=>{s9StadiumFailed=true;startProceduralAmbient(level)});
+  }
+  return;
+ }
+ startProceduralAmbient(level);
+}
+function stopAmbientCrowd(){
+ if(s9StadiumEl&&!s9StadiumEl.paused)s9StadiumEl.pause();
+ stopProceduralAmbient();
 }
 window.S9SFX={tone,noiseBurst,kickThud,cardSound,postClang,subChime,offsideBlip,cornerSwoosh,fullTimeWhistle,crowdGroan,crowdCheer,saveSound,incitaHorn,startAmbientCrowd,stopAmbientCrowd};
 /* FIX 2026-09 (16): "ci vorrebbe della musica anche nel menu" - la base
@@ -1258,7 +1360,7 @@ function s9ShuffleOrder(){
 }
 function s9EnsureMusicEl(){
  if(s9MusicEl)return s9MusicEl;
- s9MusicEl=new Audio();s9MusicEl.volume=.20;s9MusicEl.preload='none';
+ s9MusicEl=new Audio();s9MusicEl.volume=.11;s9MusicEl.preload='none';
  s9MusicEl.addEventListener('ended',()=>{
   s9MusicIdx++;if(s9MusicIdx>=s9MusicOrder.length){s9MusicOrder=s9ShuffleOrder();s9MusicIdx=0}
   s9PlayCurrentTrack();
@@ -2826,14 +2928,14 @@ renderTeamPicker();
 <script src="js/v10-data.js?v=3d-1"></script>
 <script src="js/v10-release.js?v=stability-14"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
-<script src="js/match-coherence.js?v=stability-13"></script>
+<script src="js/match-coherence.js?v=stability-14"></script>
 <script src="js/kit-profiles.js?v=2"></script>
 <script src="js/asset-quality.js?v=1"></script>
-<script src="js/football-3d.js?v=stability-13"></script>
+<script src="js/football-3d.js?v=stability-14"></script>
 <script src="js/tv-channels.js?v=3"></script>
 <script src="js/broadcast-anchors.js?v=3"></script>
 <script src="js/kit-presentation.js?v=1"></script>
-<script src="js/match-3d.js?v=stability-21"></script>
+<script src="js/match-3d.js?v=stability-22"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>
@@ -2841,7 +2943,7 @@ renderTeamPicker();
 <script src="js/exhibition.js?v=stability-14"></script>
 <script src="js/v106-match-experience.js?v=presentation-2"></script>
 <script src="js/v107-cup-polish.js?v=team-season-1"></script>
-<script src="js/v108-complete-match-flow.js?v=team-season-3"></script>
+<script src="js/v108-complete-match-flow.js?v=team-season-4"></script>
 <script src="js/v110-prematch-ceremony.js?v=team-season-1"></script>
 <script src="js/presentation.js?v=presentation-2"></script>
 <script src="js/tactics-redesign.js?v=stability-13"></script>

@@ -77,9 +77,9 @@ function drawPenaltyScene(ctx,w,h,st){
  scene.box([0,1.1,-.3],[7.3,2.3,.06],'#eef2ff1c');
  const keeperX=st.dive==='left'?-2.15*st.diveT:st.dive==='right'?2.15*st.diveT:0;
  const keeperAngle=st.dive==='left'?.55*st.diveT:st.dive==='right'?-.55*st.diveT:0;
- g.player(scene,keeperX,-.1,st.keeperKit,st.t*6,keeperAngle,1.1,'',true,0);
+ g.player(scene,keeperX,-.1,st.keeperKit,st.t*6,keeperAngle,1.1,'',true,0,null,st.keeperSkin||null,st.keeperLook||null);
  const runX=st.lateral*1.1*(1-st.runProgress*.5),runZ=11.3+(1-st.runProgress)*3.4;
- g.player(scene,runX,runZ,st.shooterKit,st.t*7,0,1.15,'',false,st.celebrate||0);
+ g.player(scene,runX,runZ,st.shooterKit,st.t*7,0,1.15,'',false,st.celebrate||0,null,st.shooterSkin||null,st.shooterLook||null);
  scene.flush();
  const bp=p(st.ball),edge=p([st.ball[0]+.11,st.ball[1],st.ball[2]]);
  const br=Math.max(2,Math.hypot(edge.x-bp.x,edge.y-bp.y)||0);
@@ -100,6 +100,14 @@ async function animateKick(side,shooter,outcome,kickNo,teams){
  const teamH=teams?.h,teamA=teams?.a;
  const shooterKit=kitFor(isShooterHome?teamH:teamA,false);
  const keeperKit=kitFor(isShooterHome?teamA:teamH,true);
+ /* FIX 2026-09 (19): stessa tonalita' di pelle/capigliatura iconica usata in
+    campo, anche nella scena 3D del rigore. */
+ const shooterTeamId=isShooterHome?teamH:teamA,keeperTeamId=isShooterHome?teamA:teamH;
+ const keeperPlayer=career?.teamStates?.[keeperTeamId]?.players?.find(p=>p.pos==='GK');
+ const shooterSkin=(typeof s9SkinFor==='function'&&typeof T==='function')?s9SkinFor(T(shooterTeamId)?.country,shooter?.id||shooterTeamId):null;
+ const keeperSkin=(typeof s9SkinFor==='function'&&typeof T==='function'&&keeperPlayer)?s9SkinFor(T(keeperTeamId)?.country,keeperPlayer.id):null;
+ const shooterLook=(typeof S9_ICONIC_LOOKS!=='undefined'&&shooter?.name)?S9_ICONIC_LOOKS[shooter.name]:null;
+ const keeperLook=(typeof S9_ICONIC_LOOKS!=='undefined'&&keeperPlayer)?S9_ICONIC_LOOKS[keeperPlayer.name]:null;
  const lateral=(dive==='left'?-1:1)*(.5+Math.random()*.35);
  let ballEnd;
  if(outcome==='goal')ballEnd=[dive==='left'?2.65:-2.65,2.05,0];
@@ -130,7 +138,7 @@ async function animateKick(side,shooter,outcome,kickNo,teams){
    const ease=flightT*flightT*(3-2*flightT);
    const ball=[ballStart[0]+(ballEnd[0]-ballStart[0])*ease,ballStart[1]+(ballEnd[1]-ballStart[1])*ease,ballStart[2]+(ballEnd[2]-ballStart[2])*ease];
    const celebrateT=outcome==='goal'?Math.max(0,Math.min(1,(el-t3)/260)):0;
-   drawPenaltyScene(ctx,cw,ch,{t:el/1000,lateral,dive,diveT:flightT,runProgress,struck,shooterKit,keeperKit,ball,celebrate:celebrateT});
+   drawPenaltyScene(ctx,cw,ch,{t:el/1000,lateral,dive,diveT:flightT,runProgress,struck,shooterKit,keeperKit,ball,celebrate:celebrateT,shooterSkin,keeperSkin,shooterLook,keeperLook});
    if(el>=t3&&!resultShown){
     resultShown=true;stage.classList.add(outcome);
     res.textContent=outcome==='goal'?'GOL!':outcome==='save'?'PARATA!':'FUORI!';

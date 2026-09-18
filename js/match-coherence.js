@@ -127,9 +127,15 @@
         d.dataset.role=player.pos;d.dataset.baseX=xFor(side,x);d.dataset.baseY=y;
         d.style.left=d.dataset.baseX+'%';d.style.top=y+'%';
         d.style.background=`linear-gradient(90deg,${primary} 0 50%,${secondary} 50% 100%)`;
-        const shirt=Math.max(1,st.players.findIndex(p=>p.id===player.id)+1);
+        /* FIX 2026-09 (19): numero di maglia iconico per un pugno di
+           giocatori riconoscibili (vedi S9_ICONIC_LOOKS in index.html),
+           altrimenti resta l'indice in rosa come prima. Tonalita' di pelle
+           calcolata dalla nazione della squadra, stabile per giocatore. */
+        const shirt=(typeof s9SquadNumbers==='function'?s9SquadNumbers(st)[player.id]:null)||Math.max(1,st.players.findIndex(p=>p.id===player.id)+1);
         d.textContent=String(shirt);d.title=`N° ${shirt} · ${team.name} ${team.season} · ${player.name}`;
         d.setAttribute('aria-label',player.name);
+        if(typeof s9SkinFor==='function')d.dataset.skin=s9SkinFor(team.country,player.id);
+        {const look=(typeof S9_ICONIC_LOOKS!=='undefined'?S9_ICONIC_LOOKS[player.name]:null);if(look?.hair)d.dataset.hair=look.hair;else delete d.dataset.hair;}
       }
     }
     label('IN CAMPO');
