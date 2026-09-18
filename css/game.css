@@ -6462,6 +6462,7 @@ html.s9-responsive :is(.prototype-note,.s9-view-hint,.v110-logo-runner){animatio
 .s9-tv-controls{pointer-events:auto;position:absolute;right:6.1%;bottom:3.2%;z-index:5;display:flex;gap:6px;padding:4px;background:#030a12b8;border:1px solid #ffffff3d;border-radius:22px;box-shadow:0 4px 16px #0009;opacity:.78;transition:opacity .15s}
 .s9-tv-controls:hover,.s9-tv-controls:focus-within{opacity:1}
 .s9-tv-controls button{display:grid!important;place-items:center!important;width:34px!important;height:32px!important;min-width:34px!important;min-height:32px!important;margin:0!important;padding:0!important;border:0!important;border-radius:16px!important;background:#153b62!important;color:#fff3c7!important;font:900 13px/1 Arial!important;box-shadow:none!important;touch-action:manipulation}
+.s9-tv-controls button[hidden]{display:none!important}
 .s9-tv-controls button:active{transform:scale(.94)}
 .s9-tv-controls .s9-tv-speed{width:42px!important;background:#eee7d7!important;color:#0a1828!important}
 .s9-tv-exit{pointer-events:auto!important;position:absolute!important;right:2.2%!important;bottom:3.2%!important;z-index:4!important;display:grid!important;place-items:center!important;width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;padding:0!important;border:1px solid #ffffff65!important;border-radius:50%!important;background:#030a12aa!important;color:#fff!important;font:700 14px Arial!important;opacity:.42;transition:opacity .15s}.s9-tv-exit:hover,.s9-tv-exit:focus{opacity:1}

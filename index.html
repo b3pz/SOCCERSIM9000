@@ -1997,7 +1997,7 @@ const INCITA_CAP=2;
 function spectatorMatch(){return !!window.S9V10?.matchContext?.spectator}
 function incitaEligible(side){
  if(!current||!current._running)return false;
- if(spectatorMatch())return side==='h'||side==='a';
+ if(spectatorMatch())return false;
  return side==='h'?current.h===career.user:current.a===career.user;
 }
 function mySide(){if(!current)return null;if(current.h===career.user)return'h';if(current.a===career.user)return'a';return null}
@@ -2007,24 +2007,25 @@ function updateIncitaButton(){
  const disabledFor=side=>!incitaEligible(side)||leftFor(side)<=0||(current?.minute||0)>=88;
  const btnH=$("#incitaBtn");
  if(btnH){
-  btnH.hidden=spectator?false:mine!=='h';
-  if(btnH.childNodes[0])btnH.childNodes[0].textContent=spectator?'📣 CASA ':'📣 INCITA ';
+  btnH.hidden=spectator||mine!=='h';
+  if(btnH.childNodes[0])btnH.childNodes[0].textContent='📣 INCITA ';
   btnH.disabled=disabledFor('h');
   $("#incitaCount").textContent=`${leftFor('h')}/${INCITA_CAP}`;
  }
  const btnA=$("#incitaBtnAway");
  if(btnA){
-  btnA.hidden=spectator?false:mine!=='a';
+  btnA.hidden=spectator||mine!=='a';
   btnA.disabled=disabledFor('a');
   $("#incitaCountAway").textContent=`${leftFor('a')}/${INCITA_CAP}`;
  }
- // FIX 2026-09 (5): equivalente dentro l'overlay TV/fullscreen (vedi match-3d.js installBroadcastLayer) - in spettatore segue la squadra di casa.
+ // FIX 2026-09 (5): equivalente dentro l'overlay TV/fullscreen (vedi match-3d.js installBroadcastLayer).
+ // In modalità spettatore (CPU vs CPU) non ha senso incitare: nascosto del tutto.
  const tvBtn=document.querySelector('.s9-tv-incita');
- if(tvBtn){const side=mine||'h';tvBtn.textContent=`📣 ${leftFor(side)}/${INCITA_CAP}`;tvBtn.disabled=disabledFor(side)}
+ if(tvBtn){tvBtn.hidden=spectator||!mine;const side=mine||'h';tvBtn.textContent=`📣 ${leftFor(side)}/${INCITA_CAP}`;tvBtn.disabled=disabledFor(side)}
 }
 window.updateIncitaButton=updateIncitaButton;
 function applyIncita(side){
- if(!side)side=spectatorMatch()?null:mySide();
+ if(!side)side=mySide();
  if(!side||!incitaEligible(side))return;
  const used=current.incitaUsed?.[side]||0;if(used>=INCITA_CAP)return;
  if(current.minute>=88)return;
