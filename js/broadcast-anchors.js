@@ -25,26 +25,36 @@ const ANCHOR_PAIRS=[
 function hashStr(s){let h=0;for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0}return Math.abs(h)}
 const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
 const fill=(tpl,vars)=>tpl.replace(/\{(\w+)\}/g,(_,k)=>vars[k]??'');
+/* FIX 2026-09 (2): un tester ha segnalato due problemi legati: le battute
+   erano lunghe/contorte e usavano SEMPRE il nome e cognome completo dei
+   telecronisti, sia come etichetta di chi parla sia dentro la frase stessa
+   quando si rivolgevano l'un l'altro ("Ubaldo Fuorigioco: ... Learco
+   Bombardi" seguito da "Learco Bombardi: ... Ubaldo Fuorigioco") - doppio
+   nome lungo ripetuto ad ogni battuta, difficile da leggere al volo. Il
+   nome/cognome completo resta visibile sulla targhetta 3D sul bancone (li'
+   basta guardare, non serve rileggerlo nel testo): nel testo ora si usa
+   solo il nome di battesimo, e le frasi sono state accorciate/semplificate. */
+const firstName=n=>(n||'').split(' ')[0];
 
 // Ogni voce e' uno scambio a 2 battute (una per anchor): si mostra prima
 // l'una poi l'altra, mai insieme nella stessa riga.
 const ENTRANCE=[
- ['{a1}: Eccoli, {h} e {a} entrano in campo.','{a2}: Squadre schierate: si parte davvero, {a1}.'],
- ['{a1}: Stasera {h} contro {a}, atmosfera niente male.','{a2}: Vediamo se regge fino al triplice fischio, {a1}.'],
- ['{a1}: {h} e {a} si affrontano stasera.','{a2}: Io un pronostico ce l\'ho, {a1}, ma me lo tengo.'],
- ['{a1}: Che ingresso solenne, eh {a2}?','{a2}: Solenne finche\' non parte la partita vera, {a1}.'],
- ['{a1}: Squadre pronte per {h} - {a}.','{a2}: E noi pronti a dire la nostra, come sempre, {a1}.']
+ ['{a1}: Eccoci, campo pronto per {h}-{a}.','{a2}: Si comincia sul serio, {a1}.'],
+ ['{a1}: {h} contro {a}, si parte.','{a2}: Vediamo come va, {a1}.'],
+ ['{a1}: Squadre in campo, tutto pronto.','{a2}: Io un\'idea ce l\'ho, ma non la dico.'],
+ ['{a1}: Bell\'ingresso stasera, eh {a2}?','{a2}: Aspettiamo il fischio, {a1}.'],
+ ['{a1}: Pronti per {h}-{a}?','{a2}: Pronti come sempre.']
 ];
 const ANTHEM=[
- ['{a1}: E ora un momento di raccoglimento, {a2}.','{a2}: Ci si prova, {a1}, ci si prova.'],
- ['{a1}: Bella intensita\' stasera, {a2}.','{a2}: Anni fa si sentiva meno, dicono sempre tutti, {a1}.'],
- ['{a1}: Guarda le facce dei giocatori, {a2}.','{a2}: C\'e\' chi canta e chi conta i minuti, {a1}.'],
- ['{a1}: Un classico prima del fischio d\'inizio.','{a2}: Ai miei tempi era tutta un\'altra cosa, dicono.']
+ ['{a1}: Un attimo di silenzio, {a2}.','{a2}: Si prova, si prova.'],
+ ['{a1}: Bell\'atmosfera stasera.','{a2}: Meglio di altre volte, devo dire.'],
+ ['{a1}: Guarda le facce dei giocatori.','{a2}: C\'e\' chi canta e chi pensa gia\' alla partita.'],
+ ['{a1}: Un classico prima del fischio.','{a2}: Sempre bello vederlo, {a1}.']
 ];
 const TROPHY=[
- ['{a1}: E la coppa va a {h}!','{a2}: Meritata, {a1}. Stagione da incorniciare.'],
- ['{a1}: Che serata per {h}, {a2}.','{a2}: Se la ricorderanno per anni, {a1}, altro che.'],
- ['{a1}: Applausi per {h}, campioni.','{a2}: Complimenti sinceri, {a1}. Se lo sono guadagnato.']
+ ['{a1}: La coppa va a {h}!','{a2}: Meritata, {a1}.'],
+ ['{a1}: Che serata per {h}.','{a2}: Se la ricorderanno a lungo.'],
+ ['{a1}: Applausi per {h}.','{a2}: Se lo sono guadagnato.']
 ];
 const pick2=bank=>pick(bank);
 
@@ -58,25 +68,25 @@ function setup(options){
  state.a1=pair[0];state.a2=pair[1];
  state.tie1=TIE_COLORS[seed%TIE_COLORS.length];state.tie2=TIE_COLORS[(seed+3)%TIE_COLORS.length];
  state.h=options?.h||state.h;state.a=options?.a||state.a;
- const vars={a1:state.a1,a2:state.a2,h:state.h,a:state.a};
+ const vars={a1:firstName(state.a1),a2:firstName(state.a2),h:state.h,a:state.a};
  state.entranceLines=pick2(ENTRANCE).map(l=>fill(l,vars));
  state.anthemLines=pick2(ANTHEM).map(l=>fill(l,vars));
 }
 function setResult(options){
  const {scoreH,scoreA}=options||{};
- const vars={a1:state.a1,a2:state.a2,h:state.h,a:state.a,sh:scoreH,sa:scoreA};
+ const vars={a1:firstName(state.a1),a2:firstName(state.a2),h:state.h,a:state.a,sh:scoreH,sa:scoreA};
  let bank;
  if(scoreH>scoreA)bank=[
-  ['{a1}: Vittoria per {h}! Finisce {sh} a {sa} su {a}.','{a2}: Che partita, {a1}. Al bar se ne parlera\' fino a tardi.'],
-  ['{a1}: {h} porta a casa i tre punti, {sh} a {sa}.','{a2}: {a} ci riprovera\', {a1}, come sempre.']
+  ['{a1}: Vince {h}, finisce {sh} a {sa}.','{a2}: Partitona. Se ne parlera\'.'],
+  ['{a1}: Tre punti per {h}.','{a2}: {a} ci riprovera\', come sempre.']
  ];
  else if(scoreA>scoreH)bank=[
-  ['{a1}: Vittoria per {a}! Finisce {sa} a {sh} su {h}.','{a2}: Serata da dimenticare per {h}, {a1}.'],
-  ['{a1}: {a} vince {sa} a {sh}, altro che pronostico.','{a2}: {h} torna a casa con qualche domanda, {a1}.']
+  ['{a1}: Vince {a}, {sa} a {sh}.','{a2}: Serata storta per {h}.'],
+  ['{a1}: {a} porta a casa i tre punti.','{a2}: {h} qualche domanda se la fa.']
  ];
  else bank=[
-  ['{a1}: Finisce pari, {sh} a {sa} tra {h} e {a}.','{a2}: Punticino a testa, {a1}, non scontenta nessuno... o forse si\'.'],
-  ['{a1}: Pareggio tra {h} e {a}, {sh} a {sa}.','{a2}: Giusto cosi\', {a1}, o quasi.']
+  ['{a1}: Finisce pari, {sh} a {sa}.','{a2}: Un punto a testa, {a1}.'],
+  ['{a1}: Pareggio tra {h} e {a}.','{a2}: Giusto cosi\', quasi.']
  ];
  state.fulltimeLines=pick2(bank).map(l=>fill(l,vars));
 }
@@ -86,24 +96,24 @@ function setResult(options){
    esiti (avanti/sotto/pari) del fine partita. */
 function setHalftime(options){
  const {scoreH,scoreA}=options||{};
- const vars={a1:state.a1,a2:state.a2,h:state.h,a:state.a,sh:scoreH,sa:scoreA};
+ const vars={a1:firstName(state.a1),a2:firstName(state.a2),h:state.h,a:state.a,sh:scoreH,sa:scoreA};
  let bank;
  if(scoreH>scoreA)bank=[
-  ['{a1}: All\'intervallo comanda {h}, {sh} a {sa}.','{a2}: {a} deve cambiare qualcosa nel secondo tempo, {a1}.'],
-  ['{a1}: Si va negli spogliatoi con {h} avanti {sh} a {sa}.','{a2}: Vedremo che mister ne esce, {a1}.']
+  ['{a1}: All\'intervallo avanti {h}, {sh} a {sa}.','{a2}: {a} deve reagire nella ripresa.'],
+  ['{a1}: Si va al riposo con {h} avanti.','{a2}: Vedremo la ripresa, {a1}.']
  ];
  else if(scoreA>scoreH)bank=[
-  ['{a1}: Al riposo avanti {a}, {sa} a {sh}.','{a2}: {h} ha 15 minuti per sistemare le cose, {a1}.'],
-  ['{a1}: {a} negli spogliatoi in vantaggio {sa} a {sh}.','{a2}: Secondo tempo da vivere per {h}, {a1}.']
+  ['{a1}: Al riposo avanti {a}, {sa} a {sh}.','{a2}: {h} ha 15 minuti per rimediare.'],
+  ['{a1}: {a} negli spogliatoi in vantaggio.','{a2}: Ripresa tutta da vivere per {h}.']
  ];
  else bank=[
-  ['{a1}: Si va al riposo in parita\', {sh} a {sa}.','{a2}: Tutto ancora aperto, {a1}, come piace a noi.'],
-  ['{a1}: Primo tempo equilibrato tra {h} e {a}.','{a2}: {sh} a {sa}, il secondo tempo dira\' il resto, {a1}.']
+  ['{a1}: Si va al riposo in parita\', {sh} a {sa}.','{a2}: Tutto aperto, {a1}.'],
+  ['{a1}: Primo tempo equilibrato.','{a2}: Vedremo cosa dice la ripresa.']
  ];
  state.halftimeLines=pick2(bank).map(l=>fill(l,vars));
 }
 function setChampion(championLabel){
- const vars={a1:state.a1,a2:state.a2,h:championLabel||state.h};
+ const vars={a1:firstName(state.a1),a2:firstName(state.a2),h:championLabel||state.h};
  state.trophyLines=pick2(TROPHY).map(l=>fill(l,vars));
 }
 

@@ -1037,7 +1037,7 @@ main{max-width:none!important;padding:0!important}
 <div>
 <h3>Cambio</h3>
 <div class="stat">Sostituzioni: <span id="subsCount">0/3</span></div><br>
-<div class="subhint">Seleziona prima un <b>titolare</b>, poi una <b>riserva</b>. Vedi ruolo, OVR e morale prima di confermare.</div>
+<div class="subhint">Tocca un <b>titolare</b>, poi una <b>riserva</b> per preparare un cambio (da confermare, consuma una sostituzione) - oppure tocca un <b>secondo titolare</b> per scambiargli subito la posizione in campo: è gratis, non consuma sostituzioni e funziona anche a partita in corso.</div>
 <h3>TITOLARI</h3>
 <div id="startersTable"></div>
 <h3>RISERVE</h3>
@@ -1911,7 +1911,18 @@ function playerRow(p,kind){
 function bindSubRows(){
  const keyHandler=ev=>{if((ev.key==="Enter"||ev.key===" ")&&ev.currentTarget.onclick){ev.preventDefault();ev.currentTarget.onclick()}};
  document.querySelectorAll("[data-out]").forEach(tr=>{tr.onclick=()=>{
-   selectedOut=tr.dataset.out;document.querySelectorAll("[data-out]").forEach(x=>x.classList.toggle("selected",x===tr));updateSubButton();
+   const id=tr.dataset.out;
+   /* FIX 2026-09 (3): un tester ha fatto notare che modulo e posizione dei
+      titolari si potevano cambiare SOLO prima della partita (nell'editor
+      tattiche dedicato) - durante la gara questo pannello permetteva solo
+      cambi modulo e sostituzioni dalla panchina, non lo scambio di
+      posizione tra due titolari gia' in campo. Ora, con un titolare gia'
+      selezionato (e nessuna riserva in corso di selezione), toccare un
+      secondo titolare scambia subito le loro posizioni: è gratuito, non
+      consuma una delle 3 sostituzioni, e funziona identico a partita in
+      corso o prima del fischio d'inizio. */
+   if(selectedOut&&id!==selectedOut&&!selectedIn){swapStarterPositions(selectedOut,id);return;}
+   selectedOut=id;document.querySelectorAll("[data-out]").forEach(x=>x.classList.toggle("selected",x===tr));updateSubButton();
  };tr.onkeydown=keyHandler});
  document.querySelectorAll("[data-in]").forEach(tr=>{tr.onclick=()=>{
    selectedIn=tr.dataset.in;document.querySelectorAll("[data-in]").forEach(x=>x.classList.toggle("selected",x===tr));updateSubButton();
@@ -1921,6 +1932,15 @@ function bindSubRows(){
 function updateSubButton(){
  let st=career.teamStates[career.user];
  $("#doSub").disabled=!(selectedOut&&selectedIn)||(!window._prematchEdit&&st.subs>=3)||(window.S9V10?.canSubstitute&&!S9V10.canSubstitute(st,selectedOut,selectedIn,!!window._prematchEdit));
+}
+function swapStarterPositions(idA,idB){
+ let st=career.teamStates[career.user];
+ const ia=st.lineup.indexOf(idA),ib=st.lineup.indexOf(idB);
+ if(ia<0||ib<0)return;
+ [st.lineup[ia],st.lineup[ib]]=[st.lineup[ib],st.lineup[ia]];
+ selectedOut=null;selectedIn=null;
+ if(current){current._tacticsDirty=true;if(current._running)requestAnimationFrame(refreshTacticsPitch)}
+ openTactics();
 }
 function openTactics(){
  // v12 — se il modale e' gia' aperto (es. viene richiamato per aggiornare
