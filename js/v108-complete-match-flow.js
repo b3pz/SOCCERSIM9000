@@ -222,9 +222,20 @@ function pickTakers(teamId){
 }
 async function playShootout(h,a){
  ensurePenaltyOverlay();
+ /* FIX 2026-09 (29): "quando ci sono i rigori succede questo bug che dopo
+    la partita rimane la finestra... nella CPU vs CPU non deve nemmeno
+    comparire" - S9Exhibition.start() crea SEMPRE una career "usa e getta"
+    con career.user=home (S9V10.createMatchCareer(h,...)), anche per le
+    partite spettatore CPU contro CPU: quindi userTeam===h risultava vero
+    anche li', e il selettore rigoristi (pensato per un umano che sceglie e
+    conferma) veniva aperto senza che nessuno potesse mai confermarlo,
+    restando "appeso" a schermo sopra la schermata successiva. Ora si
+    controlla anche la modalita' spettatore ed entrambe le squadre usano
+    l'ordine automatico quando e' attiva. */
  const userTeam=(typeof career!=='undefined'?career?.user:null);
- const homeTakers=userTeam===h?await pickTakers(h):penaltyTakers(h);
- const awayTakers=userTeam===a?await pickTakers(a):penaltyTakers(a);
+ const spectator=!!window.S9V10?.matchContext?.spectator;
+ const homeTakers=(!spectator&&userTeam===h)?await pickTakers(h):penaltyTakers(h);
+ const awayTakers=(!spectator&&userTeam===a)?await pickTakers(a):penaltyTakers(a);
  const homeKeeper=keeper(h),awayKeeper=keeper(a);
  penaltyOverlay.hidden=false;
  $('#v108PenaltyTitle').textContent=`${teamName(h)} vs ${teamName(a)}`;
