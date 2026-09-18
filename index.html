@@ -708,7 +708,7 @@ main{max-width:none!important;padding:0!important}
 @media(max-height:500px){#mainMenu #cupsModeBtn .cups-mode-icon{width:40px!important;height:36px!important}}
 </style>
 
-<link rel="stylesheet" href="css/game.css?v=tactics-22">
+<link rel="stylesheet" href="css/game.css?v=tactics-23">
 <link rel="stylesheet" href="css/v106-match-experience.css?v=2">
 </head>
 <body>
@@ -2223,6 +2223,11 @@ async function launchMatch(){
  {const j=window.S9Commentary?.kickoff?.(T(current.h).name,T(current.a).name,current.h,current.a);if(j)log(`00' 🎙️ ${j}`,"neutral");}
  try{crowd(.035,2.5)}catch(e){console.warn("audio",e)}
  paused=false;
+ /* FIX 2026-09 (23): "voglio che tutti i calci d'inizio siano tipo una
+    cinematica" - breve inquadratura dedicata prima del vero calcio
+    d'inizio di ogni tempo/frazione (qui il 1° tempo), non solo un taglio
+    diretto in campo. */
+ await window.S9Match3D?.kickoffCinematic?.("CALCIO D'INIZIO");
  if(window.S9MatchVisual?.kickoff)await S9MatchVisual.kickoff(coinToss?.kickoffSide||'home');else await wait(500);
  /* FIX 2026-09 (19): "molto piu rumore di tifo" - letto di tifo continuo
     acceso per tutta la durata di ogni tempo, spento durante l'intervallo e
@@ -2236,7 +2241,7 @@ async function launchMatch(){
  /* FIX 2026-09: stacco in studio anche all'intervallo, non solo prima
     dell'ingresso in campo e a fine partita (richiesta di un tester). */
  if(window.S9Anchors?.halftime)await S9Anchors.halftime({h:T(current.h).name,a:T(current.a).name,scoreH:current.scoreH,scoreA:current.scoreA,channel:current.channel});
- const intervalDone=new Promise(r=>halfResolver=r);if(!window.S9Match3D?.showInterval?.())show("halftime");await intervalDone;window.S9Match3D?.endInterval?.();paused=false;$("#pauseBtn").textContent="⏸ PAUSA";show("match");if(window.S9MatchVisual?.kickoff)await S9MatchVisual.kickoff(coinToss?.kickoffSide==='away'?'home':'away');
+ const intervalDone=new Promise(r=>halfResolver=r);if(!window.S9Match3D?.showInterval?.())show("halftime");await intervalDone;window.S9Match3D?.endInterval?.();paused=false;$("#pauseBtn").textContent="⏸ PAUSA";show("match");await window.S9Match3D?.kickoffCinematic?.("2° TEMPO");if(window.S9MatchVisual?.kickoff)await S9MatchVisual.kickoff(coinToss?.kickoffSide==='away'?'home':'away');
  try{window.S9SFX?.startAmbientCrowd?.()}catch(e){console.warn("audio",e)}
  await playHalf(46,90);
  try{window.S9SFX?.stopAmbientCrowd?.()}catch(e){console.warn("audio",e)}
@@ -2979,14 +2984,14 @@ renderTeamPicker();
 <script src="js/tv-channels.js?v=3"></script>
 <script src="js/broadcast-anchors.js?v=3"></script>
 <script src="js/kit-presentation.js?v=1"></script>
-<script src="js/match-3d.js?v=stability-22"></script>
+<script src="js/match-3d.js?v=stability-23"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>
 <script src="js/trophy-ceremony.js?v=lap-close-16"></script>
 <script src="js/exhibition.js?v=stability-14"></script>
 <script src="js/v106-match-experience.js?v=presentation-2"></script>
-<script src="js/v107-cup-polish.js?v=team-season-1"></script>
+<script src="js/v107-cup-polish.js?v=team-season-2"></script>
 <script src="js/v108-complete-match-flow.js?v=team-season-5"></script>
 <script src="js/v110-prematch-ceremony.js?v=team-season-1"></script>
 <script src="js/presentation.js?v=presentation-2"></script>

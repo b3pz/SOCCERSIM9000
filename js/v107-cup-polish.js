@@ -239,6 +239,10 @@ function patchExtraTime(){
     log("90' FINE TEMPI REGOLAMENTARI · SUPPLEMENTARI",'neutral');
     await ov(S9Popups.html('extra',{detail:'Si giocano i supplementari. Golden goal attivo.'}),1300);
     current.half=3; current.minute=90; updateScore(); show('match'); paused=false;
+    /* FIX 2026-09 (23): stessa cinematica di calcio d'inizio usata per
+       1°/2° tempo, anche qui per i due tempi supplementari - prima era un
+       taglio diretto senza alcuna inquadratura dedicata. */
+    await window.S9Match3D?.kickoffCinematic?.("1° TEMPO SUPPLEMENTARE");
     log("91' INIZIA IL 1° TEMPO SUPPLEMENTARE",'neutral');
     let result=await playExtraSegment(91,105);
     if(result!=='golden'){
@@ -246,6 +250,7 @@ function patchExtraTime(){
       await ov(S9Popups.html('extra',{detail:'Cambio campo per il 2° tempo supplementare.'}),950);
       paused=false;
       current.half=4; current.minute=105; updateScore();
+      await window.S9Match3D?.kickoffCinematic?.("2° TEMPO SUPPLEMENTARE");
       log("106' INIZIA IL 2° TEMPO SUPPLEMENTARE",'neutral');
       result=await playExtraSegment(106,120);
     }

@@ -11,6 +11,49 @@ let followCamera=newCamera();
 function newCamera(){return {x:52.5,z:34,vx:0,vz:0,last:0,blend:0,ballX:52.5,ballZ:34,lead:0,fit:null}}
 let highlightState=null; // camera delle azioni salienti: segue il pallone ma senza orbitare attorno alla scena
 let celebrationState=null; // breve cinematica fissa del gol con esultanza di gruppo
+/* FIX 2026-09 (23): "voglio che tutti i calci d'inizio siano tipo una
+   cinematica... manca tutte le volte all'inizio del primo tempo, del
+   secondo, ai supplementari" - esisteva gia' una cinematica solo per
+   l'ingresso in campo iniziale (match-intro.js, con sorteggio), ma il
+   vero e proprio calcio d'inizio (e i riavvii di ogni tempo/frazione
+   successiva) restava un semplice taglio diretto. kickoffCineState segue
+   lo stesso schema di celebrationState sopra: una breve inquadratura
+   dedicata (qui una discesa dall'alto verso il centrocampo, non un
+   inseguimento del pallone) con una didascalia ("2° TEMPO", "1° TEMPO
+   SUPPLEMENTARE", ecc.), usata per OGNI riavvio di frazione - non per i
+   riavvii dal centro dopo un gol durante il gioco, che restano istantanei
+   com'erano per non spezzare il ritmo decine di volte a partita. */
+let kickoffCineState=null,kickoffCaptionEl=null;
+function ensureKickoffCaption(){
+ if(kickoffCaptionEl)return kickoffCaptionEl;
+ kickoffCaptionEl=document.createElement('div');
+ kickoffCaptionEl.className='s9-kickoff-caption';kickoffCaptionEl.hidden=true;
+ document.getElementById('pitch')?.appendChild(kickoffCaptionEl);
+ return kickoffCaptionEl;
+}
+function kickoffCineFrame(now){
+ const c=kickoffCineState;if(!c)return null;
+ const t=Math.max(0,now-c.started),progress=clamp(t/1700,0,1),eased=progress*progress*(3-2*progress);
+ const eye=[52.5,34-eased*24,-6+eased*44],target=[52.5,1.1,34],span=46-eased*22;
+ return {eye,target,fov:46-eased*10,bounds:[[52.5-span,0,34-span*.55],[52.5+span,0,34-span*.55],[52.5-span,4,34+span*.55],[52.5+span,4,34+span*.55]]};
+}
+async function kickoffCinematic(label){
+ if(mode==='2d')return;
+ kickoffCineState={started:visualTime};
+ const el=ensureKickoffCaption();el.textContent=label;el.hidden=false;requestAnimationFrame(()=>el.classList.add('show'));
+ document.getElementById('match').dataset.cinematic='kickoff';
+ const match=current;
+ await new Promise(resolve=>{
+  function tick(){
+   if(current!==match||match._finished||mode==='2d'||!kickoffCineState||visualTime-kickoffCineState.started>=2200){resolve();return}
+   requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+ });
+ kickoffCineState=null;el.classList.remove('show');
+ setTimeout(()=>{if(kickoffCaptionEl)kickoffCaptionEl.hidden=true},300);
+ delete document.getElementById('match').dataset.cinematic;
+}
 /* FIX 2026-09 (10): "ci vorrebbero i replay" / "diverse angolazioni
    telecamera ravvicinate" - dopo un gol, prima di questa modifica, l'unica
    ripresa "diversa" era l'esultanza (celebrationState). L'azione del tiro in
@@ -119,7 +162,7 @@ window.animAttack=async function(side,outcome){
 };
 animAttack=window.animAttack;
 const positions=new Map(),boards=new Map(),crowds=new Map(),identityBoards=new Map(),scoreboards=new Map(),crestBoards=new Map();
-const api=window.S9Match3D={get mode(){return mode},get intermission(){return intervalActive},showInterval,endInterval,get eventActive(){return eventActive},get celebrating(){return !!celebrationState},waitCelebration:waitForCelebration,celebrate,setMode,drawStadium:(context,project,w,h,options={})=>drawField(graphics.scene(context,project),project,w,h,null,context,{...options,external:true}),crowdTexture,stadiumIdentityTexture,stadiumScoreboardTexture,stadiumCrestTexture,sponsorBoardTexture,beginReplay,endReplay};
+const api=window.S9Match3D={get mode(){return mode},get intermission(){return intervalActive},showInterval,endInterval,get eventActive(){return eventActive},get celebrating(){return !!celebrationState},waitCelebration:waitForCelebration,celebrate,kickoffCinematic,setMode,drawStadium:(context,project,w,h,options={})=>drawField(graphics.scene(context,project),project,w,h,null,context,{...options,external:true}),crowdTexture,stadiumIdentityTexture,stadiumScoreboardTexture,stadiumCrestTexture,sponsorBoardTexture,beginReplay,endReplay};
 const graphics=window.S9Football3D;
 // Texture "folla": generata una volta per tribuna e messa in cache (stesso
 // pattern di `boards` sopra per i cartelloni), cosi' non si ridisegna ogni
@@ -668,22 +711,23 @@ function render(now){
  const w=Math.round(canvas.clientWidth),h=Math.round(canvas.clientHeight);if(!w||!h)return;
  const ratio=Math.min(window.devicePixelRatio||1,1.5);if(canvas.width!==Math.round(w*ratio)||canvas.height!==Math.round(h*ratio)){canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio)}ctx.setTransform(ratio,0,0,ratio,0,0);
  const ballPos=ballWorldPosition();
- const celebration=celebrationFrame(visualTime);
+ const kickoffCine=kickoffCineFrame(visualTime);
+ const celebration=kickoffCine?null:celebrationFrame(visualTime);
  const replay=celebration?null:replayCameraFrame(ballPos);
- const cameraState=celebration||replay||followedCamera(visualTime,ballPos);
+ const cameraState=kickoffCine||celebration||replay||followedCamera(visualTime,ballPos);
  const raw=graphics.camera(cameraState.eye,cameraState.target,w,h,cameraState.fov);
  const bounds=cameraState.bounds.map(raw);
  // Include the actual ball in the safe frame during long passes, including its height.
- if(!celebration&&!replay){for(const dx of [-7,7])for(const dz of [-6,6])bounds.push(raw([ballPos.x+dx,5,ballPos.z+dz]));}
+ if(!kickoffCine&&!celebration&&!replay){for(const dx of [-7,7])for(const dz of [-6,6])bounds.push(raw([ballPos.x+dx,5,ballPos.z+dz]));}
  const venueStyle=window.S9Competition?.stadiumStyle?.(),television=broadcastActive();
- if(!television&&!celebration&&!replay&&!highlightState&&venueStyle?.landmarkHeight){
+ if(!television&&!kickoffCine&&!celebration&&!replay&&!highlightState&&venueStyle?.landmarkHeight){
   const setback=venueStyle.setback||0;
   bounds.push(raw([52.5,venueStyle.landmarkHeight,-17-setback]));
  }
  const minX=Math.min(...bounds.map(p=>p.x)),maxX=Math.max(...bounds.map(p=>p.x)),minY=Math.min(...bounds.map(p=>p.y)),maxY=Math.max(...bounds.map(p=>p.y));
  const zoom=Math.max(.1,Math.min((w-(television?12:28))/(maxX-minX),(h-(television?18:65))/(maxY-minY)));
  let fit={x:(minX+maxX)/2,y:(minY+maxY)/2,zoom};
- if(!celebration){
+ if(!celebration&&!kickoffCine){
   const old=followCamera.fit;
   if(old&&old.w===w&&old.h===h){const alpha=paused?0:1-Math.exp(-Math.min(80,now-old.time)/240);fit={x:old.x+(fit.x-old.x)*alpha,y:old.y+(fit.y-old.y)*alpha,zoom:old.zoom+(fit.zoom-old.zoom)*alpha};}
   followCamera.fit={...fit,w,h,time:now};
