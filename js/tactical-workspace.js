@@ -4,6 +4,17 @@
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const roles={GK:'Portiere',DF:'Difensore',MF:'Centrocampista',AM:'Trequartista',ST:'Attaccante',FW:'Attaccante'};
 let root,slot=null,candidate=null,filter='ALL',query='',history=[],fixture=null,notice='',layoutMode=false,layoutSelected=null,setPieceView=false;
+/* FIX 2026-09 (5): un tester ha fatto notare che il modulo/la disposizione
+   si potevano cambiare col trascinamento SOLO prima della partita - durante
+   la gara il pulsante "TATTICA/CAMBI" apriva un pannello piu' semplice
+   (senza campo, senza trascinamento). "mode" distingue le due situazioni:
+   'prematch' e' l'uso originale (dentro #prematch, prima del fischio
+   d'inizio); 'live' riusa lo STESSO editor (stesso campo, stesso
+   trascinamento, stessa pagina battitori) ma durante una partita in corso,
+   dove pero' le vere sostituzioni restano limitate a 3 e vanno registrate
+   sul motore di gioco (S9V10.recordSubstitution) invece di essere libere
+   come in preparazione. */
+let mode='prematch';
 /* Griglia di disposizione libera: 3 zone (difesa/centrocampo/attacco) da 2 linee
    ciascuna, più la porta. La larghezza (x) resta libera; la profondità (y) scatta
    sulla linea più vicina, così lo schema resta leggibile ma personalizzabile
@@ -44,10 +55,23 @@ function arrange(s,formation){
 }
 function selectSlot(i){if(layoutMode){layoutSelected=layoutSelected===i?null:i;notice='';render();return}if(slot!==null&&slot!==i){candidate=state().lineup[i];}else{slot=slot===i?null:i;candidate=null;}notice='';render();}
 function confirm(){
- const s=state(),out=s.lineup[slot],incoming=player(candidate);if(slot===null||!incoming||(!s.lineup.includes(incoming.id)&&!S9V10.canSubstitute(s,out,incoming.id,true)))return;
+ const s=state(),out=s.lineup[slot],incoming=player(candidate),bypassCap=mode!=='live';
+ if(slot===null||!incoming||(!s.lineup.includes(incoming.id)&&!S9V10.canSubstitute(s,out,incoming.id,bypassCap)))return;
  const outgoing=player(out);if((outgoing.pos==='GK')!==(incoming.pos==='GK'))return;
- save();const other=s.lineup.indexOf(incoming.id);if(other>=0){s.lineup[other]=out;s.lineup[slot]=incoming.id;notice='Posizioni scambiate. Controlla la compatibilità dei ruoli.';candidate=null;render();return;}s.lineup[slot]=incoming.id;for(const key of Object.keys(s.setPieces||{}))if(s.setPieces[key]===out)s.setPieces[key]=incoming.id;
- notice=`${outgoing.name} esce · ${incoming.name} entra nello stesso posto.`;candidate=null;render();
+ save();const other=s.lineup.indexOf(incoming.id);if(other>=0){s.lineup[other]=out;s.lineup[slot]=incoming.id;notice='Posizioni scambiate. Controlla la compatibilità dei ruoli.';candidate=null;render();return;}
+ // FIX 2026-09 (5): un vero cambio (dalla panchina) durante una partita in
+ // corso deve restare limitato a 3 e va registrato sul motore di gioco,
+ // esattamente come faceva il vecchio pannello "TATTICA/CAMBI" - altrimenti
+ // qui si potrebbero fare sostituzioni illimitate a gara in corso.
+ if(mode==='live'){
+  if(s.subs>=3){notice='Hai già effettuato 3 sostituzioni.';candidate=null;render();return}
+  S9V10.recordSubstitution?.(career.user,out,incoming.id,current?.minute);
+  s.subs=(s.subs||0)+1;
+ }
+ s.lineup[slot]=incoming.id;for(const key of Object.keys(s.setPieces||{}))if(s.setPieces[key]===out)s.setPieces[key]=incoming.id;
+ notice=`${outgoing.name} esce · ${incoming.name} entra nello stesso posto.`;candidate=null;
+ if(mode==='live'&&current){current._tacticsDirty=true;requestAnimationFrame(()=>window.refreshTacticsPitch?.())}
+ render();
 }
 function choosePlayer(id){
  if(slot===null){notice='Seleziona prima un giocatore sul campo.';render();return;}
@@ -78,12 +102,12 @@ function render(){
  const warnings=on.filter((p,i)=>!compatible(p,layout[i]?.role)||unavailable(p));
  const bench=s.players.filter(p=>!s.lineup.includes(p.id)).filter(p=>filter==='ALL'||p.pos===filter||(filter==='ST'&&p.pos==='FW')).filter(p=>p.name.toLocaleLowerCase().includes(query.toLocaleLowerCase()));
  const ordered=bench.sort((a,b)=>Number(unavailable(a))-Number(unavailable(b))||(out?Number(!compatible(a,layout[slot]?.role))-Number(!compatible(b,layout[slot]?.role)):0)||b.overall-a.overall);
- const canConfirm=out&&incoming&&(s.lineup.includes(incoming.id)||S9V10.canSubstitute(s,out.id,incoming.id,true))&&((out.pos==='GK')===(incoming.pos==='GK'));
- root.innerHTML=`<div class="tw-heading"><button type="button" data-action="back" class="tw-back">← INDIETRO</button><div class="tw-heading-info"><small>PREPARAZIONE PARTITA</small><h1>${esc(team.name)} <span>${esc(team.season)}</span></h1><p>${esc((current?.fixture||[]).map(id=>{const t=T(id);return t.name+' '+t.season}).join(' · '))}</p></div><div class="tw-heading-actions"><button type="button" data-action="setpieces" class="tw-setpieces-btn">⚽ BATTITORI</button><button type="button" data-action="kits" class="tw-primary">SCEGLI DIVISE →</button></div></div>
- <div class="tw-settings"><label>MODULO<select id="twFormation">${team.formations.map(f=>`<option ${s.formation===f?'selected':''}>${f}</option>`).join('')}</select></label><fieldset><legend>ATTEGGIAMENTO</legend>${['Difensivo','Normale','Offensivo'].map(m=>`<button type="button" data-mentality="${m}" aria-pressed="${s.mentality===m}">${m}</button>`).join('')}</fieldset><div class="tw-readiness"><b>${on.length}/11</b><span>TITOLARI · COND. ${Math.round(on.reduce((n,p)=>n+fit(p),0)/Math.max(1,on.length))}%</span><button type="button" data-action="undo" ${history.length?'':'disabled'}>↶ Annulla ultima modifica</button></div></div>
+ const canConfirm=out&&incoming&&(s.lineup.includes(incoming.id)||S9V10.canSubstitute(s,out.id,incoming.id,mode!=='live'))&&((out.pos==='GK')===(incoming.pos==='GK'));
+ root.innerHTML=`<div class="tw-heading"><button type="button" data-action="back" class="tw-back">${mode==='live'?'← PARTITA':'← INDIETRO'}</button><div class="tw-heading-info"><small>${mode==='live'?`TATTICA IN PARTITA${current?.minute!=null?' · '+current.minute+"'":''}`:'PREPARAZIONE PARTITA'}</small><h1>${esc(team.name)} <span>${esc(team.season)}</span></h1><p>${esc((current?.fixture||[]).map(id=>{const t=T(id);return t.name+' '+t.season}).join(' · '))}</p></div><div class="tw-heading-actions"><button type="button" data-action="setpieces" class="tw-setpieces-btn">⚽ BATTITORI</button>${mode==='live'?'<button type="button" data-action="kits" class="tw-primary">RIPRENDI PARTITA →</button>':'<button type="button" data-action="kits" class="tw-primary">SCEGLI DIVISE →</button>'}</div></div>
+ <div class="tw-settings"><label>MODULO<select id="twFormation">${team.formations.map(f=>`<option ${s.formation===f?'selected':''}>${f}</option>`).join('')}</select></label><fieldset><legend>ATTEGGIAMENTO</legend>${['Difensivo','Normale','Offensivo'].map(m=>`<button type="button" data-mentality="${m}" aria-pressed="${s.mentality===m}">${m}</button>`).join('')}</fieldset><div class="tw-readiness"><b>${on.length}/11</b><span>TITOLARI · COND. ${Math.round(on.reduce((n,p)=>n+fit(p),0)/Math.max(1,on.length))}%${mode==='live'?' · CAMBI '+(s.subs||0)+'/3':''}</span><button type="button" data-action="undo" ${history.length?'':'disabled'}>↶ Annulla ultima modifica</button></div></div>
  <div class="tw-main"><div class="tw-board"><div class="tw-board-title"><b>LA TUA FORMAZIONE</b><span>${esc(s.formation)} · ATTACCO ↑</span></div><div class="tw-layout-tools"><button type="button" data-action="layout-mode" aria-pressed="${layoutMode}" class="${layoutMode?'tw-primary':''}">${layoutMode?'✓ FINE DISPOSIZIONE LIBERA':'✎ DISPOSIZIONE LIBERA'}</button>${s.customLayout?'<button type="button" data-action="layout-reset">↺ Ripristina modulo base</button>':''}</div><p class="tw-help">${layoutMode?(layoutSelected===null?'Trascina un giocatore dove vuoi, oppure toccalo e poi tocca il punto del campo.':'Ora tocca il punto del campo dove vuoi spostare questo giocatore.'):'Seleziona un titolare, poi una riserva o un altro titolare per scambiare posizione.'}</p><div class="tw-pitch ${layoutMode?'tw-layout-active':''} ${layoutMode&&layoutSelected!==null?'tw-layout-picking':''}"><div class="tw-field-lines" aria-hidden="true"><i></i><em></em></div>${layoutMode?layoutGhostGrid():''}${on.map((p,i)=>{const pt=layout[i]||{x:50,y:50},warning=!compatible(p,pt.role)||unavailable(p);return `<button type="button" data-slot="${i}" aria-pressed="${layoutMode?layoutSelected===i:slot===i}" aria-label="${esc(p.name)}, numero ${number(p)}, ${roles[p.pos]}, posizione ${roles[pt.role]}, condizione ${fit(p)}%" class="tw-player ${(layoutMode?layoutSelected===i:slot===i)?'chosen':''} ${warning?'warning':''}" style="left:${pt.x}%;top:${pt.y}%"><span class="tw-shirt">${number(p)}</span><b>${esc(p.name.split(' ').slice(-1)[0])}</b><small>${roles[pt.role]||pt.role} · ${fit(p)}%</small></button>`}).join('')}</div><div class="tw-warning">${warnings.length?`${warnings.length} giocatori da controllare: ${warnings.map(p=>esc(p.name)+(unavailable(p)?' (non disponibile)':' (fuori ruolo)')).join(', ')}.`:'✓ Undici completo · ruoli coperti'}</div></div>
  <div class="tw-bench"><div class="tw-board-title"><b>PANCHINA</b><span>${s.players.length-on.length} GIOCATORI</span></div><label class="tw-search">CERCA GIOCATORE<input id="twSearch" type="search" placeholder="Nome del giocatore" value="${esc(query)}"></label><div class="tw-filters" aria-label="Filtra per ruolo">${[['ALL','Tutti'],['GK','POR'],['DF','DIF'],['MF','CEN'],['AM','TRQ'],['ST','ATT']].map(([v,n])=>`<button type="button" data-filter="${v}" aria-pressed="${filter===v}">${n}</button>`).join('')}</div><div class="tw-reserves">${ordered.map(row).join('')||'<p class="tw-empty">Nessun giocatore corrisponde al filtro.</p>'}</div></div></div>
- <div class="tw-transfer" aria-live="polite"><div><small>${out?'TITOLARE SELEZIONATO':'GESTIONE FORMAZIONE'}</small><strong>${out?`N° ${number(out)} · ${esc(out.name)}`:'Scegli chi schierare'}</strong><span>${out?`${roles[out.pos]} · OVR ${out.overall} · Condizione ${fit(out)}% · Morale ${out.morale}`:'I cambi pre-partita sono liberi. Ogni riserva prende il posto selezionato.'}</span>${out?'<button type="button" data-action="profile">Scheda giocatore</button>':''}</div><div><small>${incoming?'GIOCATORE IN ENTRATA':'CONFRONTO'}</small><strong>${incoming?`N° ${number(incoming)} · ${esc(incoming.name)}`:'Seleziona una riserva'}</strong><span>${incoming?`${roles[incoming.pos]} · OVR ${incoming.overall} (${incoming.overall-out.overall>=0?'+':''}${incoming.overall-out.overall}) · Condizione ${fit(incoming)}%`:'Qualità, condizione e ruolo prima di confermare.'}</span>${incoming&&!compatible(incoming,layout[slot]?.role)?'<em>Attenzione: ruolo diverso dalla posizione selezionata.</em>':''}</div><button type="button" data-action="confirm" class="tw-primary" ${canConfirm?'':'disabled'}>${incoming&&s.lineup.includes(incoming.id)?'SCAMBIA POSIZIONI':'CONFERMA CAMBIO'}</button></div>
+ <div class="tw-transfer" aria-live="polite"><div><small>${out?'TITOLARE SELEZIONATO':'GESTIONE FORMAZIONE'}</small><strong>${out?`N° ${number(out)} · ${esc(out.name)}`:'Scegli chi schierare'}</strong><span>${out?`${roles[out.pos]} · OVR ${out.overall} · Condizione ${fit(out)}% · Morale ${out.morale}`:(mode==='live'?'Tocca un titolare: puoi scambiarlo con un altro titolare (gratis) o farlo uscire per una riserva (consuma un cambio).':'I cambi pre-partita sono liberi. Ogni riserva prende il posto selezionato.')}</span>${out?'<button type="button" data-action="profile">Scheda giocatore</button>':''}</div><div><small>${incoming?'GIOCATORE IN ENTRATA':'CONFRONTO'}</small><strong>${incoming?`N° ${number(incoming)} · ${esc(incoming.name)}`:'Seleziona una riserva'}</strong><span>${incoming?`${roles[incoming.pos]} · OVR ${incoming.overall} (${incoming.overall-out.overall>=0?'+':''}${incoming.overall-out.overall}) · Condizione ${fit(incoming)}%`:'Qualità, condizione e ruolo prima di confermare.'}</span>${incoming&&!compatible(incoming,layout[slot]?.role)?'<em>Attenzione: ruolo diverso dalla posizione selezionata.</em>':''}</div><button type="button" data-action="confirm" class="tw-primary" ${canConfirm?'':'disabled'}>${incoming&&s.lineup.includes(incoming.id)?'SCAMBIA POSIZIONI':'CONFERMA CAMBIO'}</button></div>
  <div class="tw-notice" role="status">${esc(notice)}</div>`;
  root.querySelector('.tw-reserves').scrollTop=scroll;
  root.querySelector('#twFormation').onchange=e=>{save();s.lineup=arrange(s,e.target.value);s.formation=e.target.value;s.customLayout=null;slot=null;candidate=null;notice='Modulo aggiornato: gli stessi undici sono stati riposizionati per ruolo.';render();};
@@ -164,11 +188,16 @@ function render(){
  root.querySelector('[data-action="layout-mode"]').onclick=()=>{layoutMode=!layoutMode;layoutSelected=null;slot=null;candidate=null;render()};
  root.querySelector('[data-action="layout-reset"]')?.addEventListener('click',()=>{save();s.customLayout=null;notice='Disposizione ripristinata al modulo base.';render()});
  root.querySelector('[data-action="undo"]').onclick=()=>{const previous=history.pop();if(previous){Object.assign(s,previous);slot=null;candidate=null;notice='Ultima modifica annullata.';render()}};
- root.querySelector('[data-action="back"]').onclick=()=>document.getElementById('backSeason').click();
- root.querySelector('[data-action="kits"]').onclick=()=>{if(on.length!==11||on.some(unavailable)||on.filter(p=>p.pos==='GK').length!==1){notice='Completa gli undici con giocatori disponibili prima di proseguire.';root.querySelector('.tw-notice').textContent=notice;return}document.getElementById('startMatch').click()};
+ root.querySelector('[data-action="back"]').onclick=()=>{if(mode==='live'){closeLive();return}document.getElementById('backSeason').click()};
+ root.querySelector('[data-action="kits"]').onclick=()=>{
+  if(mode==='live'){closeLive();return}
+  if(on.length!==11||on.some(unavailable)||on.filter(p=>p.pos==='GK').length!==1){notice='Completa gli undici con giocatori disponibili prima di proseguire.';root.querySelector('.tw-notice').textContent=notice;return}
+  document.getElementById('startMatch').click();
+ };
  root.querySelector('[data-action="profile"]')?.addEventListener('click',()=>showPlayerProfile(out.id));
 }
 function open(){
+ mode='prematch';
  const screen=document.getElementById('prematch');if(!screen||!state())return;
  screen.classList.add('tw-active');
  /* FIX 2026-09: #prematch can carry other legacy classes at the same time
@@ -188,8 +217,36 @@ function open(){
  if(fixture!==current){fixture=current;slot=null;candidate=null;history=[];filter='ALL';query='';notice='';setPieceView=false;}
  render();
 }
+/* FIX 2026-09 (5): apre lo STESSO editor (campo, trascinamento, pagina
+   battitori) ma durante una partita in corso, riusando la schermata
+   #prematch come contenitore (e' li' che vive gia' tutto il CSS di questo
+   editor) al posto del vecchio pannello "TATTICA/CAMBI" senza campo. Alla
+   chiusura si torna alla partita, non alla stagione. */
+function openLive(){
+ if(!state())return;
+ mode='live';
+ const screen=document.getElementById('prematch');if(!screen)return;
+ screen.classList.add('tw-active');
+ Array.from(screen.children).forEach(el=>{
+   if(!el.classList.contains('tw-workspace')) el.style.setProperty('display','none','important');
+ });
+ if(!root){root=document.createElement('div');root.className='tw-workspace';screen.appendChild(root)}
+ root.style.removeProperty('display');
+ slot=null;candidate=null;notice='';setPieceView=false;layoutMode=false;layoutSelected=null;
+ if(typeof show==='function')show('prematch');
+ render();
+}
+function closeLive(){
+ mode='prematch';
+ const screen=document.getElementById('prematch');
+ if(screen){screen.classList.remove('tw-active');Array.from(screen.children).forEach(el=>el.style.removeProperty('display'))}
+ if(typeof show==='function')show('match');
+ if(typeof document!=='undefined'&&document.getElementById('halftime')?.classList.contains('active'))paused=true;
+ else paused=(typeof tacticsWasPaused!=='undefined')?tacticsWasPaused:false;
+ const btn=document.getElementById('pauseBtn');if(btn)btn.textContent=paused?"RIPRENDI":"PAUSA";
+}
 const original=openPrematch;openPrematch=function(){const result=original.apply(this,arguments);open();return result};window.openPrematch=openPrematch;
-window.S9TacticalWorkspace={slots,arrange,compatible,refresh:open};
+window.S9TacticalWorkspace={slots,arrange,compatible,refresh:open,openLive,closeLive};
 /* Cursore "a mirino" quando si tocca il campo in modalità disposizione libera. */
 const dragStyle=document.createElement('style');
 dragStyle.textContent='.tw-pitch.tw-layout-active{cursor:crosshair}';
