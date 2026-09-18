@@ -708,7 +708,7 @@ main{max-width:none!important;padding:0!important}
 @media(max-height:500px){#mainMenu #cupsModeBtn .cups-mode-icon{width:40px!important;height:36px!important}}
 </style>
 
-<link rel="stylesheet" href="css/game.css?v=tactics-19">
+<link rel="stylesheet" href="css/game.css?v=tactics-20">
 <link rel="stylesheet" href="css/v106-match-experience.css?v=2">
 </head>
 <body>
@@ -1669,6 +1669,37 @@ async function animAttack(side,outcome="chance"){
    await moveBallTo(attacksRight?101:-1,rand(18,32),500);
  }
 }
+/* FIX 2026-09 (10): "ci vorrebbero i replay" / "diverse angolazioni
+   telecamera ravvicinate" - dopo l'esultanza, ri-mostra l'azione del gol in
+   slow motion da un'angolazione bassa e laterale (S9Match3D.beginReplay,
+   vedi match-3d.js), con un bollino "REPLAY" in stile moviola. Rieseguire
+   animAttack() con lo stesso side produce un tiro molto simile (stessa zona,
+   stesso schema), non e' un playback pixel-perfetto del tiro esatto ma per
+   una simulazione parodia e' piu' che sufficiente e molto piu' semplice che
+   registrare/rigiocare le coordinate esatte fotogramma per fotogramma. */
+async function showGoalReplay(e){
+ if(!window.S9Match3D||S9Match3D.mode==="2d")return;
+ const wrap=$("#pitchWrap90");if(!wrap)return;
+ const banner=document.createElement("div");banner.className="s9-replay-banner";banner.innerHTML="<span>REPLAY</span>";
+ wrap.appendChild(banner);
+ requestAnimationFrame(()=>banner.classList.add("show"));
+ const prevSpeed=speed;speed=.5;
+ S9Match3D.beginReplay?.(e.side);
+ try{
+  setupPitch();
+  await wait(220);
+  await animAttack(e.side,"goal");
+  await wait(280);
+ }catch(err){console.warn("Replay gol",err)}
+ finally{
+  S9Match3D.endReplay?.();
+  speed=prevSpeed;
+  banner.classList.remove("show");
+  await new Promise(r=>setTimeout(r,220));
+  banner.remove();
+  hidePitch();
+ }
+}
 async function doEvent(e){
  while(paused)await wait(250);current.minute=e.min;updateScore();
  if(e.source==='penalty'){whistle();log(`${e.min}' CALCIO DI RIGORE · ${T(e.side==='home'?current.h:current.a).name} · ${e.player.name}`,e.side);current.keyEvents.push(`${e.min}' RIGORE · ${e.player.name}`)}
@@ -1741,6 +1772,7 @@ async function doEvent(e){
      // La partita non riparte finche' la cinematica di esultanza non e' finita,
      // indipendentemente da 1x/2x/4x.
      if(S9Match3D.celebrate)await S9Match3D.celebrate(e.side,e.player?.id);
+     await showGoalReplay(e);
    }else{
      await ov(S9Popups.html('goal',{player:e.player.name,detail:e.assist?'Assist: '+e.assist.name:'',footer:`${T(current.h).name} ${T(current.h).season} ${current.scoreH} - ${current.scoreA} ${T(current.a).name} ${T(current.a).season}`}),2800);
    }
@@ -2609,7 +2641,7 @@ renderTeamPicker();
 <script src="js/tv-channels.js?v=3"></script>
 <script src="js/broadcast-anchors.js?v=3"></script>
 <script src="js/kit-presentation.js?v=1"></script>
-<script src="js/match-3d.js?v=stability-17"></script>
+<script src="js/match-3d.js?v=stability-18"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>

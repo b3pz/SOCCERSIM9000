@@ -11,6 +11,28 @@ let followCamera=newCamera();
 function newCamera(){return {x:52.5,z:34,vx:0,vz:0,last:0,blend:0,ballX:52.5,ballZ:34,lead:0,fit:null}}
 let highlightState=null; // camera delle azioni salienti: segue il pallone ma senza orbitare attorno alla scena
 let celebrationState=null; // breve cinematica fissa del gol con esultanza di gruppo
+/* FIX 2026-09 (10): "ci vorrebbero i replay" / "diverse angolazioni
+   telecamera ravvicinate" - dopo un gol, prima di questa modifica, l'unica
+   ripresa "diversa" era l'esultanza (celebrationState). L'azione del tiro in
+   se' veniva mostrata una sola volta, dalla stessa identica angolazione di
+   sempre. replayState fa si' che, quando attivo, la telecamera segua il
+   pallone da un'angolazione bassa e ravvicinata, dal lato invece che da
+   dietro, come una vera moviola - index.html la attiva per ri-mostrare
+   l'azione del gol in slow motion subito dopo l'esultanza. */
+let replayState=null;
+function beginReplay(side){replayState={side,started:visualTime}}
+function endReplay(){replayState=null}
+function replayCameraFrame(ball){
+ if(!replayState)return null;
+ const dir=replayState.side==='home'?1:-1;
+ const x=clamp(ball.x,4,101);
+ return {
+  eye:[x-dir*10,7.2,ball.z+15.5],
+  target:[x,1.35,ball.z],
+  fov:36,
+  bounds:[[x-9,0,ball.z-8],[x+9,0,ball.z-8],[x-9,4.2,ball.z+8],[x+9,4.2,ball.z+8]]
+ };
+}
 function attackInfo(side){
  const secondHalf=current?.half===2;
  const home=side==='home';
@@ -97,7 +119,7 @@ window.animAttack=async function(side,outcome){
 };
 animAttack=window.animAttack;
 const positions=new Map(),boards=new Map(),crowds=new Map(),identityBoards=new Map(),scoreboards=new Map(),crestBoards=new Map();
-const api=window.S9Match3D={get mode(){return mode},get intermission(){return intervalActive},showInterval,endInterval,get eventActive(){return eventActive},get celebrating(){return !!celebrationState},waitCelebration:waitForCelebration,celebrate,setMode,drawStadium:(context,project,w,h,options={})=>drawField(graphics.scene(context,project),project,w,h,null,context,{...options,external:true}),crowdTexture,stadiumIdentityTexture,stadiumScoreboardTexture,stadiumCrestTexture,sponsorBoardTexture};
+const api=window.S9Match3D={get mode(){return mode},get intermission(){return intervalActive},showInterval,endInterval,get eventActive(){return eventActive},get celebrating(){return !!celebrationState},waitCelebration:waitForCelebration,celebrate,setMode,drawStadium:(context,project,w,h,options={})=>drawField(graphics.scene(context,project),project,w,h,null,context,{...options,external:true}),crowdTexture,stadiumIdentityTexture,stadiumScoreboardTexture,stadiumCrestTexture,sponsorBoardTexture,beginReplay,endReplay};
 const graphics=window.S9Football3D;
 // Texture "folla": generata una volta per tribuna e messa in cache (stesso
 // pattern di `boards` sopra per i cartelloni), cosi' non si ridisegna ogni
@@ -617,13 +639,14 @@ function render(now){
  const ratio=Math.min(window.devicePixelRatio||1,1.5);if(canvas.width!==Math.round(w*ratio)||canvas.height!==Math.round(h*ratio)){canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio)}ctx.setTransform(ratio,0,0,ratio,0,0);
  const ballPos=ballWorldPosition();
  const celebration=celebrationFrame(visualTime);
- const cameraState=celebration||followedCamera(visualTime,ballPos);
+ const replay=celebration?null:replayCameraFrame(ballPos);
+ const cameraState=celebration||replay||followedCamera(visualTime,ballPos);
  const raw=graphics.camera(cameraState.eye,cameraState.target,w,h,cameraState.fov);
  const bounds=cameraState.bounds.map(raw);
  // Include the actual ball in the safe frame during long passes, including its height.
- if(!celebration){for(const dx of [-7,7])for(const dz of [-6,6])bounds.push(raw([ballPos.x+dx,5,ballPos.z+dz]));}
+ if(!celebration&&!replay){for(const dx of [-7,7])for(const dz of [-6,6])bounds.push(raw([ballPos.x+dx,5,ballPos.z+dz]));}
  const venueStyle=window.S9Competition?.stadiumStyle?.(),television=broadcastActive();
- if(!television&&!celebration&&!highlightState&&venueStyle?.landmarkHeight){
+ if(!television&&!celebration&&!replay&&!highlightState&&venueStyle?.landmarkHeight){
   const setback=venueStyle.setback||0;
   bounds.push(raw([52.5,venueStyle.landmarkHeight,-17-setback]));
  }
@@ -682,7 +705,7 @@ setupPitch=function(){
  const result=oldSetup.apply(this,arguments);ensureCanvas();
  if(changed||half!==pitchHalf){
   trackedMatch=current;pitchHalf=half;positions.clear();lastTime=0;followCamera=newCamera();
-  highlightState=null;celebrationState=null;visualTime=0;visualLast=0;pendingSetup=false;
+  highlightState=null;celebrationState=null;replayState=null;visualTime=0;visualLast=0;pendingSetup=false;
   if(changed){uniforms={};document.getElementById('v7EventToast')?.classList.remove('show');delete document.getElementById('match').dataset.cinematic;}
  }
  playerDots=Array.from(document.querySelectorAll('#pitch .dot'));
@@ -707,7 +730,7 @@ doEvent=async function(e){
  eventActive=true;
  try{return await oldEvent.apply(this,arguments)}
  finally{
-  if(current===match){highlightState=null;celebrationState=null;eventActive=false;}
+  if(current===match){highlightState=null;celebrationState=null;replayState=null;eventActive=false;}
  }
 };
 
