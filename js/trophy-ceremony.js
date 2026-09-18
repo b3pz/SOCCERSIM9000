@@ -91,6 +91,17 @@ async function nextV2(){
   const bg=context.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#020711');bg.addColorStop(.5,'#0f3153');bg.addColorStop(1,'#071c18');context.fillStyle=bg;context.fillRect(0,0,w,h);
   for(let i=0;i<5;i++){const x=w*(.12+i*.19);context.fillStyle=`rgba(190,220,255,${.025+(i%2)*.018})`;context.beginPath();context.moveTo(x,0);context.lineTo(x-w*.11,h*.84);context.lineTo(x+w*.11,h*.84);context.fill()}
   if(shot===4){
+   /* FIX 2026-09: breve stacco allo studio proprio all'inizio del giro
+      d'onore - i due telecronisti fanno un paio di complimenti alla
+      squadra campione, poi si torna al giro di campo con la coppa. */
+   const cutawayStart=14,cutawayDur=4.6;
+   if(t<cutawayStart+cutawayDur&&window.S9Anchors?.drawStudio){
+    if(!item._trophyLinesSet){item._trophyLinesSet=true;window.S9Anchors.setChampion?.(clubLabel)}
+    const cprog=clamp((t-cutawayStart)/cutawayDur);
+    const line=window.S9Anchors.drawStudio(context,w,h,cprog,'trophy');
+    context.fillStyle='#020914df';context.fillRect(0,h-52,w,52);context.fillStyle='#fff0bf';context.textAlign='center';context.font='900 '+Math.max(13,w/62)+'px Arial';context.fillText(line,w/2,h-22,w-24);
+    if(!reduced&&t<70)frame=requestAnimationFrame(draw);return;
+   }
    // A pitch-level tracking shot follows a broad celebrating group.
    // Fixed offsets in the direction of travel prevent a single-file "snake".
    const progress=clamp((t-14)/56),angle=progress*Math.PI*2;

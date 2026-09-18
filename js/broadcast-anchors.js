@@ -41,10 +41,15 @@ const ANTHEM=[
  ['{a1}: Guarda le facce dei giocatori, {a2}.','{a2}: C\'e\' chi canta e chi conta i minuti, {a1}.'],
  ['{a1}: Un classico prima del fischio d\'inizio.','{a2}: Ai miei tempi era tutta un\'altra cosa, dicono.']
 ];
+const TROPHY=[
+ ['{a1}: E la coppa va a {h}!','{a2}: Meritata, {a1}. Stagione da incorniciare.'],
+ ['{a1}: Che serata per {h}, {a2}.','{a2}: Se la ricorderanno per anni, {a1}, altro che.'],
+ ['{a1}: Applausi per {h}, campioni.','{a2}: Complimenti sinceri, {a1}. Se lo sono guadagnato.']
+];
 const pick2=bank=>pick(bank);
 
 let overlay,canvas,ctx;
-const state={a1:'Piero Malaspina',a2:'Furio Stracci',tie1:'#c0392b',tie2:'#2980b9',h:'',a:'',channel:'S9 90',entranceLines:null,anthemLines:null,fulltimeLines:null};
+const state={a1:'Piero Malaspina',a2:'Furio Stracci',tie1:'#c0392b',tie2:'#2980b9',h:'',a:'',channel:'S9 90',entranceLines:null,anthemLines:null,fulltimeLines:null,trophyLines:null};
 
 function setup(options){
  const channel=options?.channel||'S9 90',seed=hashStr(channel);
@@ -74,6 +79,10 @@ function setResult(options){
   ['{a1}: Pareggio tra {h} e {a}, {sh} a {sa}.','{a2}: Giusto cosi\', {a1}, o quasi.']
  ];
  state.fulltimeLines=pick2(bank).map(l=>fill(l,vars));
+}
+function setChampion(championLabel){
+ const vars={a1:state.a1,a2:state.a2,h:championLabel||state.h};
+ state.trophyLines=pick2(TROPHY).map(l=>fill(l,vars));
 }
 
 /* Disegna la scena "studio" (bancone + due presentatori 3D) direttamente sul
@@ -123,7 +132,7 @@ function drawStudio(ctx,w,h,progress,phase){
   ctx.fillStyle='#0d2038';ctx.fillRect(0,0,w,h);
   ctx.fillStyle='#f4e5b5';ctx.font='900 16px Arial';ctx.textAlign='center';ctx.fillText('STUDIO',w/2,h/2);
  }
- const lines=phase==='entrance'?state.entranceLines:phase==='anthem'?state.anthemLines:state.fulltimeLines;
+ const lines=phase==='entrance'?state.entranceLines:phase==='anthem'?state.anthemLines:phase==='trophy'?state.trophyLines:state.fulltimeLines;
  if(!lines)return '';
  return lines[progress<.5?0:1]||lines[0]||'';
 }
@@ -175,5 +184,5 @@ function recap(options){
  return runOverlay('fulltime',4200);
 }
 
-window.S9Anchors={setup,setResult,drawStudio,studioIntro,recap};
+window.S9Anchors={setup,setResult,setChampion,drawStudio,studioIntro,recap};
 })();
