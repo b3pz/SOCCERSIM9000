@@ -1402,6 +1402,38 @@ function primeAudioOnce(){
 }
 document.addEventListener('pointerdown',primeAudioOnce,{once:true});
 document.addEventListener('keydown',primeAudioOnce,{once:true});
+/* FIX 2026-09 (22): "quando c'e' l'ingresso e la premiazione ci devono
+   essere solo le canzoni intro e ancora un po'... un mix sia all'ingresso
+   che durante i festeggiamenti dove il tifo e' piu' alto della musica" -
+   playlist ridotta a due sole tracce (quelle che l'utente ha indicato
+   stare meglio in quei momenti) usata SOLO durante l'ingresso in campo e
+   la premiazione/giro d'onore, sempre insieme al tifo da stadio (mai da
+   sola), a un volume piu' basso di quello del tifo cosi' resta un
+   sottofondo e non copre l'atmosfera dello stadio. E' un elemento
+   volutamente separato dalla playlist normale dei menu (S9_MUSIC_PLAYLIST),
+   che in questi due momenti resta invece zitta. */
+const S9_EVENT_TRACKS=['assets/music/menu-1-intro.mp3','assets/music/menu-5-ancora-un-po.mp3'];
+let s9EventEl=null,s9EventPlaying=false,s9EventLast=-1;
+function s9EnsureEventEl(){
+ if(s9EventEl)return s9EventEl;
+ s9EventEl=new Audio();s9EventEl.volume=.08;s9EventEl.preload='none';
+ s9EventEl.addEventListener('ended',()=>{if(s9EventPlaying)s9PlayNextEventTrack()});
+ return s9EventEl;
+}
+function s9PlayNextEventTrack(){
+ const el=s9EnsureEventEl();
+ let idx=Math.floor(Math.random()*S9_EVENT_TRACKS.length);
+ if(S9_EVENT_TRACKS.length>1&&idx===s9EventLast)idx=(idx+1)%S9_EVENT_TRACKS.length;
+ s9EventLast=idx;el.src=S9_EVENT_TRACKS[idx];el.play().catch(()=>{});
+}
+function startEventMusic(){
+ if(s9EventPlaying)return;
+ s9EventPlaying=true;s9PlayNextEventTrack();
+}
+function stopEventMusic(){
+ s9EventPlaying=false;
+ if(s9EventEl&&!s9EventEl.paused)s9EventEl.pause();
+}
 const CREST_ASSETS={"samp_9091":"assets/embedded/embedded_005.png","juve_baggio_9091":"assets/embedded/embedded_006.png","foggia_9192":"assets/embedded/embedded_007.png","genoa_9091":"assets/embedded/embedded_008.png","parma_9293":"assets/embedded/embedded_009.png","torino_9293":"assets/embedded/embedded_010.png","juve_9596":"assets/embedded/embedded_011.png","fiorentina_9596":"assets/embedded/embedded_012.png","vicenza_9697":"assets/embedded/embedded_013.png","inter_9798":"assets/embedded/embedded_014.png","juve_9798":"assets/embedded/embedded_015.png","lazio_9798":"assets/embedded/embedded_016.png","udinese_9798":"assets/embedded/embedded_017.png","brescia_9798":"assets/embedded/embedded_018.png","parma_9899":"assets/embedded/embedded_019.png","venezia_9899":"assets/embedded/embedded_020.png","inter_9900":"assets/embedded/embedded_021.png","bari_9900":"assets/embedded/embedded_022.png","reggina_9900":"assets/embedded/embedded_023.png","perugia_9900":"assets/embedded/embedded_024.png","roma_0001":"assets/embedded/embedded_025.png","brescia_0001":"assets/embedded/embedded_026.png","chievo_0102":"assets/embedded/embedded_027.png","reggina_0203":"assets/embedded/embedded_028.png","juve_0203":"assets/embedded/embedded_029.png","milan_0607":"assets/embedded/embedded_030.png","empoli_0607":"assets/embedded/embedded_031.png","palermo_0708":"assets/embedded/embedded_032.png","milan_0809":"assets/embedded/embedded_033.png","udinese_0910":"assets/embedded/embedded_034.png","inter_0910":"assets/embedded/embedded_035.png","milan_9091":"assets/embedded/embedded_036.png"};
 
 function renderTeamPicker(){
@@ -2164,8 +2196,13 @@ async function launchMatch(){
      appena prima dell'ingresso; il richiamo piu' avanti (al calcio
      d'inizio) resta come rete di sicurezza se questo blocco viene saltato. */
   try{window.S9SFX?.startAmbientCrowd?.()}catch(e){console.warn("audio",e)}
+  /* FIX 2026-09 (22): mix musica+tifo SOLO durante l'ingresso in campo
+     (le due tracce "intro"/"ancora un po'"), spenta di nuovo appena finita
+     l'animazione dell'ingresso - non deve continuare durante il gioco vero. */
+  try{startEventMusic()}catch(e){console.warn("audio",e)}
   try{coinToss=await S9MatchIntro.play({h:g[0],a:g[1],key:S9Competition?.key?.()||'seriea',stadium:S9V10?.matchContext?.stadium||teamMeta[g[0]]?.stadium||S9Competition?.stadium?.(),channel:matchChannel})}
   catch(e){console.warn("Introduzione pre-partita",e)}
+  try{stopEventMusic()}catch(e){console.warn("audio",e)}
  }
  current=buildMatch(g[0],g[1]);current._running=true;current.half=1;current.coinToss=coinToss;current.channel=matchChannel;current.incitaUsed={h:0,a:0};setupPitch();show("match");updateScore();hidePitch();updateIncitaButton();
  /* FIX 2026-09: invasione di campo scenica. Ogni 3 partite giocate (contate
@@ -2946,7 +2983,7 @@ renderTeamPicker();
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>
-<script src="js/trophy-ceremony.js?v=lap-close-15"></script>
+<script src="js/trophy-ceremony.js?v=lap-close-16"></script>
 <script src="js/exhibition.js?v=stability-14"></script>
 <script src="js/v106-match-experience.js?v=presentation-2"></script>
 <script src="js/v107-cup-polish.js?v=team-season-1"></script>

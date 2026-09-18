@@ -81,13 +81,18 @@ async function nextV2(){
  dialog.style.setProperty('--competition-accent',brand.accent);dialog.style.setProperty('--competition-dark',brand.dark);
  dialog.querySelector('.s9-ceremony-kicker').textContent=item.exhibition?'FINALE DI ESIBIZIONE':'TITOLO CONQUISTATO';dialog.querySelector('h2').textContent=clubLabel;dialog.querySelector('.s9-ceremony-competition').textContent=brand.name;
  dialog.querySelector('.s9-ceremony-caption').textContent=item.exhibition?'Premiazione di esibizione · nessun titolo aggiunto all’albo d’oro':item.key==='finaleight'?'Campione d’Italia · Final Eight conclusa':'Notte da campioni';
- /* FIX 2026-09 (20): "anche durante la premiazione non ci deve essere la
-    canzone" - la cerimonia e' un dialog sovrapposto, non un cambio di
-    schermata via show(), quindi la musica di menu (che si ferma solo su
-    id==='match') continuava a suonare sopra il giro d'onore. Fermata qui
-    esplicitamente, ripristinata in close() se non si e' nel frattempo
-    tornati in partita. */
+ /* FIX 2026-09 (20/22): "anche durante la premiazione non ci deve essere la
+    canzone" poi precisato: "un mix sia all'ingresso che durante i
+    festeggiamenti... quando c'e' l'ingresso e la premiazione ci devono
+    essere solo le canzoni intro e ancora un po'". La cerimonia e' un dialog
+    sovrapposto, non un cambio di schermata via show(), quindi la playlist
+    normale dei menu (che si ferma solo su id==='match') continuava a
+    suonare sopra il giro d'onore: qui viene fermata esplicitamente e
+    sostituita dal mix dedicato (tifo da stadio + le due tracce evento,
+    tifo piu' alto). Tutto ripristinato/fermato in close(). */
  window.stopMenuMusic?.();
+ window.S9SFX?.startAmbientCrowd?.();
+ window.startEventMusic?.();
  dialog.hidden=false;dialog.querySelector('button').focus();const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;dialog.querySelector('button').textContent=reduced?'CONTINUA ▶':'SALTA CINEMATICA ▶';
  let elapsed=0,last=null,lastShot=-1;const steps=[...dialog.querySelectorAll('.s9-ceremony-progress span')],clamp=n=>Math.max(0,Math.min(1,n));
  function draw(now){
@@ -162,10 +167,13 @@ async function nextV2(){
 }
 function close(){
  if(!active)return;active=null;cancelAnimationFrame(frame);dialog.hidden=true;previousFocus?.focus?.();
+ // Il mix tifo+musica evento della cerimonia si ferma sempre qui; se sta
+ // per partire subito un'altra premiazione (nextV2 sotto) lo riaccende lei.
+ window.stopEventMusic?.();
+ window.S9SFX?.stopAmbientCrowd?.();
  nextV2();
- // Se non e' partita subito un'altra premiazione (nextV2 sopra l'avrebbe
- // gia' rifermata) e non si e' tornati in partita nel frattempo, la musica
- // di menu riprende.
+ // Se non e' partita subito un'altra premiazione e non si e' tornati in
+ // partita nel frattempo, la musica di menu normale riprende.
  if(!active&&!document.getElementById('match')?.classList.contains('active'))window.startMenuMusic?.();
 }
 function boot(){
