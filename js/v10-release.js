@@ -473,8 +473,19 @@ function renderGroups(state){
  return `<div class="v10-groups-grid">${state.groups.map(g=>{const rows=standings(state,g.name);return`<div class="v10-group"><h3>GIRONE ${g.name}</h3><table><tr><th>#</th><th>Squadra</th><th>Pt</th><th>G</th><th>DR</th></tr>${rows.map((r,i)=>`<tr class="${r.id===state.user?'user ':''}${i<2?'qual':''}"><td>${i+1}</td><td>${teamLabel(r.id)}</td><td><b>${r.pts}</b></td><td>${r.p}</td><td>${r.gf-r.ga}</td></tr>`).join('')}</table></div>`}).join('')}</div>`;
 }
 function renderTie(tie,state){
- const legs=tie.legs.map((r,i)=>`<div class="v10-scoreline"><span>${teamLabel(r.h)}</span><b>${fmtScore(r)}</b><span>${teamLabel(r.a)}</span></div>`).join('');
- return `<div class="v10-tie ${(tie.a===state.user||tie.b===state.user)?'user':''}"><div><b>${teamLabel(tie.a)}</b> vs <b>${teamLabel(tie.b)}</b></div>${legs||'<div class="muted">Da giocare</div>'}${tie.aggregate?`<div>Totale: <b>${tie.aggregate}</b></div>`:''}${tie.note?`<div class="v10-pens">${tie.note}</div>`:''}${tie.winner?`<div class="v10-win">→ ${teamLabel(tie.winner)}</div>`:''}</div>`;
+ /* FIX 2026-09: il tabellone eliminazione diretta mostrava solo nomi di
+    squadra, nessuno stemma - tester: "un tabellone magari con gli stemmi
+    oltre al nome". Aggiunti stemmi (crestFor, gia' usato in nextCard/
+    championHTML) sulle due squadre della sfida, sui risultati di ogni
+    gara e sulla vincitrice. */
+ const legs=tie.legs.map((r,i)=>`<div class="v10-scoreline"><span><img class="v10-tie-crest-sm" src="${crestFor(r.h)}" alt="">${teamLabel(r.h)}</span><b>${fmtScore(r)}</b><span>${teamLabel(r.a)}<img class="v10-tie-crest-sm" src="${crestFor(r.a)}" alt=""></span></div>`).join('');
+ return `<div class="v10-tie ${(tie.a===state.user||tie.b===state.user)?'user':''}">
+ <div class="v10-tie-head">
+  <span class="v10-tie-side"><img class="v10-tie-crest" src="${crestFor(tie.a)}" alt="">${teamLabel(tie.a)}</span>
+  <span class="v10-tie-vs">VS</span>
+  <span class="v10-tie-side v10-tie-side-away">${teamLabel(tie.b)}<img class="v10-tie-crest" src="${crestFor(tie.b)}" alt=""></span>
+ </div>
+ ${legs||'<div class="muted">Da giocare</div>'}${tie.aggregate?`<div>Totale: <b>${tie.aggregate}</b></div>`:''}${tie.note?`<div class="v10-pens">${tie.note}</div>`:''}${tie.winner?`<div class="v10-win"><img class="v10-tie-crest-sm" src="${crestFor(tie.winner)}" alt="">→ ${teamLabel(tie.winner)}</div>`:''}</div>`;
 }
 function renderBracket(state){
  const stages=['R32','R16','QF','SF','FINAL'].filter(s=>state.roundHistory?.[s]);if(!stages.length)return`<div class="v10-empty">Il tabellone apparirà al termine dei gironi.</div>`;
