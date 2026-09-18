@@ -67,15 +67,62 @@ function render(){
  const canConfirm=out&&incoming&&(s.lineup.includes(incoming.id)||S9V10.canSubstitute(s,out.id,incoming.id,true))&&((out.pos==='GK')===(incoming.pos==='GK'));
  root.innerHTML=`<div class="tw-heading"><button type="button" data-action="back" class="tw-back">← INDIETRO</button><div><small>PREPARAZIONE PARTITA</small><h1>${esc(team.name)} <span>${esc(team.season)}</span></h1><p>${esc((current?.fixture||[]).map(id=>{const t=T(id);return t.name+' '+t.season}).join(' · '))}</p>${(window.pickMatchFlavor?.((current?.h||'')+(current?.a||'')+(current?.id||''),3)||[]).map(line=>`<p class="tw-flavor" style="margin-top:4px;font-style:italic;font-size:12px;line-height:1.4;color:#c9d6e5;opacity:.85;max-width:52ch">» ${esc(line)}</p>`).join('')}</div><button type="button" data-action="kits" class="tw-primary">SCEGLI DIVISE →</button></div>
  <div class="tw-settings"><label>MODULO<select id="twFormation">${team.formations.map(f=>`<option ${s.formation===f?'selected':''}>${f}</option>`).join('')}</select></label><fieldset><legend>ATTEGGIAMENTO</legend>${['Difensivo','Normale','Offensivo'].map(m=>`<button type="button" data-mentality="${m}" aria-pressed="${s.mentality===m}">${m}</button>`).join('')}</fieldset><div class="tw-readiness"><b>${on.length}/11</b><span>TITOLARI · COND. ${Math.round(on.reduce((n,p)=>n+fit(p),0)/Math.max(1,on.length))}%</span><button type="button" data-action="undo" ${history.length?'':'disabled'}>↶ Annulla ultima modifica</button></div></div>
- <div class="tw-main"><div class="tw-board"><div class="tw-board-title"><b>LA TUA FORMAZIONE</b><span>${esc(s.formation)} · ATTACCO ↑</span></div><div class="tw-layout-tools"><button type="button" data-action="layout-mode" aria-pressed="${layoutMode}" class="${layoutMode?'tw-primary':''}">${layoutMode?'✓ FINE DISPOSIZIONE LIBERA':'✎ DISPOSIZIONE LIBERA'}</button>${s.customLayout?'<button type="button" data-action="layout-reset">↺ Ripristina modulo base</button>':''}</div><p class="tw-help">${layoutMode?(layoutSelected===null?'Tocca un giocatore, poi tocca il punto del campo dove vuoi spostarlo.':'Ora tocca il punto del campo dove vuoi spostare questo giocatore.'):'Seleziona un titolare, poi una riserva o un altro titolare per scambiare posizione.'}</p><div class="tw-pitch ${layoutMode?'tw-layout-active':''} ${layoutMode&&layoutSelected!==null?'tw-layout-picking':''}"><div class="tw-field-lines" aria-hidden="true"><i></i><em></em></div>${layoutMode?layoutGhostGrid():''}${on.map((p,i)=>{const pt=layout[i]||{x:50,y:50},warning=!compatible(p,pt.role)||unavailable(p);return `<button type="button" data-slot="${i}" aria-pressed="${layoutMode?layoutSelected===i:slot===i}" aria-label="${esc(p.name)}, numero ${number(p)}, ${roles[p.pos]}, posizione ${roles[pt.role]}, condizione ${fit(p)}%" class="tw-player ${(layoutMode?layoutSelected===i:slot===i)?'chosen':''} ${warning?'warning':''}" style="left:${pt.x}%;top:${pt.y}%"><span class="tw-shirt">${number(p)}</span><b>${esc(p.name.split(' ').slice(-1)[0])}</b><small>${roles[pt.role]||pt.role} · ${fit(p)}%</small></button>`}).join('')}</div><div class="tw-warning">${warnings.length?`${warnings.length} giocatori da controllare: ${warnings.map(p=>esc(p.name)+(unavailable(p)?' (non disponibile)':' (fuori ruolo)')).join(', ')}.`:'✓ Undici completo · ruoli coperti'}</div></div>
+ <div class="tw-main"><div class="tw-board"><div class="tw-board-title"><b>LA TUA FORMAZIONE</b><span>${esc(s.formation)} · ATTACCO ↑</span></div><div class="tw-layout-tools"><button type="button" data-action="layout-mode" aria-pressed="${layoutMode}" class="${layoutMode?'tw-primary':''}">${layoutMode?'✓ FINE DISPOSIZIONE LIBERA':'✎ DISPOSIZIONE LIBERA'}</button>${s.customLayout?'<button type="button" data-action="layout-reset">↺ Ripristina modulo base</button>':''}</div><p class="tw-help">${layoutMode?(layoutSelected===null?'Trascina un giocatore dove vuoi, oppure toccalo e poi tocca il punto del campo.':'Ora tocca il punto del campo dove vuoi spostare questo giocatore.'):'Seleziona un titolare, poi una riserva o un altro titolare per scambiare posizione.'}</p><div class="tw-pitch ${layoutMode?'tw-layout-active':''} ${layoutMode&&layoutSelected!==null?'tw-layout-picking':''}"><div class="tw-field-lines" aria-hidden="true"><i></i><em></em></div>${layoutMode?layoutGhostGrid():''}${on.map((p,i)=>{const pt=layout[i]||{x:50,y:50},warning=!compatible(p,pt.role)||unavailable(p);return `<button type="button" data-slot="${i}" aria-pressed="${layoutMode?layoutSelected===i:slot===i}" aria-label="${esc(p.name)}, numero ${number(p)}, ${roles[p.pos]}, posizione ${roles[pt.role]}, condizione ${fit(p)}%" class="tw-player ${(layoutMode?layoutSelected===i:slot===i)?'chosen':''} ${warning?'warning':''}" style="left:${pt.x}%;top:${pt.y}%"><span class="tw-shirt">${number(p)}</span><b>${esc(p.name.split(' ').slice(-1)[0])}</b><small>${roles[pt.role]||pt.role} · ${fit(p)}%</small></button>`}).join('')}</div><div class="tw-warning">${warnings.length?`${warnings.length} giocatori da controllare: ${warnings.map(p=>esc(p.name)+(unavailable(p)?' (non disponibile)':' (fuori ruolo)')).join(', ')}.`:'✓ Undici completo · ruoli coperti'}</div></div>
  <div class="tw-bench"><div class="tw-board-title"><b>PANCHINA</b><span>${s.players.length-on.length} GIOCATORI</span></div><label class="tw-search">CERCA GIOCATORE<input id="twSearch" type="search" placeholder="Nome del giocatore" value="${esc(query)}"></label><div class="tw-filters" aria-label="Filtra per ruolo">${[['ALL','Tutti'],['GK','POR'],['DF','DIF'],['MF','CEN'],['AM','TRQ'],['ST','ATT']].map(([v,n])=>`<button type="button" data-filter="${v}" aria-pressed="${filter===v}">${n}</button>`).join('')}</div><div class="tw-reserves">${ordered.map(row).join('')||'<p class="tw-empty">Nessun giocatore corrisponde al filtro.</p>'}</div></div></div>
  <div class="tw-transfer" aria-live="polite"><div><small>${out?'TITOLARE SELEZIONATO':'GESTIONE FORMAZIONE'}</small><strong>${out?`N° ${number(out)} · ${esc(out.name)}`:'Scegli chi schierare'}</strong><span>${out?`${roles[out.pos]} · OVR ${out.overall} · Condizione ${fit(out)}% · Morale ${out.morale}`:'I cambi pre-partita sono liberi. Ogni riserva prende il posto selezionato.'}</span>${out?'<button type="button" data-action="profile">Scheda giocatore</button>':''}</div><div><small>${incoming?'GIOCATORE IN ENTRATA':'CONFRONTO'}</small><strong>${incoming?`N° ${number(incoming)} · ${esc(incoming.name)}`:'Seleziona una riserva'}</strong><span>${incoming?`${roles[incoming.pos]} · OVR ${incoming.overall} (${incoming.overall-out.overall>=0?'+':''}${incoming.overall-out.overall}) · Condizione ${fit(incoming)}%`:'Qualità, condizione e ruolo prima di confermare.'}</span>${incoming&&!compatible(incoming,layout[slot]?.role)?'<em>Attenzione: ruolo diverso dalla posizione selezionata.</em>':''}</div><button type="button" data-action="confirm" class="tw-primary" ${canConfirm?'':'disabled'}>${incoming&&s.lineup.includes(incoming.id)?'SCAMBIA POSIZIONI':'CONFERMA CAMBIO'}</button></div>
  <div class="tw-notice" role="status">${esc(notice)}</div><details class="tw-setpieces"><summary>BATTITORI E CALCI PIAZZATI</summary><div>${[['penalty','Rigori'],['direct','Punizioni dirette'],['indirect','Punizioni indirette'],['cornerL','Angoli sinistri'],['cornerR','Angoli destri']].map(([key,label])=>`<label>${label}<select data-setpiece="${key}">${on.map(p=>`<option value="${esc(p.id)}" ${s.setPieces?.[key]===p.id?'selected':''}>${number(p)} · ${esc(p.name)}</option>`).join('')}</select></label>`).join('')}</div></details>`;
  root.querySelector('.tw-reserves').scrollTop=scroll;
  root.querySelector('#twFormation').onchange=e=>{save();s.lineup=arrange(s,e.target.value);s.formation=e.target.value;s.customLayout=null;slot=null;candidate=null;notice='Modulo aggiornato: gli stessi undici sono stati riposizionati per ruolo.';render();};
  root.querySelector('#twSearch').oninput=e=>{query=e.target.value;const cursor=e.target.selectionStart;render();const input=root.querySelector('#twSearch');input.focus({preventScroll:true});try{input.setSelectionRange(cursor,cursor)}catch(_){}};
+ /* FIX 2026-09: trascinamento diretto in disposizione libera (richiesta di
+    un tester: "considerare il trascinamento nella gestione tattiche"). Il
+    tocca-poi-tocca resta valido (utile con tastiera/accessibilita'), ma ora
+    si puo' anche prendere un giocatore col dito/mouse e trascinarlo dove si
+    vuole: la x resta libera, la y scatta sulla riga piu' vicina durante il
+    trascinamento stesso, come i pallini-guida gia' mostrano. dragMoved
+    sopprime il click sintetico che il browser genera dopo il pointerup,
+    cosi' non si riapre subito la selezione sullo stesso giocatore appena
+    spostato. */
+ let dragMoved=false;
  root.querySelectorAll('[data-slot]').forEach(b=>{
-  b.onclick=()=>selectSlot(+b.dataset.slot);
+  const i=+b.dataset.slot;
+  b.onclick=()=>{if(dragMoved){dragMoved=false;return}selectSlot(i)};
+  if(layoutMode&&i!==0){
+   b.addEventListener('pointerdown',ev=>{
+    if(ev.button&&ev.button!==0)return;
+    const pitchEl=root.querySelector('.tw-pitch');if(!pitchEl)return;
+    const startX=ev.clientX,startY=ev.clientY;let dragging=false;
+    const onMove=mv=>{
+     const dx=mv.clientX-startX,dy=mv.clientY-startY;
+     if(!dragging&&Math.hypot(dx,dy)>6){dragging=true;b.classList.add('tw-dragging');try{b.setPointerCapture(ev.pointerId)}catch(_){}}
+     if(!dragging)return;
+     mv.preventDefault();
+     const r=pitchEl.getBoundingClientRect();
+     const x=Math.max(6,Math.min(94,((mv.clientX-r.left)/r.width)*100));
+     const y=nearestLine(((mv.clientY-r.top)/r.height)*100);
+     b.style.left=x+'%';b.style.top=y+'%';
+    };
+    const onUp=up=>{
+     document.removeEventListener('pointermove',onMove);
+     document.removeEventListener('pointerup',onUp);
+     document.removeEventListener('pointercancel',onUp);
+     b.classList.remove('tw-dragging');
+     if(dragging){
+      const r=pitchEl.getBoundingClientRect();
+      const x=Math.max(6,Math.min(94,((up.clientX-r.left)/r.width)*100));
+      const y=nearestLine(((up.clientY-r.top)/r.height)*100);
+      save();
+      const next=(s.customLayout||slots(s.formation)).map(p=>({x:p.x,y:p.y}));
+      next[i]={x:Math.round(x*10)/10,y};
+      s.customLayout=next;layoutSelected=null;notice='Posizione aggiornata.';
+      dragMoved=true;render();
+     }
+    };
+    document.addEventListener('pointermove',onMove);
+    document.addEventListener('pointerup',onUp);
+    document.addEventListener('pointercancel',onUp);
+   });
+  }
  });
  const pitch=root.querySelector('.tw-pitch');
  if(layoutMode&&pitch){
