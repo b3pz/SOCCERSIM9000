@@ -79,7 +79,7 @@ function drawPenaltyScene(ctx,w,h,st){
  const keeperAngle=st.dive==='left'?.55*st.diveT:st.dive==='right'?-.55*st.diveT:0;
  g.player(scene,keeperX,-.1,st.keeperKit,st.t*6,keeperAngle,1.1,'',true,0);
  const runX=st.lateral*1.1*(1-st.runProgress*.5),runZ=11.3+(1-st.runProgress)*3.4;
- g.player(scene,runX,runZ,st.shooterKit,st.t*7,0,1.15,'',false,st.celebrate||0);
+ g.player(scene,runX,runZ,st.shooterKit,st.t*7,0,1.15,'',false,st.struck?1:0);
  scene.flush();
  const bp=p(st.ball),edge=p([st.ball[0]+.11,st.ball[1],st.ball[2]]);
  const br=Math.max(2,Math.hypot(edge.x-bp.x,edge.y-bp.y)||0);
@@ -106,32 +106,20 @@ async function animateKick(side,shooter,outcome,kickNo,teams){
  else if(outcome==='save')ballEnd=[dive==='left'?-2.45:2.45,.6,.6];
  else ballEnd=[Math.random()<.5?-4.7:4.7,1.05,-.6];
  const ballStart=[0,.13,11.3];
- /* FIX 2026-09 (14): "non si capisce nulla, dura un millesimo di secondo...
-    il tiratore alza le braccia al cielo a prescindere" - due problemi:
-    1) la sequenza era troppo rapida per essere letta (rincorsa, volo ed
-    esito si accavallavano in meno di 2 secondi) - tempi allungati e
-    aggiunta una breve fase "pronti" iniziale, cosi' si fa in tempo a
-    vedere chi sta per tirare, poi la rincorsa, poi il volo del pallone
-    ben distinto, poi il risultato con calma;
-    2) il tiratore esultava (braccia alzate) SEMPRE non appena colpiva il
-    pallone, indipendentemente dall'esito - ora l'esultanza parte solo se
-    l'esito e' gol, e solo dopo che il pallone e' arrivato in porta. */
  window.S9SFX?.tone?.(1650,.08,'square',.05);
- const READY=480,RUN=750,FLIGHT=900,HOLD=1600;
- const t1=READY,t2=t1+RUN,t3=t2+FLIGHT,TOTAL=t3+HOLD;
+ const RUN=420,FLIGHT=700,HOLD=720,TOTAL=RUN+FLIGHT+HOLD;
  await new Promise(resolve=>{
   const t0=performance.now();let struckSound=false,resultShown=false;
   function frame(now){
    const el=now-t0;
-   const runProgress=el<=t1?0:Math.min(1,(el-t1)/RUN);
-   const struck=el>=t2;
+   const runProgress=Math.min(1,el/RUN);
+   const struck=el>=RUN;
    if(struck&&!struckSound){struckSound=true;window.S9SFX?.kickThud?.();}
-   const flightT=struck?Math.min(1,(el-t2)/FLIGHT):0;
+   const flightT=struck?Math.min(1,(el-RUN)/FLIGHT):0;
    const ease=flightT*flightT*(3-2*flightT);
    const ball=[ballStart[0]+(ballEnd[0]-ballStart[0])*ease,ballStart[1]+(ballEnd[1]-ballStart[1])*ease,ballStart[2]+(ballEnd[2]-ballStart[2])*ease];
-   const celebrateT=outcome==='goal'?Math.max(0,Math.min(1,(el-t3)/260)):0;
-   drawPenaltyScene(ctx,cw,ch,{t:el/1000,lateral,dive,diveT:flightT,runProgress,struck,shooterKit,keeperKit,ball,celebrate:celebrateT});
-   if(el>=t3&&!resultShown){
+   drawPenaltyScene(ctx,cw,ch,{t:el/1000,lateral,dive,diveT:flightT,runProgress,struck,shooterKit,keeperKit,ball});
+   if(el>=RUN+FLIGHT&&!resultShown){
     resultShown=true;stage.classList.add(outcome);
     res.textContent=outcome==='goal'?'GOL!':outcome==='save'?'PARATA!':'FUORI!';
     if(outcome==='goal')window.S9SFX?.crowdCheer?.();
