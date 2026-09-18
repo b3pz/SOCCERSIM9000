@@ -756,6 +756,7 @@ main{max-width:none!important;padding:0!important}
       <button id="honoursBtn">ALBO D'ORO</button>
       <button id="optionsBtn">OPZIONI</button>
       <button id="menuMusicToggle">♪ MUSICA</button>
+      <button id="menuMusicNext" title="Prossima canzone">⏭ CANZONE</button>
     </div>
 
     <div class="prototype-note">
@@ -1256,6 +1257,14 @@ function toggleMenuMusic(){
  const btn=$("#menuMusicToggle");if(btn){btn.textContent=menuMusicOn?'♪ MUSICA':'♪ MUSICA (OFF)';btn.classList.toggle('muted-music',!menuMusicOn)}
  if(menuMusicOn){if(!document.getElementById('match')?.classList.contains('active'))startMenuMusic()}
  else stopMenuMusic();
+}
+/* FIX 2026-09 (18): "ci dev'essere la possibilita' di cambiare canzone" -
+   salta manualmente al brano successivo della playlist (rispettando
+   l'ordine mischiato gia' in corso), senza dover aspettare la fine del
+   brano attuale. */
+function nextMenuTrack(){
+ s9MusicIdx++;if(s9MusicIdx>=s9MusicOrder.length){s9MusicOrder=s9ShuffleOrder();s9MusicIdx=0}
+ if(menuMusicOn)s9PlayCurrentTrack();
 }
 function primeAudioOnce(){
  try{audio().resume?.()}catch(e){}
@@ -1995,6 +2004,13 @@ $("#kitBack").onclick=()=>show("prematch");
 async function launchMatch(){
  if(!current?.fixture||current._running)return;
  current._running=true;
+ /* FIX 2026-09 (18): "la musica si deve interrompere appena c'e' gioca a
+    partita, non ci deve essere durante l'ingresso in campo" - prima la
+    musica si fermava solo a show("match"), ma studioIntro/S9MatchIntro
+    (l'ingresso in campo vero e proprio) girano PRIMA di quella chiamata,
+    quindi la musica restava accesa durante tutta la sequenza. Fermata qui,
+    subito all'avvio del lancio partita. */
+ stopMenuMusic();
  const sb=$("#startMatch");if(sb){sb.disabled=true;sb.textContent="CARICAMENTO..."}
  let g=current.fixture;let userHome=g[0]===career.user;
  let coinToss=null;
@@ -2364,6 +2380,8 @@ document.addEventListener("DOMContentLoaded",()=>{
     mbtn.classList.toggle('muted-music',!musicIsOn);
     mbtn.onclick=()=>window.toggleMenuMusic?.();
    }
+   const nbtn=$m("#menuMusicNext");
+   if(nbtn) nbtn.onclick=()=>window.nextMenuTrack?.();
   }
 
   const cupNames={
