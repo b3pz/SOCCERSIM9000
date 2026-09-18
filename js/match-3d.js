@@ -145,16 +145,20 @@ function drawOfficials(actors,now,ball){
  lineState[0].x=stepToward(lineState[0].x,lsTargetX,dt*13);lineState[1].x=stepToward(lineState[1].x,lsTargetX,dt*13);
  graphics.player(actors,lineState[0].x,-1.35,refKit,now/300,Math.PI/2,1.08,'',false,0);
  graphics.player(actors,lineState[1].x,69.35,refKit,now/300,-Math.PI/2,1.08,'',false,0);
+ /* FIX 2026-09 (26): "la panchina sarebbe figo da quest'altra parte" -
+    spostate dal lato z~0 (fondo opposto alla telecamera) al lato z~68
+    (fondo dalla parte della telecamera, la stessa della tribuna
+    "opposta"/vicina in drawField), specchiando tutti gli offset. */
  const benches=[{x:43,side:'home'},{x:62,side:'away'}];
  for(const b of benches){
   const uni=uniforms[b.side]||{shirt:'#305cad',shorts:'#182436',socks:'#eeeeeb'};
-  actors.box([b.x,.55,-3.5],[7.4,1.15,1.3],'#0f1c2c');
+  actors.box([b.x,.55,71.5],[7.4,1.15,1.3],'#0f1c2c');
   const coachKit={shirt:'#101c29',shorts:'#101c29',socks:'#101c29'};
   const pace=Math.sin(now/1500+(b.side==='home'?0:Math.PI));
-  graphics.player(actors,b.x+pace*2.3,-2.15,coachKit,Math.abs(pace)*8,pace>0?.5:-.5,1.08,'',false,0);
+  graphics.player(actors,b.x+pace*2.3,70.15,coachKit,Math.abs(pace)*8,pace>0?-.5:.5,1.08,'',false,0);
   for(let i=0;i<2;i++){
    const wx=b.x+(i?3.6:-3.6)+Math.sin(now/620+i*2)*.7;
-   graphics.player(actors,wx,-5.1,uni,now/210+i*3,0,1.05,'',false,0);
+   graphics.player(actors,wx,73.1,uni,now/210+i*3,Math.PI,1.05,'',false,0);
   }
  }
 }
