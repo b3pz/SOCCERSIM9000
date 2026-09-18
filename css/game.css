@@ -6047,11 +6047,18 @@ button,input,select{font-family:var(--s9-font-ui)!important}
 .s9-ex-comp-feature,.s9-ex-comp-side{min-height:180px;border:1px solid rgba(217,186,92,.45);border-radius:9px;background:linear-gradient(180deg,rgba(14,43,82,.94),rgba(5,20,44,.96));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff0c6;overflow:hidden}
 .s9-ex-comp-feature{cursor:pointer;border-width:2px;box-shadow:0 12px 28px rgba(0,0,0,.32)}
 .s9-ex-comp-feature img{width:104px;height:104px;object-fit:contain;background:rgba(244,237,215,.94);padding:8px;border-radius:7px}
-.s9-ex-comp-feature strong{font:900 22px/1.05 var(--s9-font-display);text-align:center;letter-spacing:.03em}
+/* FIX 2026-09 (4): il nome della competizione qui usava il font "display"
+   generico (Impact, senza ombra) mentre il resto della schermata Amichevole
+   (nomi squadra, nome stadio) era gia' passato al trattamento "brandizzato"
+   (Trebuchet MS 900, crema, ombra) - risultato: questo carosello sembrava
+   rimasto indietro rispetto agli altri due passaggi. Stesso trattamento
+   anche qui, cosi' i tre passaggi (Competizione/Squadre/Stadio) sono
+   visivamente coerenti. */
+.s9-ex-comp-feature strong{font:900 clamp(19px,2.4vw,26px)/1.15 "Trebuchet MS",Arial,sans-serif;text-align:center;letter-spacing:.02em;color:#fff4cf;text-shadow:0 2px 5px #000,0 1px 2px #000}
 .s9-ex-comp-feature small{font:800 10px/1 var(--s9-font-ui);letter-spacing:.16em;color:#dcbf69}
 .s9-ex-comp-side{min-height:142px;opacity:.6;cursor:pointer;padding:10px}
 .s9-ex-comp-side img{width:62px;height:62px;object-fit:contain;background:rgba(244,237,215,.88);padding:5px;border-radius:5px}
-.s9-ex-comp-side strong{font:800 11px/1.15 var(--s9-font-ui);text-align:center}
+.s9-ex-comp-side strong{font:900 12px/1.2 "Trebuchet MS",Arial,sans-serif;text-align:center;color:#f4e5b5;text-shadow:0 1px 3px #000}
 .s9-ex-comp-dots{display:flex;justify-content:center;gap:6px;margin:7px 0 16px}.s9-ex-comp-dots span{width:18px;height:3px;background:#778398}.s9-ex-comp-dots span.active{background:#ddbd62;box-shadow:0 0 8px rgba(221,189,98,.55)}
 #exhibitionSetup .s9-stadium-preview{width:min(620px,100%)!important;height:auto!important;aspect-ratio:16/7.5!important;border:2px solid rgba(217,186,92,.54)!important;border-radius:8px;background:#061325;box-shadow:0 12px 28px rgba(0,0,0,.30)}
 @media(max-width:850px){.s9-exhibition-comp-carousel{grid-template-columns:44px 1fr 44px}.s9-ex-comp-side{display:none}.s9-ex-comp-feature{min-height:160px}.s9-ex-comp-feature img{width:88px;height:88px}}
