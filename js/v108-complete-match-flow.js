@@ -66,10 +66,17 @@ function drawPenaltyScene(ctx,w,h,st){
  if(!g){ctx.fillStyle='#123449';ctx.fillRect(0,0,w,h);return;}
  const bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#0c2338');bg.addColorStop(.52,'#1a4228');bg.addColorStop(1,'#0d2618');
  ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
- // Telecamera dietro e leggermente di lato al rigorista, verso la porta -
- // esattamente l'inquadratura da diretta TV richiesta.
- const p=g.camera([st.lateral*1.15,1.74,16.8],[0,1.05,0],w,h,40),scene=g.scene(ctx,p);
- g.pitchSurface(ctx,p,-9,-1.6,18,21,1.9);
+ /* FIX 2026-09 (21): "i rigori sembra che li tirano da centrocampo" - la
+    telecamera era troppo lontana e troppo alta (5.5m dietro il dischetto,
+    quasi all'altezza degli occhi, FOV largo 40°): geometricamente le
+    misure erano corrette (dischetto a 11m, porta a 7.32m come nella
+    realta'), ma quell'inquadratura larga faceva sembrare la porta piccola
+    e lontanissima, con un prato enorme in mezzo - l'impressione di un
+    tiro da centrocampo invece di un rigore. Portata piu' vicina e piu'
+    bassa (tipico angolo da diretta TV dietro il tiratore) e FOV piu'
+    stretto/zoomato, cosi' la porta riempie di piu' l'inquadratura. */
+ const p=g.camera([st.lateral*0.85,1.32,15.0],[0,1.05,0],w,h,32),scene=g.scene(ctx,p);
+ g.pitchSurface(ctx,p,-9,-1.6,18,17,1.9);
  const post='#f4f3ea';
  scene.box([-3.66,1.22,0],[.14,2.44,.14],post);
  scene.box([3.66,1.22,0],[.14,2.44,.14],post);
@@ -78,7 +85,7 @@ function drawPenaltyScene(ctx,w,h,st){
  const keeperX=st.dive==='left'?-2.15*st.diveT:st.dive==='right'?2.15*st.diveT:0;
  const keeperAngle=st.dive==='left'?.55*st.diveT:st.dive==='right'?-.55*st.diveT:0;
  g.player(scene,keeperX,-.1,st.keeperKit,st.t*6,keeperAngle,1.1,'',true,0,null,st.keeperSkin||null,st.keeperLook||null);
- const runX=st.lateral*1.1*(1-st.runProgress*.5),runZ=11.3+(1-st.runProgress)*3.4;
+ const runX=st.lateral*1.1*(1-st.runProgress*.5),runZ=11.3+(1-st.runProgress)*2.4;
  g.player(scene,runX,runZ,st.shooterKit,st.t*7,0,1.15,'',false,st.celebrate||0,null,st.shooterSkin||null,st.shooterLook||null);
  scene.flush();
  const bp=p(st.ball),edge=p([st.ball[0]+.11,st.ball[1],st.ball[2]]);
