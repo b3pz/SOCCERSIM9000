@@ -16,56 +16,90 @@
 'use strict';
 
 // Nomi scritti a mano per le stelle piu' riconoscibili del database.
+// FIX 2026-09: su richiesta, per i giocatori davvero iconici (quelli con
+// un soprannome noto: "Il Fenomeno", "Zizou", "Pinturicchio"...) il nome
+// non e' piu' una variazione minima (una lettera cambiata) ma un'invenzione
+// vera e propria, ispirata al soprannome/tratto del giocatore ma con nome
+// E cognome diversi da quelli reali - piu' distanza, piu' comica. Per tutti
+// gli altri (centinaia di giocatori non da copertina) resta la
+// trasformazione automatica piu' leggera qui sotto.
 const STAR_MAP={
- "Roberto Baggio":"Umberto Braggio",
- "Dino Baggio":"Dino Baggino",
- "Paolo Maldini":"Paolo Baldini",
- "Alessandro Del Piero":"Alessandro Del Nero",
- "Alessandro Nesta":"Alessandro Testa",
- "Francesco Totti":"Francesco Totta",
- "Gianluigi Buffon":"Gianluigi Buffoni",
- "Fabio Cannavaro":"Fabio Cannavaccio",
- "Filippo Inzaghi":"Filippo Spinzaghi",
- "Christian Vieri":"Christian Vierotto",
- "Javier Zanetti":"Xavier Zanotti",
- "Cristiano Zanetti":"Cristiano Zanotti",
- "Cristiano Ronaldo":"Cristiano Ronaldho",
- "Ronaldo":"Ronaldho \"Il Fenomenale\"",
- "Ronaldinho":"Ronaldhino",
- "Zinedine Zidane":"Zizinho Zizanne",
- "Zinédine Zidane":"Zizinho Zizanne",
- "David Beckham":"David Beckam",
- "Thierry Henry":"Thierry Enrico",
- "Luís Figo":"Luís Fico",
- "Didier Deschamps":"Didier Descampi",
- "Peter Schmeichel":"Peter Schmeicholo",
- "Oliver Kahn":"Oliver Kahnnone",
- "Rio Ferdinand":"Rio Fernandez",
- "Les Ferdinand":"Les Fernandino",
- "Michael Owen":"Michael Owens",
- "Owen Hargreaves":"Owen Hargraves",
- "Patrick Vieira":"Patrick Vieirao",
- "Hernán Crespo":"Hernán Crespotto",
- "Cafu":"Kafù",
- "Gianluca Vialli":"Gianluca Viallino",
- "Roberto Mancini":"Roberto Manciniello",
- "Francesco Mancini":"Francesco Mancinotti",
- "Angelo Peruzzi":"Angelo Peruzzone",
- "Francesco Toldo":"Francesco Toldino",
- "Marco Materazzi":"Marco Materazzoni",
- "Gabriel Batistuta":"Gabriel Batigolo",
- "Diego Simeone":"Diego Cimeone",
- "Taribo West":"Taribo Ovest",
- "Gianluca Pagliuca":"Gianluca Pagliucci",
- "Giuseppe Bergomi":"Giuseppe Bergami",
- "Aron Winter":"Aron Winner",
- "Francesco Moriero":"Francesco Muriero"
+ "Roberto Baggio":"Uberto Codino",
+ "Dino Baggio":"Nino Baggetti",
+ "Paolo Maldini":"Paolo Muraglia",
+ "Alessandro Del Piero":"Alessandro Pennello",
+ "Alessandro Nesta":"Alessandro Marmo",
+ "Francesco Totti":"Francesco Pupazzo",
+ "Gianluigi Buffon":"Gianluigi Guantone",
+ "Fabio Cannavaro":"Fabio Corazza",
+ "Filippo Inzaghi":"Filippo Golgetta",
+ "Christian Vieri":"Cristiano Bombardo",
+ "Javier Zanetti":"Xavier Trattore",
+ "Cristiano Zanetti":"Cristiano Zanardi",
+ "Cristiano Ronaldo":"Cristiano Settebello",
+ "Ronaldo":"Rolando Fenomeno",
+ "Ronaldinho":"Ronaldino Sorriso",
+ "Zinedine Zidane":"Zinedine Testadoro",
+ "Zinédine Zidane":"Zinedine Testadoro",
+ "David Beckham":"David Piedidoro",
+ "Thierry Henry":"Terenzio Velocista",
+ "Luís Figo":"Luís Serpente",
+ "Didier Deschamps":"Didier Acquaiolo",
+ "Peter Schmeichel":"Peter Vichingo",
+ "Oliver Kahn":"Oliver Titano",
+ "Rio Ferdinand":"Rio Fortino",
+ "Les Ferdinand":"Les Fortezza",
+ "Michael Owen":"Michael Saetta",
+ "Owen Hargreaves":"Owen Lavoratore",
+ "Patrick Vieira":"Patrick Gigante",
+ "Hernán Crespo":"Hernán Vulcano",
+ "Cafu":"Kafù Pendolino",
+ "Gianluca Vialli":"Gianluca Vulcanico",
+ "Roberto Mancini":"Roberto Manciotto",
+ "Francesco Mancini":"Francesco Mancione",
+ "Angelo Peruzzi":"Angelo Portone",
+ "Francesco Toldo":"Francesco Paratutto",
+ "Marco Materazzi":"Marco Materasso",
+ "Gabriel Batistuta":"Gabriel Golcannone",
+ "Diego Simeone":"Diego Grintoso",
+ "Taribo West":"Taribo Treccine",
+ "Gianluca Pagliuca":"Gianluca Paglietta",
+ "Giuseppe Bergomi":"Giuseppe Zione",
+ "Aron Winter":"Aron Vincitore",
+ "Francesco Moriero":"Francesco Moretto"
 };
 
-// Suffissi "da parodia italiana" usati quando il cognome non e' gia' in
-// STAR_MAP. Scelti in modo deterministico dal nome originale, cosi' lo
-// stesso giocatore ha sempre la stessa parodia.
-const SUFFIXES=["ozzi","etti","ini","oni","ucci","ello","otto","assi","olo"];
+// Allenatori: stessa idea, versione ridotta per i piu' noti; il resto
+// passa dalla trasformazione automatica (vedi applyParodyCoaches sotto).
+const COACH_STAR_MAP={
+ "Arrigo Sacchi":"Arrigo Sacchetti",
+ "Giovanni Trapattoni":"Giovanni Trapiantoni",
+ "Fabio Capello":"Fabio Cappello",
+ "Marcello Lippi":"Marcello Lippone",
+ "Carlo Ancelotti":"Carlo Ancellotti",
+ "Claudio Ranieri":"Claudio Ranierotto",
+ "José Mourinho":"José Misterioso",
+ "Franz Beckenbauer":"Franz Baronbauer",
+ "Sven-Göran Eriksson":"Sven Ericsson",
+ "Jürgen Klinsmann":"Jürgen Klingsmann",
+ "Dino Zoff":"Dino Zaffo",
+ "Vicente del Bosque":"Vicente del Bosco",
+ "Otto Rehhagel":"Otto Rehagel",
+ "Terry Venables":"Terry Venabile"
+};
+// Etichette generiche presenti nel database che NON sono nomi propri di
+// persona: vanno lasciate esattamente come sono.
+const COACH_SKIP=new Set(["Allenatore storico"]);
+
+/* FIX 2026-09: la trasformazione automatica (per tutti i giocatori non in
+   STAR_MAP) tagliava il cognome e ci incollava un suffisso finto-italiano -
+   ogni tanto il risultato collideva con una parola vera (es. un portiere di
+   riserva finiva rinominato in qualcosa che si leggeva come "Riserve"),
+   confondendo piu' che facendo sorridere. Il tester ha chiesto di tornare
+   allo stile dei primi giochi non ufficiali (ISS Pro e affini): si cambia
+   una vocale, o al massimo una lettera, il nome resta chiaramente
+   riconoscibile. Tolti i modi "taglia+suffisso" e "scambia due lettere":
+   restano solo le due varianti piu' leggere. */
 const VOWEL_SWAP={a:'o',e:'i',i:'e',o:'u',u:'a'};
 
 function hashStr(s){
@@ -77,27 +111,9 @@ function hashStr(s){
 function mangleWord(w,seed){
  if(w.length<3)return w;
  const h=hashStr(w+seed);
- const mode=h%4;
- const lower=w.toLowerCase();
+ const mode=h%2;
  if(mode===0){
-  // Taglia il cognome a una radice corta e aggiunge un suffisso comico
-  // "all'italiana" (Beckham -> Beckozzi, non Beckhametti-lunghissimo).
-  const suf=SUFFIXES[h%SUFFIXES.length];
-  let stem=lower.replace(/[aeiouy]+$/,'').replace(/[^a-zàèéìòù]+$/,'');
-  if(stem.length<3)stem=lower;
-  if(stem.length>6)stem=stem.slice(0,6);
-  return capitalize(stem+suf);
- }
- if(mode===1){
-  // Scambia due lettere adiacenti a meta' parola (classico "refuso" da
-  // gioco non ufficiale: nome riconoscibile ma leggermente diverso).
-  const mid=Math.max(1,Math.min(w.length-2,Math.floor(w.length/2)));
-  const arr=w.split('');
-  const tmp=arr[mid];arr[mid]=arr[mid+1]||tmp;arr[mid+1]=tmp;
-  return arr.join('');
- }
- if(mode===2){
-  // Sostituisce una vocale con una "vicina" (Ronaldo -> Runaldo).
+  // Sostituisce una vocale con una "vicina" (Ronaldo -> Runaldo, Maldini -> Malduni).
   let out='',done=false;
   for(let i=w.length-1;i>=0;i--){
    const c=w[i],lc=c.toLowerCase();
@@ -109,11 +125,10 @@ function mangleWord(w,seed){
   }
   return done?out:w;
  }
- // mode===3: raddoppia una consonante centrale (Kahn -> Kahnn, Maldini -> Malldini).
+ // mode===1: raddoppia una consonante centrale (Kahn -> Kahnn, Maldini -> Malldini).
  const mid=Math.max(1,Math.min(w.length-2,Math.floor(w.length/2)));
  return w.slice(0,mid)+w[mid]+w.slice(mid);
 }
-function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1)}
 
 function parodyName(original){
  if(!original)return original;
@@ -129,6 +144,12 @@ function parodyName(original){
  return mangleWord(parts[0]||original,original);
 }
 
+function parodyCoach(original){
+ if(!original||COACH_SKIP.has(original))return original;
+ if(COACH_STAR_MAP[original])return COACH_STAR_MAP[original];
+ return parodyName(original);
+}
+
 function applyParodyNames(){
  /* FIX 2026-09: "teams" e' dichiarato con "const" nello scope top-level di
     index.html (const DB={...}, teams=DB.teams, ...). Un let/const a livello
@@ -137,7 +158,7 @@ function applyParodyNames(){
     la stessa scope lessicale di primo livello), non come window.teams
     (che sarebbe sempre undefined). */
  if(typeof teams==='undefined'||!Array.isArray(teams))return;
- let count=0;
+ let count=0,coaches=0;
  for(const team of teams){
   for(const p of team.players||[]){
    if(p.__parodied)continue;
@@ -146,8 +167,14 @@ function applyParodyNames(){
    p.__parodied=true;
    count++;
   }
+  if(team.coach&&!team.__coachParodied){
+   team.realCoach=team.coach;
+   team.coach=parodyCoach(team.coach);
+   team.__coachParodied=true;
+   coaches++;
+  }
  }
- console.info(`[SerieA 9000] Nomi parodia applicati a ${count} giocatori.`);
+ console.info(`[SerieA 9000] Nomi parodia applicati a ${count} giocatori e ${coaches} allenatori.`);
 }
 
 // index.html usa la variabile globale non dichiarata "teams" (window.teams

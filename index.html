@@ -2454,8 +2454,17 @@ function pentagonSVG(axes){
  </svg>`;
 }
 function neighborCrest(t){
- const crest=CREST_ASSETS[t.id];
- return(crest?`<img src="${crest}" alt="">`:`<span>${t.name.substring(0,2).toUpperCase()}</span>`)+`<small>${t.name}</small>`;
+ /* FIX 2026-09: CREST_ASSETS copre solo ~30 squadre italiane storiche (il
+    set "embedded" originale). Per tutte le altre - estere, nazionali, e le
+    coppe/competizioni che le includono - qui finiva sempre nel fallback a
+    sole iniziali, dando l'impressione di uno "stemma rotto" ovunque tranne
+    che nelle poche squadre italiane coperte. crestFor() (v10-release.js)
+    sa risolvere il percorso giusto per ogni categoria (italiano/estero/
+    nazionale) quindi lo usiamo come fallback quando CREST_ASSETS non ha
+    la squadra. */
+ const crest=CREST_ASSETS[t.id]||(typeof crestFor==='function'?crestFor(t.id):null);
+ const initials=t.name.substring(0,2).toUpperCase();
+ return(crest?`<img src="${crest}" alt="" onerror="this.outerHTML='<span>${initials}</span>'">`:`<span>${initials}</span>`)+`<small>${t.name}</small>`;
 }
 const _v4RenderTeamPicker=renderTeamPicker;
 renderTeamPicker=function(){

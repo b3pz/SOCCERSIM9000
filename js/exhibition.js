@@ -183,7 +183,14 @@ function boot(){
 
  function renderSide(side,index){
   const id=ids[index];if(!id)return;const t=T(id);
-  q('#'+side+'Crest').innerHTML=CREST_ASSETS[id]?`<img src="${CREST_ASSETS[id]}" alt="Stemma ${t.name}">`:`<span>${t.name.substring(0,2).toUpperCase()}</span>`;
+  /* FIX 2026-09: come neighborCrest() in index.html, CREST_ASSETS copre solo
+     le squadre italiane storiche - qui in Amichevole il pool include anche
+     estere e nazionali, che finivano sempre nel fallback a sole iniziali
+     ("stemma rotto"). crestFor() risolve il percorso giusto per ogni
+     categoria, quindi lo usiamo come fallback. */
+  const crestSrc=CREST_ASSETS[id]||(typeof crestFor==='function'?crestFor(id):null);
+  const initials=t.name.substring(0,2).toUpperCase();
+  q('#'+side+'Crest').innerHTML=crestSrc?`<img src="${crestSrc}" alt="Stemma ${t.name}" onerror="this.outerHTML='<span>${initials}</span>'">`:`<span>${initials}</span>`;
   q('#'+side+'Name').textContent=`${t.name} ${t.season}`;
   /* FIX 2026-09: allineata alla schermata di selezione squadra di
      Carriera/Coppe (che mostra OVR grande + lista MODULI accanto allo
