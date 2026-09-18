@@ -708,7 +708,7 @@ main{max-width:none!important;padding:0!important}
 @media(max-height:500px){#mainMenu #cupsModeBtn .cups-mode-icon{width:40px!important;height:36px!important}}
 </style>
 
-<link rel="stylesheet" href="css/game.css?v=tactics-18">
+<link rel="stylesheet" href="css/game.css?v=tactics-19">
 <link rel="stylesheet" href="css/v106-match-experience.css?v=2">
 </head>
 <body>
@@ -1774,12 +1774,13 @@ function updateScore(){
 }
 
 function tryFillerCommentary(minute){
- // FIX 2026-09 (6): chiacchiera dei due telecronisti anche nei minuti senza
- // episodi veri, cosi' il commento e' continuo e non solo su gol/tiri/cartellini.
- // Cooldown minimo di 2' tra una battuta e l'altra, per non affollare il tabellino.
+ // FIX 2026-09 (9): "rimangono fermi un po', più brutto da vedere" - cooldown
+ // e probabilità erano ancora troppo bassi, restavano vuoti diversi minuti di
+ // fila. Cooldown ridotto a 1' e probabilità alzata: nei minuti senza episodi
+ // veri i telecronisti commentano quasi sempre.
  if(!current||!window.S9Commentary?.filler)return;
- if(current._lastFillerMin!=null&&minute-current._lastFillerMin<2)return;
- if(Math.random()>.4)return;
+ if(current._lastFillerMin!=null&&minute-current._lastFillerMin<1)return;
+ if(Math.random()>.75)return;
  const names=window.S9Anchors?.current?.()||{a1:'Il telecronista',a2:"L'altro"};
  const lines=window.S9Commentary.filler(names.a1,names.a2);
  if(!lines)return;
@@ -2608,7 +2609,7 @@ renderTeamPicker();
 <script src="js/tv-channels.js?v=3"></script>
 <script src="js/broadcast-anchors.js?v=3"></script>
 <script src="js/kit-presentation.js?v=1"></script>
-<script src="js/match-3d.js?v=stability-16"></script>
+<script src="js/match-3d.js?v=stability-17"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>
@@ -2625,7 +2626,7 @@ renderTeamPicker();
 <script src="js/tactical-workspace.js?v=tactics-17"></script>
 <script src="js/prematch-flavor.js?v=1"></script>
 <script src="js/parody-names.js?v=3"></script>
-<script src="js/match-commentary.js?v=2"></script>
+<script src="js/match-commentary.js?v=3"></script>
 <script src="js/career-news.js?v=1"></script>
 <script src="js/training.js?v=1"></script>
 </body>

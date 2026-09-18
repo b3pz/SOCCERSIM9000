@@ -6450,17 +6450,27 @@ html.s9-responsive :is(.prototype-note,.s9-view-hint,.v110-logo-runner){animatio
  background:linear-gradient(90deg,rgba(255,255,255,.035),transparent 8%,transparent 92%,rgba(255,255,255,.035));
  box-shadow:inset 0 0 90px #0007;
 }
-.s9-tv-scorebug{position:absolute;left:2.2%;top:3.1%;width:min(360px,48%);filter:drop-shadow(0 3px 5px #000a)}
-.s9-tv-channel{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;background:#e8e3d6;color:#122337;font:900 11px/1 Arial;letter-spacing:.06em}.s9-tv-channel i{padding:2px 4px;background:#c91f2c;color:#fff;font-size:8px;font-style:normal}
+/* FIX 2026-09 (9): "migliora graficamente questa schermata" (modalità TV) -
+   angoli arrotondati/coerenti sul blocco tabellino, pallino LIVE pulsante
+   come nei veri notiziari sportivi, badge canale/watermark piu' rifiniti,
+   riquadro commenti con nome del telecronista in evidenza e comparsa in
+   dissolvenza invece di comparire di scatto. */
+.s9-tv-scorebug{position:absolute;left:2.2%;top:3.1%;width:min(360px,48%);border-radius:8px;overflow:hidden;filter:drop-shadow(0 4px 10px #000b)}
+.s9-tv-channel{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;background:linear-gradient(180deg,#f2ede0,#ddd6c2);color:#122337;font:900 11px/1 Arial;letter-spacing:.06em}
+.s9-tv-channel i{display:inline-flex;align-items:center;gap:4px;padding:2px 5px;background:#c91f2c;color:#fff;font-size:8px;font-style:normal;border-radius:2px}
+.s9-tv-channel i::before{content:'';width:5px;height:5px;border-radius:50%;background:#fff;animation:s9-tv-live-pulse 1.4s ease-in-out infinite}
+@keyframes s9-tv-live-pulse{0%,100%{opacity:1}50%{opacity:.25}}
 .s9-tv-clock{display:inline-block;padding:4px 8px;background:#183759e8;color:#fff3c8;font:900 11px/1 Arial}
 .s9-tv-team{display:grid;grid-template-columns:25px minmax(0,1fr) 31px;align-items:center;min-height:28px;background:linear-gradient(90deg,#102e50f2,#071829e8);border-top:1px solid #ffffff30}
-.s9-tv-team img{width:21px;height:21px;margin:auto;object-fit:contain}.s9-tv-team span{padding:0 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:800 12px/1 Arial;text-shadow:0 1px 2px #000}.s9-tv-team b{display:grid;place-items:center;align-self:stretch;background:#eee8d8;color:#07111d;font:900 17px Arial}
-.s9-tv-watermark{position:absolute;right:2.4%;top:4.4%;padding:5px 8px;background:#07162799;border-bottom:2px solid var(--competition-accent,#dfbf71);color:#fff;font:900 10px/1 Arial;letter-spacing:.08em;text-shadow:0 2px 3px #000}
+.s9-tv-team img{width:21px;height:21px;margin:auto;object-fit:contain}.s9-tv-team span{padding:0 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:800 12px/1 Arial;text-shadow:0 1px 2px #000}.s9-tv-team b{display:grid;place-items:center;align-self:stretch;background:linear-gradient(180deg,#fbf7ea,#e3dcc6);color:#07111d;font:900 17px Arial}
+.s9-tv-watermark{position:absolute;right:2.4%;top:4.4%;padding:5px 10px;background:#07162799;border-bottom:2px solid var(--competition-accent,#dfbf71);border-radius:4px 4px 0 0;color:#fff;font:900 10px/1 Arial;letter-spacing:.1em;text-shadow:0 2px 3px #000}
 /* FIX 2026-09 (8): riquadro sottotitoli con i commenti dei due telecronisti
    in modalita' TV (sopra i pulsanti, a sinistra, non sopra al ticker eventi
    veri che sta piu' in basso). */
-.s9-tv-commentary{position:absolute;left:2.2%;bottom:10%;z-index:4;display:flex;flex-direction:column;gap:4px;max-width:54%;pointer-events:none}
-.s9-tv-commentary p{margin:0;padding:6px 10px;background:#071829d9;border-left:3px solid var(--competition-accent,#dfbf71);color:#f4f0e7;font:700 italic 11px/1.35 Arial;text-shadow:0 1px 2px #000;box-shadow:0 3px 8px #0007}
+.s9-tv-commentary{position:absolute;left:2.2%;bottom:10%;z-index:4;display:flex;flex-direction:column;gap:5px;max-width:54%;pointer-events:none}
+.s9-tv-commentary p{margin:0;padding:7px 11px;background:linear-gradient(90deg,#0a1c30f0,#071829d0);border-left:3px solid var(--competition-accent,#dfbf71);border-radius:0 6px 6px 0;color:#f4f0e7;font:600 italic 11px/1.4 Arial;text-shadow:0 1px 2px #000;box-shadow:0 3px 10px #0008;animation:s9-tv-line-in .3s ease-out}
+.s9-tv-commentary p b{font-style:normal;color:var(--competition-accent,#f4d879);margin-right:2px}
+@keyframes s9-tv-line-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 .s9-tv-commentary[hidden]{display:none!important}
 /* FIX 2026-09 (8): "il logo lo voglio in basso a destra, ben visibile, in
    modalita' TV" - bollino grande sopra la barra dei comandi, non piu' nella

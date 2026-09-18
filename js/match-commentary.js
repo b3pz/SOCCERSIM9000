@@ -71,7 +71,21 @@ const FILLER=[
  ["Questa squadra ama impostare da dietro.","Rischioso, ma quando funziona è bello da vedere."],
  ["Attenzione ai cross dalla fascia, lì c'è pericolo.","Vero, serve raddoppio di marcatura."],
  ["Ritmo che sta salendo, si sente.","Le gambe cominciano a girare meglio."],
- ["Un po' di nervosismo in campo, normale.","Partita che conta, si capisce dai falli."]
+ ["Un po' di nervosismo in campo, normale.","Partita che conta, si capisce dai falli."],
+ ["Buona gestione del pallone in questa fase.","Sì, stanno abbassando i ritmi apposta."],
+ ["L'arbitro lascia correre, si gioca.","Meglio così, la partita ne guadagna."],
+ ["Panchine che parlano parecchio in questi minuti.","Normale, si preparano le prossime mosse."],
+ ["Bella densità di uomini a centrocampo.","Difficile trovare spazi, per ora."],
+ ["Il portiere sta a guardare, tutto tranquillo lì davanti.","Per ora, poi in questo sport non si sa mai."],
+ ["Buon momento per rifiatare un attimo.","Ne approfittano entrambe le squadre, mi pare."],
+ ["Qualche fischio dagli spalti, i tifosi vogliono più ritmo.","Capisco, ma la pazienza qui paga."],
+ ["Squadre lunghe in questo momento.","Vero, ci sono spazi enormi in mezzo al campo."],
+ ["Fase di studio reciproco, direi.","Normale a questo punto della gara."],
+ ["Il pubblico di casa spinge, si sente forte.","Aiuta parecchio in momenti come questo."],
+ ["Buona rotazione del pallone da un lato all'altro.","Cercano il varco giusto, prima o poi arriva."],
+ ["Bel controllo orientato, si vede la qualità.","Dettagli che fanno la differenza, questi."],
+ ["Intensità che cala un attimo, fisiologico.","Torneranno a spingere tra poco, vedrai."],
+ ["Bel gesto tecnico, applausi anche dagli avversari.","Roba da vero campionato questo."]
 ];
 const KICKOFF=[
  "Si comincia! {h} contro {a}, e qui stasera se ne vedranno delle belle (forse).",

@@ -103,9 +103,20 @@ const graphics=window.S9Football3D;
 // pattern di `boards` sopra per i cartelloni), cosi' non si ridisegna ogni
 // frame. Tre varianti (indice 0/1/2, una per tribuna) cosi' le tre non sono
 // fotocopie identiche l'una dell'altra.
-function crowdTexture(brand,stadiumStyle,standIndex){
+/* FIX 2026-09 (9): "riusciamo ad animare il pubblico con bandiere?" - la
+   texture del pubblico era statica (disegnata una volta e messa in cache).
+   Qui aggiungiamo un parametro opzionale flagPhase (un numero piccolo, 0-5,
+   che il chiamante fa avanzare nel tempo): quando e' presente, sopra al
+   pattern normale vengono disegnati dei trattini colorati che cambiano
+   posizione a ogni fase, dando l'idea di bandiere che sventolano nel
+   pubblico senza dover ridisegnare l'intera texture ad ogni fotogramma
+   (restano in cache, una manciata di varianti per fase invece di una sola).
+   Se flagPhase non viene passato il comportamento e' identico a prima
+   (nessuna bandiera, texture statica) - retrocompatibile con i chiamanti
+   che non la conoscono ancora (match-intro.js, trophy-ceremony.js). */
+function crowdTexture(brand,stadiumStyle,standIndex,flagPhase,flagColor){
  const variant=((standIndex%3)+3)%3;
- const key=[variant,brand.dark,brand.accent,stadiumStyle.seats].join('|');
+ const key=[variant,brand.dark,brand.accent,stadiumStyle.seats,flagPhase??'',flagColor||''].join('|');
  if(crowds.has(key))return crowds.get(key);
  const cv=document.createElement('canvas');cv.width=768;cv.height=64;
  const cx=cv.getContext('2d');
@@ -118,6 +129,20 @@ function crowdTexture(brand,stadiumStyle,standIndex){
    const x=(i*7+row*3.1+variant*2.4)%cv.width;
    cx.fillStyle=palette[(x*13+row*29+variant*11)%palette.length|0];
    cx.fillRect(x,y+(i%3),3,3);
+  }
+ }
+ if(flagPhase!=null){
+  /* FIX 2026-09 (9): "le curve devono avere distintamente le bandiere o i
+     colori di una delle due squadre" - quando il chiamante passa flagColor
+     (il colore della squadra di casa/ospite, vedi drawField piu' sotto) le
+     bandiere usano quello invece dell'accento generico della competizione,
+     cosi' le due curve si leggono subito come tifoserie diverse. */
+  const flagColors=flagColor?[flagColor,'#ffffff',flagColor,flagColor,'#ffffff']:[brand.accent,'#ffffff','#f4d94a',brand.accent];
+  for(let i=0;i<14;i++){
+   const wobble=Math.sin((flagPhase+i*.7)*1.4)*3;
+   const fx=(i*57+flagPhase*23+variant*11)%cv.width,fy=3+((i*13+variant*5)%48);
+   cx.fillStyle=flagColors[(i+flagPhase)%flagColors.length];
+   cx.fillRect(fx+wobble,fy,3,9);
   }
  }
  crowds.set(key,cv);
@@ -320,7 +345,11 @@ function updateBroadcastHud(){
  if(cbox){
   const lines=(current.tvCommentary||[]).slice(-2);
   cbox.hidden=!lines.length;
-  cbox.innerHTML=lines.map(l=>`<p>🎙️ ${(window.escapeHTML?escapeHTML(l):String(l))}</p>`).join('');
+  cbox.innerHTML=lines.map(l=>{
+   const raw=window.escapeHTML?escapeHTML(l):String(l);
+   const m=raw.match(/^([^:]{1,24}):\s*(.*)$/);
+   return m?`<p>🎙️ <b>${m[1]}:</b> ${m[2]}</p>`:`<p>🎙️ ${raw}</p>`;
+  }).join('');
  }
 }
 function parkTacticsForBroadcast(){
@@ -438,24 +467,39 @@ function drawField(s,p,w,h,closeUp,paintCtx=ctx,options={}){
   // base del primo anello sta esattamente sul terreno, e ci sono gradinate
   // anche dietro le due porte (prima esisteva solo il fondo opposto alla
   // telecamera), cosi' lo stadio si legge come chiuso anche da lontano.
-  const setback=stadiumStyle.setback||0,left=-8-setback,right=113+setback,back=-10-setback;
-  const tierBox=(cx,cz,dx,dz,recedeX,recedeZ,standIndex)=>{const crowd=crowdTexture(brand,stadiumStyle,standIndex);for(let tier=0;tier<(standIndex?stadiumStyle.endTiers||stadiumStyle.tiers:stadiumStyle.tiers);tier++)s.box([cx+(recedeX||0)*tier,.75+tier*1.6,cz+(recedeZ||0)*tier],[dx,1.5,dz],tier%2?stadiumStyle.seats:brand.dark,0,crowd)};
+  const setback=stadiumStyle.setback||0,left=-8-setback,right=113+setback,back=-10-setback,front=88+setback;
+  /* FIX 2026-09 (9): "nel giro di campo si vede che mancano le tribune dal
+     lato della telecamera" - la tribuna "front" (opposta a "back", cioe' il
+     lato vicino alla telecamera durante il giro d'onore che ruota a 360°)
+     non esisteva affatto: solo il fondo lontano e le due curve laterali
+     erano disegnati. Aggiunta qui, stesso trattamento della tribuna
+     principale (anelli via via piu' arretrati mano a mano che salgono).
+     Messa a z=88 (non 78 come il fondo lontano e' a -10) apposta: la
+     telecamera che segue l'azione durante la partita si avvicina fino a
+     z~82 negli stacchi ravvicinati (vedi followedCamera), quindi un po' di
+     margine oltre quella soglia evita che la tribuna finisca a ridosso
+     della camera stessa nei momenti piu' stretti. */
+  const activeMatch=options.match||(typeof current!=='undefined'?current:null);
+  const homeColor=teamMeta?.[activeMatch?.h]?.colors?.[0],awayColor=teamMeta?.[activeMatch?.a]?.colors?.[0];
+  const flagPhase=Math.floor(performance.now()/450)%6;
+  const tierBox=(cx,cz,dx,dz,recedeX,recedeZ,standIndex,flagColor)=>{const crowd=crowdTexture(brand,stadiumStyle,standIndex,flagPhase,flagColor);for(let tier=0;tier<(standIndex?stadiumStyle.endTiers||stadiumStyle.tiers:stadiumStyle.tiers);tier++)s.box([cx+(recedeX||0)*tier,.75+tier*1.6,cz+(recedeZ||0)*tier],[dx,1.5,dz],tier%2?stadiumStyle.seats:brand.dark,0,crowd)};
   tierBox(52.5,back,124,3,0,-3,0);      // tribuna principale, di fronte alla telecamera (anelli via via piu' arretrati)
-  tierBox(left,34,3,88,-2.4,0,1);        // curva sinistra, dietro una porta
-  tierBox(right,34,3,88,2.4,0,2);        // curva destra, dietro l'altra porta
+  tierBox(52.5,front,124,3,0,3,3);      // tribuna opposta, dal lato della telecamera (mancava)
+  tierBox(left,34,3,88,-2.4,0,1,homeColor);   // curva sinistra, colori/bandiere della squadra di casa
+  tierBox(right,34,3,88,2.4,0,2,awayColor);   // curva destra, colori/bandiere della squadra ospite
   // Le due curve hanno il lato rivolto verso il campo lungo l'asse x, non z:
   // box() applica la texture solo alla faccia locale z+1 (vedi crowdTexture),
   // quindi qui la folla va disegnata come faccia aggiuntiva con s.face(),
   // sullo stesso lato interno e sugli stessi anelli colorati di sopra.
-  const curvaCrowd=(cx,dzC,cz,dz,recedeX,standIndex,inward)=>{
-   const crowd=crowdTexture(brand,stadiumStyle,standIndex);
+  const curvaCrowd=(cx,dzC,cz,dz,recedeX,standIndex,inward,flagColor)=>{
+   const crowd=crowdTexture(brand,stadiumStyle,standIndex,flagPhase,flagColor);
    for(let tier=0;tier<(stadiumStyle.endTiers||stadiumStyle.tiers);tier++){
     const tx=cx+recedeX*tier,ty=.75+tier*1.6,faceX=tx+inward*(dzC/2+.02);
     s.face([[faceX,ty-.75,cz-dz/2],[faceX,ty-.75,cz+dz/2],[faceX,ty+.75,cz+dz/2],[faceX,ty+.75,cz-dz/2]],stadiumStyle.seats,crowd);
    }
   };
-  curvaCrowd(left,3,34,88,-2.4,1,1);
-  curvaCrowd(right,3,34,88,2.4,2,-1);
+  curvaCrowd(left,3,34,88,-2.4,1,1,homeColor);
+  curvaCrowd(right,3,34,88,2.4,2,-1,awayColor);
   if(stadiumStyle.track)s.box([52.5,-.45,34],[132,.2,94],'#985d4f');
   // V108: silhouette dello stadio differenziata dal nome reale. Non sono
   // fotografie: cambiano davvero tetto, anelli e dettagli del modello 3D.
