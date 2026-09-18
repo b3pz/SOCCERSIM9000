@@ -64,6 +64,19 @@ async function kickoffCinematic(label){
  kickoffCineState=null;el.classList.remove('show');
  setTimeout(()=>{if(kickoffCaptionEl)kickoffCaptionEl.hidden=true},300);
  delete document.getElementById('match').dataset.cinematic;
+ /* FIX 2026-09 (27): "la telecamera OGNI VOLTA CHE SI BATTE e' sempre
+    rotta" - il vero bug non era piu' nella geometria della cinematica (gia'
+    sistemata prima), ma in cosa succedeva SUBITO DOPO: mentre kickoffCine
+    e' attivo, il blocco di render() che aggiorna followCamera.fit viene
+    saltato (per dare alla cinematica un'inquadratura sempre fresca), quindi
+    quel valore resta fermo a PRIMA della cinematica (vecchio anche di
+    secondi). Alla fine della cinematica, la telecamera normale riparte e
+    prova a fondere dolcemente il nuovo inquadramento con quel fit ormai
+    vecchissimo: risultato, un salto/sfarfallio visibile ad ogni riavvio,
+    percepito come "telecamera rotta". Azzerando qui il fit, il primo
+    fotogramma dopo la cinematica riparte pulito invece di fondersi con un
+    valore vecchio di secondi. */
+ followCamera.fit=null;
 }
 /* FIX 2026-09 (10): "ci vorrebbero i replay" / "diverse angolazioni
    telecamera ravvicinate" - dopo un gol, prima di questa modifica, l'unica
@@ -75,7 +88,7 @@ async function kickoffCinematic(label){
    l'azione del gol in slow motion subito dopo l'esultanza. */
 let replayState=null;
 function beginReplay(side){replayState={side,started:visualTime}}
-function endReplay(){replayState=null}
+function endReplay(){replayState=null;followCamera.fit=null}
 function replayCameraFrame(ball){
  if(!replayState)return null;
  const dir=replayState.side==='home'?1:-1;
@@ -198,7 +211,7 @@ async function waitForCelebration(){
   }
   requestAnimationFrame(tick);
  });
- if(current===match){celebrationState=null;if(pendingSetup){pendingSetup=false;setupPitch();}}
+ if(current===match){celebrationState=null;followCamera.fit=null;if(pendingSetup){pendingSetup=false;setupPitch();}}
 }
 async function celebrate(side,scorerId){
  if(mode==='2d')return;
@@ -831,14 +844,23 @@ function render(now){
   // e rimpicciolisce esattamente come i giocatori quando la telecamera
   // si avvicina o si allontana.
   const edge=p([bx+.11,.3+bl,bz]);
-  // FIX 2026-09 (17, poi 24): "guarda che palla piccola" / "non siamo
-  // riusciti ad aggiustare la palla che nei replay risulta sempre
-  // piccolissima" - il primo alzamento del raggio minimo (2.2 -> 4.5) non
-  // e' bastato: su schermi normali 4.5px di raggio (9px di diametro) resta
-  // comunque un puntino. Alzato molto di piu' (8) e portato anche il
-  // massimo un po' piu' su, cosi' negli zoom ravvicinati il pallone non
-  // sembra sproporzionato rispetto al nuovo minimo.
-  const br=clamp(Math.hypot(edge.x-b.x,edge.y-b.y)||0,8,52);
+  // FIX 2026-09 (26): "la palla adesso e' bella grande durante la partita
+  // ma durante i replay... e' un puntino minuscolo" - un raggio minimo
+  // FISSO in pixel (8) risolveva le inquadrature larghe (dove la palla
+  // reale proietta pochissimi pixel) ma nei replay ravvicinati, dove i
+  // giocatori riempiono lo schermo, quello stesso minimo fisso resta
+  // comunque minuscolo A CONFRONTO con corpi ormai enormi: il problema non
+  // e' il valore assoluto in pixel, e' la PROPORZIONE rispetto ai
+  // giocatori. Percio' ora la palla si scala rispetto a un riferimento
+  // reale: la meta' larghezza dei fianchi di un giocatore (.24m),
+  // proiettata esattamente come la palla con lo stesso zoom/telecamera.
+  // In questo modo, vicino o lontano, la palla resta sempre grande una
+  // frazione coerente di un giocatore, invece di un numero di pixel fisso
+  // che "funziona" solo a una certa distanza.
+  const playerRef=p([bx+.24,.3+bl,bz]);
+  const playerHalfWidthPx=Math.hypot(playerRef.x-b.x,playerRef.y-b.y)||0;
+  const perspectivePx=Math.hypot(edge.x-b.x,edge.y-b.y)||0;
+  const br=clamp(Math.max(perspectivePx,playerHalfWidthPx*1.1,8),8,90);
   ctx.fillStyle='#06180c88';ctx.beginPath();ctx.ellipse(ground.x,ground.y,Math.max(3,br*1.3),Math.max(1.4,br*.6),0,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#fff';ctx.strokeStyle='#142537';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(b.x,b.y,br,0,Math.PI*2);ctx.fill();ctx.stroke();
  }

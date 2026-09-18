@@ -85,7 +85,18 @@ const FILLER=[
  ["Buona rotazione del pallone da un lato all'altro.","Cercano il varco giusto, prima o poi arriva."],
  ["Bel controllo orientato, si vede la qualità.","Dettagli che fanno la differenza, questi."],
  ["Intensità che cala un attimo, fisiologico.","Torneranno a spingere tra poco, vedrai."],
- ["Bel gesto tecnico, applausi anche dagli avversari.","Roba da vero campionato questo."]
+ ["Bel gesto tecnico, applausi anche dagli avversari.","Roba da vero campionato questo."],
+ /* FIX 2026-09 (28): "aggiorna i dialoghi falli piu' fluidi possibili,
+    l'altro che gli da del coglione praticamente ma si vogliono bene" -
+    aggiunte alcune battute di riempimento con un po' di stuzzicatura
+    affettuosa tra i due, senza mai essere cattivi: si punzecchiano come
+    due vecchi amici, non come due che litigano davvero. */
+ ["Io a questo ritmo un pronostico ce l\'avrei.","Ce l\'hai sempre, e sbagli sempre: vai tranquillo."],
+ ["Certi cambi di modulo li vedo solo io, evidentemente.","O forse dormivi durante l\'ultima sostituzione, chi lo sa."],
+ ["Bella lettura tattica quella, se posso dirlo.","Puoi dirlo, ogni tanto ci prendi pure tu."],
+ ["Io un po\' di fame comincio ad averla, lo confesso.","Come sempre al minuto trenta: sei un orologio, non un telecronista."],
+ ["Questa squadra mi sta piacendo parecchio stasera.","Ti piace sempre chi sta vincendo, diciamocelo con affetto."],
+ ["Ho visto un dettaglio che nessuno ha notato.","Come ogni volta che ti addormenti e poi ti risvegli di scatto."]
 ];
 const KICKOFF=[
  "Si comincia! {h} contro {a}, e qui stasera se ne vedranno delle belle (forse).",

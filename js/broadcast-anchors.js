@@ -36,25 +36,39 @@ const fill=(tpl,vars)=>tpl.replace(/\{(\w+)\}/g,(_,k)=>vars[k]??'');
    solo il nome di battesimo, e le frasi sono state accorciate/semplificate. */
 const firstName=n=>(n||'').split(' ')[0];
 
-// Ogni voce e' uno scambio a 2 battute (una per anchor): si mostra prima
-// l'una poi l'altra, mai insieme nella stessa riga.
+/* FIX 2026-09 (28): "aggiungerei ai telecronisti... una presentazione piu'
+   ampia di tutto quello che sta succedendo, una pre partita, una frase
+   storica buttala li', l'altro che gli da del coglione praticamente ma si
+   vogliono bene pero' ecco altrimenti sembrano due pazzi, aggiorna i
+   dialoghi falli piu' fluidi possibili" - prima l'ingresso in studio erano
+   solo 2 battute molto secche. Ora ogni voce e' una SEQUENZA A 3 BATTUTE
+   che racconta davvero la pre-partita (il contesto/l'attesa, un aneddoto o
+   numero buttato li' come fanno i veri telecronisti, e la battuta di chi
+   prende in giro il collega bonariamente) invece di un semplice saluto. Il
+   "prendersi in giro" resta SEMPRE affettuoso/da amici di vecchia data -
+   mai cattivo, mai "due pazzi che litigano" - cosi' si legge la stima
+   reciproca sotto la frecciatina.
+*/
 const ENTRANCE=[
- ['{a1}: Eccoci, campo pronto per {h}-{a}.','{a2}: Si comincia sul serio, {a1}.'],
- ['{a1}: {h} contro {a}, si parte.','{a2}: Vediamo come va, {a1}.'],
- ['{a1}: Squadre in campo, tutto pronto.','{a2}: Io un\'idea ce l\'ho, ma non la dico.'],
- ['{a1}: Bell\'ingresso stasera, eh {a2}?','{a2}: Aspettiamo il fischio, {a1}.'],
- ['{a1}: Pronti per {h}-{a}?','{a2}: Pronti come sempre.']
+ ['{a1}: Eccoci, campo pronto per {h}-{a}.','{a2}: Si sente gia\' la tensione, qui.','{a1}: E tu la senti sempre, {a2}, anche alle amichevoli d\'agosto.'],
+ ['{a1}: {h} contro {a}, si parte tra poco.','{a2}: Sai che ti dico, {a1}? Una sfida cosi\' non capita spesso.','{a1}: Vedi, quando vuoi le parole giuste le trovi anche tu.'],
+ ['{a1}: Squadre quasi in campo, tutto pronto.','{a2}: Io un\'idea sul risultato ce l\'ho, ma stasera non la dico.','{a1}: Non la dici mai, e infatti hai sempre ragione dopo.'],
+ ['{a1}: Bell\'atmosfera stasera, eh {a2}?','{a2}: Di quelle che si ricordano, {a1}. Anche se tu te ne dimentichi sempre.','{a1}: Io? Mai una partita, e lo sai benissimo.'],
+ ['{a1}: Pronti per {h}-{a}?','{a2}: Pronti come sempre, io. Tu invece hai ancora il caffe\' in mano.','{a1}: Serve lucidita\' per sopportarti novanta minuti, {a2}.'],
+ ['{a1}: Si respira una bella aria di attesa in giro per lo stadio.','{a2}: L\'ultima volta che si sono affrontate cosi\' se ne parlo\' per settimane, se ricordo bene.','{a1}: Ricordi sempre tutto tranne dove hai messo gli occhiali, pero\' su questo hai ragione.'],
+ ['{a1}: Tribune quasi piene, striscioni ovunque: si vede che questa la aspettavano.','{a2}: E si vede anche te, {a1}, che stai gia\' sudando dall\'emozione.','{a1}: Guarda che sono io quello con l\'esperienza qui, {a2}.'],
+ ['{a1}: Bell\'ingresso stasera, campo che luccica sotto i riflettori.','{a2}: Peccato solo che al mio fianco ci sia sempre lo stesso brontolone.','{a1}: E tu senza di me non sapresti nemmeno da che porta iniziano.']
 ];
 const ANTHEM=[
- ['{a1}: Un attimo di silenzio, {a2}.','{a2}: Si prova, si prova.'],
- ['{a1}: Bell\'atmosfera stasera.','{a2}: Meglio di altre volte, devo dire.'],
- ['{a1}: Guarda le facce dei giocatori.','{a2}: C\'e\' chi canta e chi pensa gia\' alla partita.'],
- ['{a1}: Un classico prima del fischio.','{a2}: Sempre bello vederlo, {a1}.']
+ ['{a1}: Un attimo di silenzio, {a2}.','{a2}: Si prova, si prova. Anche tu ogni tanto stai zitto, sai?'],
+ ['{a1}: Bell\'atmosfera stasera.','{a2}: Meglio di altre volte, devo dire. E lo dico senza esagerare, per una volta.'],
+ ['{a1}: Guarda le facce dei giocatori.','{a2}: C\'e\' chi canta e chi pensa gia\' alla partita. Tu a cosa pensi di solito, {a1}?'],
+ ['{a1}: Un classico prima del fischio.','{a2}: Sempre bello vederlo, {a1}. Anche dopo tutti questi anni insieme.']
 ];
 const TROPHY=[
- ['{a1}: La coppa va a {h}!','{a2}: Meritata, {a1}.'],
- ['{a1}: Che serata per {h}.','{a2}: Se la ricorderanno a lungo.'],
- ['{a1}: Applausi per {h}.','{a2}: Se lo sono guadagnato.']
+ ['{a1}: La coppa va a {h}!','{a2}: Meritata, {a1}. Su questo per una volta siamo d\'accordo.'],
+ ['{a1}: Che serata per {h}.','{a2}: Se la ricorderanno a lungo, {a1}. Un po\' come noi due qui insieme.'],
+ ['{a1}: Applausi per {h}.','{a2}: Se lo sono guadagnato sul campo, altro che.']
 ];
 const pick2=bank=>pick(bank);
 
@@ -137,6 +151,27 @@ function drawStudio(ctx,w,h,progress,phase){
   g.player(scene,1.75,0,suit,0,-.18,1.08,'',false,0);
   scene.box([-1.75,1.34,.2],[.17,.44,.06],state.tie1);
   scene.box([1.75,1.34,.2],[.17,.44,.06],state.tie2);
+  /* FIX 2026-09 (28): "aggiungerei ai telecronisti microfoni cuffie ed
+     ambiente piu' preciso" - prima i due presentatori erano "a mani nude",
+     senza nessun accessorio da studio televisivo vero. Aggiunte qui due
+     cuffie (fascia sopra la testa + padiglioni ai lati, ruotate secondo
+     l'angolo di ciascun presentatore, stesso schema di rotazione usato
+     internamente da player() per le membra) e due microfoni da tavolo
+     piantati sul bancone davanti a ciascuno, con base, asta e capsula. */
+  const headphone=(px,pz,angle,scale)=>{
+   const c=Math.cos(angle),sn=Math.sin(angle);
+   const rot=(dx,dy,dz,w,h,d,color)=>scene.box([px+(dx*c+dz*sn)*scale,dy*scale,pz+(-dx*sn+dz*c)*scale],[w*scale,h*scale,d*scale],color);
+   rot(0,1.985,0,.36,.055,.34,'#12151c');
+   rot(-.2,1.78,0,.075,.15,.15,'#12151c');rot(.2,1.78,0,.075,.15,.15,'#12151c');
+   rot(-.2,1.78,.04,.03,.09,.03,'#333a46');rot(.2,1.78,.04,.03,.09,.03,'#333a46');
+  };
+  headphone(-1.75,0,.18,1.08);headphone(1.75,0,-.18,1.08);
+  const deskMic=x=>{
+   scene.box([x,1.19,1.58],[.16,.05,.16],'#0e1520');
+   scene.box([x,1.42,1.58],[.035,.42,.035],'#1c222c');
+   scene.box([x,1.66,1.6],[.13,.13,.13],'#2b323e');
+  };
+  deskMic(-1.35);deskMic(1.35);
   /* FIX 2026-09: prima il bancone finiva appena sopra il bacino e ai bordi
      dell'inquadratura si vedevano i calzoncini - alzato un poco (fino a
      poco sopra la vita, ~1.15) e reso piu' profondo, cosi' resta un margine
@@ -166,7 +201,12 @@ function drawStudio(ctx,w,h,progress,phase){
  }
  const lines=phase==='entrance'?state.entranceLines:phase==='anthem'?state.anthemLines:phase==='trophy'?state.trophyLines:phase==='halftime'?state.halftimeLines:state.fulltimeLines;
  if(!lines)return '';
- return lines[progress<.5?0:1]||lines[0]||'';
+ // FIX 2026-09 (28): prima si mostravano solo 2 battute (indice 0/1 fisso)
+ // anche quando una voce ne aveva 3: la terza (la frecciatina finale)
+ // restava tagliata fuori. Ora l'indice si adatta alla lunghezza reale
+ // dell'array, cosi' ogni battuta della sequenza si vede per intero.
+ const idx=Math.min(lines.length-1,Math.floor(progress*lines.length));
+ return lines[idx]||lines[0]||'';
 }
 
 function ensureOverlay(){
@@ -208,7 +248,9 @@ function runOverlay(phase,duration){
 
 function studioIntro(options){
  setup(options);
- return runOverlay('entrance',4200);
+ // Sequenza a 3 battute ora (prima 2): tempo allungato cosi' si fa in tempo
+ // a leggere anche l'ultima, senza sembrare frettolosa.
+ return runOverlay('entrance',6000);
 }
 function recap(options){
  setup(options);
