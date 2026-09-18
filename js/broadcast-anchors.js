@@ -49,7 +49,7 @@ const TROPHY=[
 const pick2=bank=>pick(bank);
 
 let overlay,canvas,ctx;
-const state={a1:'Piero Malaspina',a2:'Furio Stracci',tie1:'#c0392b',tie2:'#2980b9',h:'',a:'',channel:'S9 90',entranceLines:null,anthemLines:null,fulltimeLines:null,trophyLines:null};
+const state={a1:'Piero Malaspina',a2:'Furio Stracci',tie1:'#c0392b',tie2:'#2980b9',h:'',a:'',channel:'S9 90',entranceLines:null,anthemLines:null,fulltimeLines:null,trophyLines:null,halftimeLines:null};
 
 function setup(options){
  const channel=options?.channel||'S9 90',seed=hashStr(channel);
@@ -79,6 +79,28 @@ function setResult(options){
   ['{a1}: Pareggio tra {h} e {a}, {sh} a {sa}.','{a2}: Giusto cosi\', {a1}, o quasi.']
  ];
  state.fulltimeLines=pick2(bank).map(l=>fill(l,vars));
+}
+/* FIX 2026-09: stacco in studio anche all'intervallo (richiesta di un
+   tester: "il commento dei presentatori anche all'intervallo"), con testi
+   dedicati al "per ora" invece del riepilogo finale - stesso schema a 3
+   esiti (avanti/sotto/pari) del fine partita. */
+function setHalftime(options){
+ const {scoreH,scoreA}=options||{};
+ const vars={a1:state.a1,a2:state.a2,h:state.h,a:state.a,sh:scoreH,sa:scoreA};
+ let bank;
+ if(scoreH>scoreA)bank=[
+  ['{a1}: All\'intervallo comanda {h}, {sh} a {sa}.','{a2}: {a} deve cambiare qualcosa nel secondo tempo, {a1}.'],
+  ['{a1}: Si va negli spogliatoi con {h} avanti {sh} a {sa}.','{a2}: Vedremo che mister ne esce, {a1}.']
+ ];
+ else if(scoreA>scoreH)bank=[
+  ['{a1}: Al riposo avanti {a}, {sa} a {sh}.','{a2}: {h} ha 15 minuti per sistemare le cose, {a1}.'],
+  ['{a1}: {a} negli spogliatoi in vantaggio {sa} a {sh}.','{a2}: Secondo tempo da vivere per {h}, {a1}.']
+ ];
+ else bank=[
+  ['{a1}: Si va al riposo in parita\', {sh} a {sa}.','{a2}: Tutto ancora aperto, {a1}, come piace a noi.'],
+  ['{a1}: Primo tempo equilibrato tra {h} e {a}.','{a2}: {sh} a {sa}, il secondo tempo dira\' il resto, {a1}.']
+ ];
+ state.halftimeLines=pick2(bank).map(l=>fill(l,vars));
 }
 function setChampion(championLabel){
  const vars={a1:state.a1,a2:state.a2,h:championLabel||state.h};
@@ -132,7 +154,7 @@ function drawStudio(ctx,w,h,progress,phase){
   ctx.fillStyle='#0d2038';ctx.fillRect(0,0,w,h);
   ctx.fillStyle='#f4e5b5';ctx.font='900 16px Arial';ctx.textAlign='center';ctx.fillText('STUDIO',w/2,h/2);
  }
- const lines=phase==='entrance'?state.entranceLines:phase==='anthem'?state.anthemLines:phase==='trophy'?state.trophyLines:state.fulltimeLines;
+ const lines=phase==='entrance'?state.entranceLines:phase==='anthem'?state.anthemLines:phase==='trophy'?state.trophyLines:phase==='halftime'?state.halftimeLines:state.fulltimeLines;
  if(!lines)return '';
  return lines[progress<.5?0:1]||lines[0]||'';
 }
@@ -183,6 +205,14 @@ function recap(options){
  setResult(options);
  return runOverlay('fulltime',4200);
 }
+function halftime(options){
+ // setup() rigenera la STESSA coppia/cravatte (hash deterministico sul
+ // nome del canale, gia' scelto a inizio partita), quindi richiamarlo qui
+ // e' sicuro: i presentatori restano coerenti dall'ingresso al recap finale.
+ setup(options);
+ setHalftime(options);
+ return runOverlay('halftime',3600);
+}
 
-window.S9Anchors={setup,setResult,setChampion,drawStudio,studioIntro,recap};
+window.S9Anchors={setup,setResult,setChampion,drawStudio,studioIntro,recap,halftime};
 })();

@@ -3189,6 +3189,8 @@ html.s9-phone-landscape #simpleMessage{
 .v10-competition-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border-bottom:1px solid rgba(208,176,87,.55);padding-bottom:8px}.v10-competition-head .v10-title{margin:0;padding:0;border:0;font-size:clamp(24px,2.2vw,36px)}.v10-stage{justify-self:end;color:var(--v10-gold);font-weight:900}.v10-userclub{font-size:12px;color:#e8dfca}
 .v10-tabs{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}.v10-tabs button{min-height:32px;padding:4px 9px;font-size:10px}.v10-tabs button.active{background:var(--v10-gold);color:#11182a}
 #v10TournamentContent{min-height:0;overflow:auto;padding:5px}
+/* FIX 2026-09: riga ironica nelle schermate coppe in carriera. */
+.euro-flavor{margin:2px 0 8px;font-style:italic;font-size:12px;line-height:1.4;color:#c9d6e5;opacity:.85}
 .v10-groups-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.v10-group{background:rgba(235,228,208,.95);color:#162039;border:1px solid rgba(208,176,87,.65);padding:8px}.v10-group h3{margin:0 0 5px;background:#10265f;color:#fff;padding:5px;text-align:center}.v10-group table{width:100%;font-size:11px;border-collapse:collapse}.v10-group th,.v10-group td{padding:3px 5px;border-bottom:1px solid rgba(16,38,95,.15)}.v10-group tr.user{outline:2px solid var(--v10-gold);font-weight:900}.v10-group tr.qual{background:#dce8c8}
 .v10-next-card{display:grid;grid-template-columns:minmax(0,1fr) 70px minmax(0,1fr);align-items:center;gap:18px;width:min(920px,100%);margin:12px auto;padding:20px;background:rgba(7,24,57,.82);border:1px solid var(--v10-gold);text-align:center}.v10-next-team{display:grid;grid-template-columns:80px minmax(0,1fr);align-items:center;gap:10px;font:900 20px/1 Arial Narrow,Arial}.v10-next-team.away{grid-template-columns:minmax(0,1fr) 80px}.v10-next-team.away img{grid-column:2}.v10-next-team.away span{grid-column:1;grid-row:1}.v10-next-team img{width:76px;height:76px;object-fit:contain}.v10-vs{font:900 30px/1 Impact,Arial;color:var(--v10-gold)}
 .v10-bracket{display:grid;grid-template-columns:repeat(4,minmax(190px,1fr));gap:12px;align-items:start}.v10-round h3{text-align:center;color:var(--v10-gold);margin:0 0 8px}.v10-tie{background:rgba(241,234,214,.94);color:#172139;border:1px solid #837446;padding:7px;margin-bottom:7px;font-size:11px}.v10-tie.user{outline:2px solid var(--v10-gold)}.v10-scoreline{display:flex;justify-content:space-between;gap:6px}.v10-win{font-weight:900;color:#0a5c36}
@@ -5664,7 +5666,12 @@ html{background:#05070c!important;}
 #exhibitionSetup{overflow-y:auto!important;background:radial-gradient(ellipse at top,#264d63,#081529 70%)!important;color:#f5ecd3;padding:40px 18px}
 .s9-exhibition-shell{max-width:950px;margin:0 auto;padding:28px;background:#0b2039e8;border:1px solid #c4a967;border-radius:10px}
 .s9-exhibition-kicker{font-size:11px;letter-spacing:.18em;color:#dbc17e;font-weight:bold}
-.s9-exhibition-shell h1{font-size:clamp(25px,4vw,40px);margin:10px 0}
+/* FIX 2026-09: rifinitura visiva richiesta da un tester - il titolo di
+   Amichevole usava il font generico del browser mentre la scelta club usa
+   sempre lo stesso Trebuchet MS 900 crema con ombra (.s9-picker-name),
+   cosi' le due schermate sembravano di "stili" diversi pur condividendo
+   gia' bordo/oro/sfondo. Stesso trattamento qui, struttura invariata. */
+.s9-exhibition-shell h1{font:900 clamp(25px,4vw,40px)/1.1 "Trebuchet MS",Arial,sans-serif;color:#fff4cf;text-shadow:0 2px 6px #000,0 1px 2px #000;margin:10px 0}
 .s9-exhibition-shell p{line-height:1.5;color:#d6deea}
 .s9-exhibition-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:24px 0}
 .s9-exhibition-grid label{display:flex;flex-direction:column;gap:8px;font-weight:700;color:#e9d495;min-width:0}
@@ -5851,7 +5858,12 @@ button,input,select{font-family:var(--s9-font-ui)!important}
 #exhibitionSetup .s9-picker-crest img{max-width:100%;max-height:100%;object-fit:contain}
 #exhibitionSetup .s9-picker-crest span{display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.08);color:#f0e8d2;font:900 16px var(--s9-font-ui);margin:0 auto}
 #exhibitionSetup .s9-picker-arrow{width:36px;min-height:44px;color:#fff4cf;background:#12356f;border:1px solid var(--s9-gold);border-radius:6px;cursor:pointer}
-#exhibitionSetup .s9-picker-name{margin-top:6px;font:700 13px var(--s9-font-copy);color:#fff}
+/* FIX 2026-09: stesso trattamento del nome squadra della scelta club
+   (Trebuchet MS 900, crema, ombra) invece del testo bianco generico di
+   prima - qui il font era piu' piatto pur condividendo gia' la stessa
+   classe CSS con quella schermata. */
+#exhibitionSetup .s9-picker-name{margin-top:6px;font:900 15px/1.15 "Trebuchet MS",Arial,sans-serif;color:#fff4cf;text-shadow:0 2px 5px #000,0 1px 2px #000}
+#exhibitionSetup .s9-stadium-name{font:900 clamp(17px,2.2vw,22px)/1.15 "Trebuchet MS",Arial,sans-serif;color:#fff4cf;text-shadow:0 2px 5px #000,0 1px 2px #000}
 #exhibitionSetup .s9-picker-neighbor{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:56px;padding:3px;background:rgba(255,255,255,.05);border:1px solid rgba(217,186,92,.3);border-radius:8px;cursor:pointer;opacity:.7}
 #exhibitionSetup .s9-picker-neighbor:hover{opacity:1}
 #exhibitionSetup .s9-picker-neighbor img,#exhibitionSetup .s9-picker-neighbor span{width:28px;height:28px;object-fit:contain}

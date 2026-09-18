@@ -450,7 +450,15 @@ function pickerDescription(t){
  const m=teamMeta[t.id]||{};
  return `<div class="s9-picker-label">${isNational(t.id)?'NAZIONALE':'CLUB STORICO'}</div><p>${escapeHTML(t.name)} · ${escapeHTML(t.season)}</p><dl><dt>${isNational(t.id)?'NAZIONE':'CITTÀ'}</dt><dd>${escapeHTML(isNational(t.id)?t.name:m.city||t.country||'Italia')}</dd><dt>STADIO</dt><dd>${escapeHTML(m.stadium||'Stadio storico')}</dd><dt>ALLENATORE</dt><dd>${escapeHTML(t.coach||'—')}</dd></dl>`;
 }
-function pickerRating(t){return `<div class="s9-picker-label">OVR</div><div class="s9-picker-ovr">${t.strength}</div><div class="s9-picker-label">MODULI</div><div class="s9-picker-formations">${t.formations.map(escapeHTML).join('<br>')}</div>`}
+/* FIX 2026-09: questa funzione sostituisce interamente l'HTML del riquadro
+   destro DOPO che il picker base (index.html) ci aveva gia' disegnato il
+   pentagono delle forze - il pentagono quindi non si vedeva mai nelle
+   schermate che passano da qui (carriera/coppe). Richiamato qui lo stesso
+   pentagono, con lo stesso ordine OVR → pentagono → MODULI del picker base. */
+function pickerRating(t){
+ const pentagon=(typeof teamPentagon==='function'&&typeof pentagonSVG==='function')?pentagonSVG(teamPentagon(t)):'';
+ return `<div class="s9-picker-label">OVR</div><div class="s9-picker-ovr">${t.strength}</div>${pentagon}<div class="s9-picker-label">MODULI</div><div class="s9-picker-formations">${t.formations.map(escapeHTML).join('<br>')}</div>`;
+}
 function renderCupPicker(){
  const id=V10.pickerPool[V10.pickerIndex],t=T(id);if(!t)return;
  q('#v10PickerDescription').innerHTML=pickerDescription(t);q('#v10PickerRating').innerHTML=pickerRating(t);
@@ -572,9 +580,39 @@ function syncCupCalendar(c){
    }
  }
 }
+/* FIX 2026-09: le schermate di scelta/presentazione coppe in carriera erano
+   solo dati nudi (nome, fase, prossimo turno) - un tester ha chiesto un
+   tocco di ironia/parodia qui, come gia' nelle frasi pre-partita. Una riga
+   ironica per coppa, scelta in modo deterministico per stagione cosi' non
+   cambia a ogni ridisegno della stessa schermata. */
+const CUP_FLAVOR={
+ italia:[
+  "La coppa che tutti dicono di non seguire, e che tutti guardano fino alla finale.",
+  "Trofeo minore, dicono. Poi la sollevi e diventa improvvisamente storia del club.",
+  "Turno infrasettimanale: la scusa perfetta per il turnover, quella vera per uscire col Girone B.",
+  "Vince chi la prende sul serio. Perde chi manda in campo mezza Primavera e se ne pente."
+ ],
+ cdc:[
+  "La notte europea per eccellenza: quella in cui anche il magazziniere si mette la cravatta.",
+  "Qui le big si affrontano davvero. O almeno cosi' dicono i comunicati stampa.",
+  "Ogni sorteggio e' una piccola tragedia annunciata, ogni girone un'occasione da non sprecare.",
+  "La coppa dei campioni, appunto: peccato che qualcuno arrivi sempre convinto di esserlo senza esserlo."
+ ],
+ uefa:[
+  "La seconda coppa europea: quella che nessuno ammette di preferire, ma che tutti seguono comunque.",
+  "Trasferte infinite, pullman scomodi, e ogni tanto una notte da ricordare davvero.",
+  "Meno riflettori, stessa fame di vincere. O quasi.",
+  "La coppa di chi non ce l'ha fatta nell'altra e vuole dimostrare qualcosa, per una volta."
+ ]
+};
+function cupFlavor(key,seed){
+ const arr=CUP_FLAVOR[key]||CUP_FLAVOR.italia;
+ let h=0;for(const c of String(seed))h=(h*31+c.charCodeAt(0))>>>0;
+ return arr[h%arr.length];
+}
 function careerCupSummary(state){
  const userIn=state.participants.includes(career.user),m=userIn?nextUserTournamentMatch(state):null;
- return `<div class="euro-card"><h3>${state.name}</h3><div class="euro-stage">${state.completed?'CONCLUSA':stageLabel(state.phase)}</div>${state.completed?`<h2>🏆 ${teamLabel(state.champion)}</h2>`:userIn?(m?`<div class="euro-match">Prossima: ${teamLabel(m.h)} vs ${teamLabel(m.a)}</div><button class="primary" data-careercup="${state.key}" ${cupSlot(state)>career.round?'disabled':''}>${v4FmtDate(cupDate(state))} · GIOCA PROSSIMA ▶</button>`:`<div class="euro-match">In attesa del turno successivo.</div>`):`<div class="euro-match">La tua squadra non partecipa. Competizione simulata.</div>`}<button type="button" data-cup-bracket="${state.key}">APRI TABELLONE / RISULTATI ▸</button></div>`;
+ return `<div class="euro-card"><h3>${state.name}</h3><p class="euro-flavor">» ${cupFlavor(state.key,state.key+(career?.seasonYear||''))}</p><div class="euro-stage">${state.completed?'CONCLUSA':stageLabel(state.phase)}</div>${state.completed?`<h2>🏆 ${teamLabel(state.champion)}</h2>`:userIn?(m?`<div class="euro-match">Prossima: ${teamLabel(m.h)} vs ${teamLabel(m.a)}</div><button class="primary" data-careercup="${state.key}" ${cupSlot(state)>career.round?'disabled':''}>${v4FmtDate(cupDate(state))} · GIOCA PROSSIMA ▶</button>`:`<div class="euro-match">In attesa del turno successivo.</div>`):`<div class="euro-match">La tua squadra non partecipa. Competizione simulata.</div>`}<button type="button" data-cup-bracket="${state.key}">APRI TABELLONE / RISULTATI ▸</button></div>`;
 }
 function renderCareerCups(){
  const c=q('#seasonContent');if(!career.v10Cups)initCareerCups(career,career.qualified);

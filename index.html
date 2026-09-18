@@ -1858,6 +1858,9 @@ async function launchMatch(){
  paused=true;
  $("#halftimeScore").innerHTML=`<h2>${T(current.h).name} ${T(current.h).season} ${current.scoreH} - ${current.scoreA} ${T(current.a).name} ${T(current.a).season}</h2>`;
  $("#halftimeStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}`;
+ /* FIX 2026-09: stacco in studio anche all'intervallo, non solo prima
+    dell'ingresso in campo e a fine partita (richiesta di un tester). */
+ if(window.S9Anchors?.halftime)await S9Anchors.halftime({h:T(current.h).name,a:T(current.a).name,scoreH:current.scoreH,scoreA:current.scoreA,channel:current.channel});
  const intervalDone=new Promise(r=>halfResolver=r);if(!window.S9Match3D?.showInterval?.())show("halftime");await intervalDone;window.S9Match3D?.endInterval?.();paused=false;$("#pauseBtn").textContent="⏸ PAUSA";show("match");if(window.S9MatchVisual?.kickoff)await S9MatchVisual.kickoff(coinToss?.kickoffSide==='away'?'home':'away');await playHalf(46,90);log("90' FINE PARTITA");
  {const j=window.S9Commentary?.fulltime?.(T(current.h).name,T(current.a).name,current.scoreH,current.scoreA);if(j)log(`90' 🎙️ ${j}`,"neutral");}
  /* FIX 2026-09: i telecronisti dell'emittente della partita ricompaiono per

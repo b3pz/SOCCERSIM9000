@@ -192,7 +192,11 @@ function boot(){
      classi CSS (.s9-picker-label/-ovr/-formations) gia' usate li',
      cosi' l'aspetto e' identico senza bisogno di nuovo CSS. */
   const ratingEl=q('#'+side+'Rating');
-  if(ratingEl)ratingEl.innerHTML=`<div class="s9-picker-label">OVR</div><div class="s9-picker-ovr">${t.strength}</div><div class="s9-picker-label">MODULI</div><div class="s9-picker-formations">${(t.formations||[]).join('<br>')}</div>`;
+  /* FIX 2026-09: aggiunto anche qui il pentagono delle forze (stesse
+     funzioni teamPentagon/pentagonSVG del picker base), richiesto da un
+     tester come idea PES - prima Amichevole mostrava solo OVR+moduli. */
+  const pentagon=(typeof teamPentagon==='function'&&typeof pentagonSVG==='function'&&t.players)?pentagonSVG(teamPentagon(t)):'';
+  if(ratingEl)ratingEl.innerHTML=`<div class="s9-picker-label">OVR</div><div class="s9-picker-ovr">${t.strength}</div>${pentagon}<div class="s9-picker-label">MODULI</div><div class="s9-picker-formations">${(t.formations||[]).join('<br>')}</div>`;
   /* FIX 2026-09: anteprime maglia (prima/seconda divisa), stessa idea gia'
      usata in Carriera/Coppe - prima qui in Amichevole non si vedevano. */
   const homeKitEl=q('#'+side+'KitHome'),awayKitEl=q('#'+side+'KitAway');
