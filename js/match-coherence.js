@@ -267,7 +267,21 @@
       if(e.source==='penalty'){
         const keeper=dots(opposite(side)).find(d=>d.dataset.role==='GK'),spot=at(89.52,50);
         label('CALCIO DI RIGORE');
-        await move([...['home','away'].flatMap(team=>field(team).filter(d=>d!==shooter).map((d,i)=>({el:d,...at(72-i%4*2,16+i*3)}))),{el:keeper,...at(99.5,50)},{el:shooter,...at(86,50)},{el:ball(),...spot}],900);
+        /* FIX 2026-09 (32): "la squadra si mette tutta da una parte" -
+           prima TUTTI i giocatori di ENTRAMBE le squadre (tranne portiere e
+           tiratore) finivano nella stessa fascia stretta, sovrapposti gli
+           uni sugli altri: l'indice usato per calcolare la posizione
+           ripartiva da zero per ogni squadra dentro il flatMap, quindi casa
+           e ospiti si sovrapponevano esattamente nella stessa zona. Ora i
+           difendenti si dispongono lungo il bordo dell'area (come i veri
+           calci di rigore) e gli attaccanti restano piu' arretrati, in
+           attesa di un'eventuale ribattuta - due gruppi distinti invece di
+           un unico ammasso indistinguibile.
+        */
+        const waitingDefenders=field(opposite(side)).filter(d=>d!==keeper);
+        const waitingAttackers=field(side).filter(d=>d!==shooter);
+        const spread=(list,x,yFrom,yTo)=>list.map((d,i)=>({el:d,...at(x,list.length>1?yFrom+i*((yTo-yFrom)/(list.length-1)):(yFrom+yTo)/2)}));
+        await move([...spread(waitingDefenders,82,20,80),...spread(waitingAttackers,64,26,74),{el:keeper,...at(99.5,50)},{el:shooter,...at(86,50)},{el:ball(),...spot}],900);
         await move([],800);label('RINCORSA');await move([{el:shooter,...spot}],650);
         const y=outcome==='miss'?(seed%2?38:62):seed%2?46:54;
         label('TIRO DAL DISCHETTO');
@@ -341,12 +355,20 @@
     try{
       const passer=field(side).find(d=>d!==attacker);if(!passer)return;
       const start=pos(passer);if(ball()){ball().style.left=start.x+'%';ball().style.top=start.y+'%';}
-      await move([{el:attacker,...target}],300);label('PASSAGGIO IN PROFONDITÀ');
-      await move([{el:ball(),...target}],600);label('FUORIGIOCO');
+      /* FIX 2026-09 (32): "sono tutti troppo veloci e non si capisce se alza
+         la bandierina o no" - la sequenza durava meno di un secondo in
+         tutto (300ms+600ms), la bandierina restava alzata solo 1000ms e
+         nel frattempo la linea gialla spariva subito dopo: impossibile da
+         leggere. Rallentata (450+750ms), la linea resta visibile un attimo
+         in piu' dopo il fischio, e la bandierina resta alzata piu' a lungo
+         e PRIMA che la linea sparisca, non in parallelo/dopo. */
+      await move([{el:attacker,...target}],450);label('PASSAGGIO IN PROFONDITÀ');
+      await move([{el:ball(),...target}],750);label('FUORIGIOCO');
       // FIX 2026-09 (30): "cos'altro potrebbero fare? il guardalinee..." -
       // il fuorigioco prima era segnalato solo dalla linea gialla a
       // schermo, senza alcun gesto fisico del guardalinee.
-      window.S9Match3D?.linesmanFlag?.(1000);
+      window.S9Match3D?.linesmanFlag?.(1700);
+      await new Promise(r=>setTimeout(r,900));
     }
     finally{line.remove();carrier=null;possession=opposite(side);}
   };

@@ -934,10 +934,20 @@ function render(now){
   // In questo modo, vicino o lontano, la palla resta sempre grande una
   // frazione coerente di un giocatore, invece di un numero di pixel fisso
   // che "funziona" solo a una certa distanza.
+  // FIX 2026-09 (32): "vista dall'alto la palla e' enorme, va bene se poi
+  // mantiene la proporzione con i calciatori" - il minimo fisso di 8px
+  // sotto risolveva la palla-puntino nei replay ravvicinati, ma nella vista
+  // larga dall'alto (dove i giocatori sono minuscoli, pochi pixel) quello
+  // stesso minimo restava fisso e la palla finiva per sembrare enorme A
+  // CONFRONTO con loro - lo stesso problema di prima, capovolto. Il minimo
+  // assoluto scende a un valore che serve solo a non far sparire la palla
+  // del tutto (mai piu' piccola di ~3px), cosi' il riferimento proporzionale
+  // ai giocatori (playerHalfWidthPx) resta quello che decide davvero la
+  // dimensione anche nelle inquadrature larghissime.
   const playerRef=p([bx+.24,.3+bl,bz]);
   const playerHalfWidthPx=Math.hypot(playerRef.x-b.x,playerRef.y-b.y)||0;
   const perspectivePx=Math.hypot(edge.x-b.x,edge.y-b.y)||0;
-  const br=clamp(Math.max(perspectivePx,playerHalfWidthPx*1.1,8),8,90);
+  const br=clamp(Math.max(perspectivePx,playerHalfWidthPx*1.1,3),3,90);
   ctx.fillStyle='#06180c88';ctx.beginPath();ctx.ellipse(ground.x,ground.y,Math.max(3,br*1.3),Math.max(1.4,br*.6),0,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#fff';ctx.strokeStyle='#142537';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(b.x,b.y,br,0,Math.PI*2);ctx.fill();ctx.stroke();
  }

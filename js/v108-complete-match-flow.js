@@ -286,7 +286,13 @@ function chance(min,side){
 function foul(min,side){const id=side==='home'?current.h:current.a;return {min,type:'foul',side,player:randomPlayer(id)}}
 function card(min,side){const id=side==='home'?current.h:current.a;return {min,type:Math.random()<.08?'red':'yellow',side,player:randomPlayer(id)}}
 function extraEvents(){
- const ev=[];for(let i=0,n=rand(3,6);i<n;i++){const min=rand(92,118),side=Math.random()<.5?'home':'away',r=Math.random();ev.push(r<.58?chance(min,side):r<.88?foul(min,side):card(min,side));}
+ // FIX 2026-09 (32): "la telecronaca è piantata durante i supplementari a
+ // meno che non faccia gol qualcuno" - con solo 3-6 eventi su 30 minuti
+ // (contro decine nei tempi regolamentari) restava facile non avere NESSUN
+ // evento con battuta per minuti reali di fila, sembrando bloccata. Densita'
+ // alzata, resta comunque piu' bassa del tempo regolamentare (i supplementari
+ // sono storicamente piu' stanchi/attendisti) ma non piu' silenziosa.
+ const ev=[];for(let i=0,n=rand(6,11);i<n;i++){const min=rand(92,118),side=Math.random()<.5?'home':'away',r=Math.random();ev.push(r<.58?chance(min,side):r<.88?foul(min,side):card(min,side));}
  if(Math.random()<.58){
    const hp=typeof lineupPower==='function'?lineupPower(current.h):(T(current.h)?.strength||80),ap=typeof lineupPower==='function'?lineupPower(current.a):(T(current.a)?.strength||80);
    const winner=Math.random()<hp/(hp+ap)?current.h:current.a,side=winner===current.h?'home':'away',scorer=randomPlayer(winner),assistPool=outfield(winner).filter(p=>p.id!==scorer.id);

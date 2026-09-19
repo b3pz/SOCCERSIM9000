@@ -735,7 +735,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.18</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.19</span></span></div>
 </div>
 <main>
 
@@ -767,7 +767,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.18
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.19
     </div>
   </div>
 </section>
@@ -2191,6 +2191,11 @@ async function doEvent(e){
    window.S9SFX?.offsideBlip?.();
    await window.S9MatchVisual?.offside?.(e);
    await wait(window.S9Match3D&&S9Match3D.mode!=="2d"?500:850);
+   /* FIX 2026-09 (32): "ci vorrebbero i replay anche per i fuorigioco" -
+      niente stacco studio completo (troppo frequente, diventerebbe
+      stucchevole), solo un breve replay ravvicinato come quello del gol,
+      gated a bassa probabilita'. */
+   if(Math.random()<.3)await showIncidentReplay(e.side);
    setupPitch();hidePitch();
  }
 
@@ -2421,13 +2426,45 @@ async function launchMatch(){
  try{window.S9SFX?.startAmbientCrowd?.()}catch(e){console.warn("audio",e)}
  await playHalf(46,90);
  try{window.S9SFX?.stopAmbientCrowd?.()}catch(e){console.warn("audio",e)}
- log("90' FINE PARTITA");
+ /* FIX 2026-09 (32): "la telecronaca è piantata durante i supplementari, dice
+    fine partita e chiude mentre si gioca ancora" - questo blocco al 90' era
+    SEMPRE incondizionato: diceva "FINE PARTITA... la telecronaca chiude
+    qui" e richiamava lo stacco finale in studio anche quando la partita, in
+    un turno a eliminazione diretta con pareggio, doveva proseguire ai
+    supplementari. willExtraTime() replica la stessa condizione usata da
+    S9V10.finishPlayedTie() per capire IN ANTICIPO se si andra' oltre il
+    90'; in quel caso ci si limita a un fischio neutro di fine tempi
+    regolamentari, e il vero commento/stacco di chiusura si sposta DOPO
+    S9V10.finishPlayedTie() (quindi dopo supplementari/rigori), con il
+    punteggio vero e definitivo invece di quello, magari ancora in
+    parita', del 90'. */
+ const willExtraTime=(()=>{
+   const ctx=window.S9V10?.matchContext;if(!ctx||ctx.match?.kind!=='knockout')return false;
+   const tie=ctx.match.tie;if(!tie||tie.directPens)return false;
+   let tied=current.scoreH===current.scoreA;
+   if(tie.twoLeg){
+     if(ctx.match.leg===1)return false;
+     const first=tie.legs[0];tied=first.hg+current.scoreA===first.ag+current.scoreH;
+     if(tied&&tie.awayGoals&&current.scoreA!==first.ag)return false;
+   }
+   return tied;
+ })();
  window.S9SFX?.fullTimeWhistle?.();
- {const j=window.S9Commentary?.fulltime?.(T(current.h).name,T(current.a).name,current.scoreH,current.scoreA);if(j)log(`90' 🎙️ ${j}`,"neutral");}
- /* FIX 2026-09: i telecronisti dell'emittente della partita ricompaiono per
-    il riepilogo finale (tap per chiudere subito, altrimenti si chiude da sola). */
- if(window.S9Anchors?.recap)await S9Anchors.recap({h:T(current.h).name,a:T(current.a).name,scoreH:current.scoreH,scoreA:current.scoreA,channel:current.channel});
+ if(willExtraTime){
+   log("90' FINE TEMPI REGOLAMENTARI - Il punteggio resta in parita'.");
+ }else{
+   log("90' FINE PARTITA");
+   {const j=window.S9Commentary?.fulltime?.(T(current.h).name,T(current.a).name,current.scoreH,current.scoreA);if(j)log(`90' 🎙️ ${j}`,"neutral");}
+   /* FIX 2026-09: i telecronisti dell'emittente della partita ricompaiono per
+      il riepilogo finale (tap per chiudere subito, altrimenti si chiude da sola). */
+   if(window.S9Anchors?.recap)await S9Anchors.recap({h:T(current.h).name,a:T(current.a).name,scoreH:current.scoreH,scoreA:current.scoreA,channel:current.channel});
+ }
  if(window.S9V10?.finishPlayedTie)await S9V10.finishPlayedTie();
+ if(willExtraTime){
+   window.S9SFX?.fullTimeWhistle?.();
+   {const j=window.S9Commentary?.fulltime?.(T(current.h).name,T(current.a).name,current.scoreH,current.scoreA);if(j)log(`${current.minute}' 🎙️ ${j}`,"neutral");}
+   if(window.S9Anchors?.recap)await S9Anchors.recap({h:T(current.h).name,a:T(current.a).name,scoreH:current.scoreH,scoreA:current.scoreA,channel:current.channel});
+ }
  if(!window.S9V10?.matchContext){
  let games=career.fixtures[career.round];for(const [h,a] of games){if(h===current.h&&a===current.a)continue;simOther(h,a)}
  updateLeague(current);
@@ -3153,14 +3190,14 @@ renderTeamPicker();
 <script src="js/v10-data.js?v=3d-1"></script>
 <script src="js/v10-release.js?v=stability-14"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
-<script src="js/match-coherence.js?v=stability-17"></script>
+<script src="js/match-coherence.js?v=stability-18"></script>
 <script src="js/kit-profiles.js?v=2"></script>
 <script src="js/asset-quality.js?v=1"></script>
 <script src="js/football-3d.js?v=stability-14"></script>
 <script src="js/tv-channels.js?v=3"></script>
 <script src="js/broadcast-anchors.js?v=5"></script>
 <script src="js/kit-presentation.js?v=1"></script>
-<script src="js/match-3d.js?v=stability-32"></script>
+<script src="js/match-3d.js?v=stability-33"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>
@@ -3168,7 +3205,7 @@ renderTeamPicker();
 <script src="js/exhibition.js?v=stability-14"></script>
 <script src="js/v106-match-experience.js?v=presentation-2"></script>
 <script src="js/v107-cup-polish.js?v=team-season-2"></script>
-<script src="js/v108-complete-match-flow.js?v=team-season-7"></script>
+<script src="js/v108-complete-match-flow.js?v=team-season-8"></script>
 <script src="js/v110-prematch-ceremony.js?v=team-season-1"></script>
 <script src="js/presentation.js?v=presentation-2"></script>
 <script src="js/tactics-redesign.js?v=stability-13"></script>
