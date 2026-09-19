@@ -6867,6 +6867,16 @@ input:not([type=checkbox]):not([type=radio]){
 @media(max-width:480px){
   :is(#teamStep,#v10CupSetup) .s9-picker-art{grid-template-columns:36px minmax(0,1fr) 36px!important;gap:6px!important}
 }
+/* FIX 2026-09 bis: la nota sopra dava per scontato che restassero solo 3
+   elementi reali in .s9-picker-art, ma #teamStep (Carriera) ne ha ancora 5
+   nell'HTML (#teamPrevPreview, freccia, stemma, freccia, #teamNextPreview -
+   residui del carosello mai completato). Con solo 3 colonne definite, la
+   griglia mette #teamPrevPreview in colonna 1 (40px), la freccia ◀ in
+   colonna 2 (1fr!) e lo STEMMA finisce schiacciato in colonna 3 (40px,
+   a destra vicino alla freccia ▶) - esattamente il difetto segnalato.
+   Nascondiamo i due pulsanti "vicino" orfani cosi' restano davvero solo i
+   3 elementi (freccia, stemma grande, freccia) nelle 3 colonne previste. */
+#teamStep #teamPrevPreview,#teamStep #teamNextPreview{display:none!important}
 
 /* ===== FIX 2026-09: step "SQUADRE" della Partita Libera sembrava senza
    sfondo/bordo rispetto agli altri due passi del wizard ===== */
