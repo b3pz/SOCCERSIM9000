@@ -468,6 +468,10 @@ input,select{font-size:16px}
 }
 .lore-strip .headline{color:#f0d948;font-weight:900;letter-spacing:2px}
 .lore-strip p{margin:.5em 0;line-height:1.45}
+.s9-archive-match{margin-bottom:10px}
+.s9-archive-events{margin-top:6px;max-height:140px;overflow-y:auto;border-top:1px solid rgba(255,255,255,.15);padding-top:6px}
+.s9-archive-event{font-size:12px;padding:2px 0;border-bottom:1px dashed rgba(255,255,255,.08)}
+.s9-archive-event:last-child{border-bottom:0}
 
 @media(max-width:760px){
   .main-menu-grid,.cups-grid{grid-template-columns:1fr}
@@ -751,7 +755,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.33</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.34</span></span></div>
 </div>
 <main>
 
@@ -777,13 +781,14 @@ main{max-width:none!important;padding:0!important}
 
     <div class="menu-secondary">
       <button id="honoursBtn">ALBO D'ORO</button>
+      <button id="archiveBtn">ARCHIVIO PARTITE</button>
       <button id="optionsBtn">OPZIONI</button>
       <button id="menuMusicToggle">♪ MUSICA</button>
       <button id="menuMusicNext" title="Prossima canzone">⏭ CANZONE</button>
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.33
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.34
     </div>
   </div>
 </section>
@@ -2622,6 +2627,24 @@ async function launchMatch(){
  $("#postScore").innerHTML=`<h2>${T(current.h).name} ${T(current.h).season} ${current.scoreH} - ${current.scoreA} ${T(current.a).name} ${T(current.a).season}</h2>`;
  $("#postStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}<br>Modulo: ${career.teamStates[career.user].formation}<br>Atteggiamento: ${career.teamStates[career.user].mentality}`;
  $("#postEvents").innerHTML=current.keyEvents.length?current.keyEvents.map(x=>`<div class="card">${x}</div>`).join(""):"Nessun evento chiave.";
+ // FIX 2026-09 (42): ARCHIVIO PARTITE - prima la cronaca di una partita
+ // esisteva solo live (#commentary/#postEvents) e spariva per sempre al
+ // ritorno alla stagione. Ora ogni partita giocata dal vivo (carriera,
+ // coppe, amichevoli) viene salvata in career.matchArchive (ultime 40,
+ // le piu' vecchie vengono scartate) cosi' da poterla rivedere quando si
+ // vuole dal menu principale ("ARCHIVIO PARTITE").
+ if(career){
+  career.matchArchive=career.matchArchive||[];
+  career.matchArchive.unshift({
+   h:current.h,a:current.a,hg:current.scoreH,ag:current.scoreA,
+   competition:(typeof S9Competition!=='undefined'&&S9Competition?.key?.())||current.competition||'seriea',
+   weather:current.weather?{icon:current.weather.icon,label:current.weather.label}:null,
+   referee:current.referee||null,
+   keyEvents:current.keyEvents.slice(),
+   seasonYear:career.seasonYear
+  });
+  if(career.matchArchive.length>40)career.matchArchive.length=40;
+ }
  show("postmatch"); if(!window.S9V10?.matchContext&&career?.careerId)S9Save.putCareer(career).catch(e=>console.warn("Save:",e)); if(sb){sb.disabled=false;sb.textContent="SCEGLI DIVISE ▶"}
 }
 
@@ -2946,6 +2969,31 @@ document.addEventListener("DOMContentLoaded",()=>{
     <h3 style="margin-top:16px">STORICO STAGIONI</h3>${historyRows||'<p class="muted">Nessuna stagione ancora conclusa.</p>'}`;
   };
   if($m("#honoursBtn")) $m("#honoursBtn").onclick=()=>message("ALBO D'ORO",renderHonoursHTML());
+
+  // FIX 2026-09 (42): ARCHIVIO PARTITE - vedi anche il salvataggio in
+  // career.matchArchive dentro finishMatch(). Qui solo la lettura/resa:
+  // elenco delle ultime partite giocate dal vivo con risultato, meteo e
+  // tutti gli eventi chiave, in ordine dalla piu' recente.
+  const S9_ARCHIVE_COMP_LABELS={seriea:'SERIE A',friendly:'AMICHEVOLE',italia:'COPPA ITALIA',cdc:'COPPA DEI CAMPIONI',uefa:'COPPA UEFA',finaleight:'FINAL EIGHT',world:'MONDIALE',euro:'EUROPEI',supercoppa:'SUPERCOPPA'};
+  const renderArchiveHTML=()=>{
+    if(!career)return "<div class='headline'>NESSUNA CARRIERA IN CORSO</div><p>L'archivio si popolerà con le partite che giocherai dal vivo: risultato, meteo e tutti gli eventi chiave, sempre disponibili da rivedere.</p>";
+    const games=career.matchArchive||[];
+    if(!games.length)return "<div class='headline'>NESSUNA PARTITA IN ARCHIVIO</div><p>Gioca la tua prima partita dal vivo: la ritroverai qui, con cronaca completa, anche a fine stagione.</p>";
+    const rows=games.map(g=>{
+      const compLabel=S9_ARCHIVE_COMP_LABELS[g.competition]||g.competition?.toUpperCase()||'PARTITA';
+      const weatherTag=g.weather?` · ${g.weather.icon} ${g.weather.label}`:'';
+      const events=(g.keyEvents||[]).length?g.keyEvents.map(x=>`<div class="s9-archive-event">${escapeHTML(String(x))}</div>`).join(''):'<div class="muted">Nessun evento chiave registrato.</div>';
+      const seasonLabel=g.seasonYear!=null?` · Stagione ${g.seasonYear}/${String(g.seasonYear+1).slice(-2)}`:'';
+      return `<div class="card s9-archive-match">
+        <b>${escapeHTML(T(g.h)?.name||g.h)} ${g.hg} - ${g.ag} ${escapeHTML(T(g.a)?.name||g.a)}</b>
+        <div class="muted">${compLabel}${seasonLabel}${weatherTag}</div>
+        <div class="s9-archive-events">${events}</div>
+      </div>`;
+    }).join('');
+    return `<div class="headline">ARCHIVIO PARTITE</div><p>Le tue ultime ${games.length} partite giocate dal vivo, dalla più recente.</p>${rows}`;
+  };
+  if($m("#archiveBtn")) $m("#archiveBtn").onclick=()=>message("ARCHIVIO PARTITE",renderArchiveHTML());
+
   if($m("#optionsBtn")) $m("#optionsBtn").onclick=()=>message(
     "OPZIONI",
     "<div class='headline'>SERIEA 9000 SIM · V7</div><p>Carriere locali multiple con backup automatici, interfaccia responsive, match 2D ed eventi arbitrali visuali.</p><p>Il database rose viene mantenuto separato dalla logica di gioco per consentire la progressiva verifica storica squadra per squadra.</p>"
@@ -3380,7 +3428,7 @@ renderTeamPicker();
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>
 <script src="js/trophy-ceremony.js?v=lap-close-16"></script>
-<script src="js/exhibition.js?v=stability-14"></script>
+<script src="js/exhibition.js?v=stability-15"></script>
 <script src="js/v106-match-experience.js?v=presentation-2"></script>
 <script src="js/v107-cup-polish.js?v=team-season-2"></script>
 <script src="js/v108-complete-match-flow.js?v=team-season-8"></script>

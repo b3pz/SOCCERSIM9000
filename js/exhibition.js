@@ -21,6 +21,19 @@ function start(config){
 function restore(){
  if(!saved)return;
  if(current?._running&&!current._finished)return;
+ // FIX 2026-09 (42): l'amichevole gioca su una "career" usa e getta
+ // (S9V10.createMatchCareer), quindi qualunque cosa scritta su di essa nel
+ // frattempo - compreso l'ARCHIVIO PARTITE salvato a fine gara - andava
+ // persa quando qui si tornava alla career vera. Ora le partite salvate
+ // nell'archivio "usa e getta" vengono travasate in quello della career
+ // reale prima di scartarla, cosi' anche le amichevoli restano in archivio.
+ if(career?.matchArchive?.length&&saved.career){
+  // la career "usa e getta" non ha una seasonYear propria: le voci
+  // d'archivio scritte durante l'amichevole la ereditano solo ora, dalla
+  // career vera, cosi' non restano con la stagione vuota.
+  const merged=career.matchArchive.map(g=>g.seasonYear==null?{...g,seasonYear:saved.career.seasonYear}:g);
+  saved.career.matchArchive=[...merged,...(saved.career.matchArchive||[])].slice(0,40);
+ }
  document.getElementById('match').classList.remove('s9-spectator');const original=saved;saved=null;career=original.career;S9V10.standalone=original.standalone;S9V10.savedCareer=original.savedCareer;S9V10.matchContext=null;current=null;paused=false;
  S9V10.applyCompetitionTheme('');show('exhibitionSetup');
 }
