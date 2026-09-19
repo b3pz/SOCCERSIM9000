@@ -6986,3 +6986,12 @@ html body main #prematch.tw-active .tw-pitch.tw-layout-picking .tw-layout-dot{ba
 }
 
 @media(max-width:600px){#s9AnchorStudio{padding:0}}
+
+/* ===== FIX 2026-09 (51): icone uniformi (vedi js/s9-icons.js) =====
+   Sostituiscono le emoji Unicode sparse per il colore del testo (S9Icon
+   emette SVG con fill/stroke=currentColor): niente piu' font-emoji del
+   dispositivo, stesso tratto ovunque. Le icone ereditano automaticamente
+   la dimensione del testo circostante (1em) e si allineano sulla riga. */
+.s9-icon{width:1em;height:1em;display:inline-block;vertical-align:-.15em;flex:none}
+.s9-icon-cardred{color:#d6293b}
+.s9-icon-cardyellow{color:#e8c33c}

@@ -34,21 +34,19 @@
 const q=s=>document.querySelector(s);
 let saved=null,state=null;
 
-// FIX 2026-09 (49): "mi raccomando metti come prime scelte le italiane dei
-// club di quegli anni poi le straniere ed infine le nazionali" - ordine
-// ESPLICITO e definitivo del pool: 1) italiane di club 1998-2008 (l'epoca
-// d'oro del vero Trofeo Birra Moretti), 2) squadre estere di club, 3)
-// nazionali. Le squadre italiane FUORI da quell'arco di stagioni non sono
-// citate fra le priorita' dall'utente: restano comunque selezionabili, ma
-// in coda a tutte le altre categorie (non piu' subito dopo le "d'oro").
+// FIX 2026-09 (52): "la selezione delle squadre dev'essere circoscritta
+// alle sole squadre italiane del periodo 97-2008, tutte le altre devono
+// essere escluse" - il Trofeo Birra Moretti (modalita' COPPA) ora seleziona
+// ESCLUSIVAMENTE club italiani 1997-2008: niente piu' estere/nazionali/altre
+// italiane fuori periodo, a differenza dell'Amichevole che invece resta
+// libera su tutto il roster (l'utente lo ha confermato esplicitamente:
+// "essendo la modalita' giocabile anche in versione amichevole a quel punto
+// si possono mettere tutte le altre ma nella modalita' coppa dev'essere
+// esclusiva alle sole squadre italiane di quegli anni indicati").
 function seasonStartYear(id){const s=T(id)?.season||'';const y=parseInt(s.slice(0,4),10);return Number.isFinite(y)?y:0}
 function teamPool(){
  const italian=(S9V10.italianIds||[]).slice();
- const golden=italian.filter(id=>{const y=seasonStartYear(id);return y>=1998&&y<=2008}).sort((a,b)=>seasonStartYear(a)-seasonStartYear(b)||T(a).name.localeCompare(T(b).name));
- const otherItalian=italian.filter(id=>!golden.includes(id)).sort((a,b)=>T(a).name.localeCompare(T(b).name));
- const foreign=(S9V10.foreignIds||[]).slice().sort((a,b)=>T(a).name.localeCompare(T(b).name));
- const national=(S9V10.nationalIds||[]).slice().sort((a,b)=>T(a).name.localeCompare(T(b).name));
- return [...golden,...foreign,...national,...otherItalian];
+ return italian.filter(id=>{const y=seasonStartYear(id);return y>=1997&&y<=2008}).sort((a,b)=>seasonStartYear(a)-seasonStartYear(b)||T(a).name.localeCompare(T(b).name));
 }
 
 function randomTeams(){
