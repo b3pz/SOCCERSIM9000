@@ -94,7 +94,7 @@ function renderHub(){
  `;
  if(q('#trofeoPlayNext'))q('#trofeoPlayNext').onclick=playNext;
  if(q('#trofeoNew'))q('#trofeoNew').onclick=()=>{state=null;show('trofeoSetup');renderSetup()};
- q('#trofeoBack').onclick=()=>show('mainMenu');
+ q('#trofeoBack').onclick=()=>show('cupsMenu');
 }
 
 function playNext(){
@@ -126,7 +126,8 @@ function complete(){
  applyMatchResult(m.h,m.a,m.scoreH,m.scoreA);
 }
 function finish(){complete();restore()}
-window.S9Trofeo={start,restore,finish,complete,get active(){return !!saved}};
+function openFromCups(){if(state&&!state.done){renderHub();show('trofeoHub')}else{renderSetup();show('trofeoSetup')}}
+window.S9Trofeo={start,restore,finish,complete,openFromCups,get active(){return !!saved}};
 
 function start(teams){
  state=buildState(teams);renderHub();show('trofeoHub');
@@ -149,7 +150,7 @@ function renderSetup(){
  `;
  const opts=teamPool().map(id=>`<option value="${id}">${teamLabel(id)}</option>`).join('');
  ['trofeoTeam1','trofeoTeam2','trofeoTeam3'].forEach((id,i)=>{const el=q('#'+id);el.innerHTML=opts;el.value=picks[i]});
- q('#trofeoSetupBack').onclick=()=>show('mainMenu');
+ q('#trofeoSetupBack').onclick=()=>show('cupsMenu');
  q('#trofeoRandom').onclick=()=>{const r=randomTeams();['trofeoTeam1','trofeoTeam2','trofeoTeam3'].forEach((id,i)=>q('#'+id).value=r[i])};
  q('#trofeoStart').onclick=()=>{
   const ids=['trofeoTeam1','trofeoTeam2','trofeoTeam3'].map(id=>q('#'+id).value);
@@ -159,16 +160,18 @@ function renderSetup(){
  };
 }
 
+// FIX 2026-09 (46): "il trofeo birra moretti dovrebbe stare nella sezione
+// coppe" - niente piu' bottone proprio nel menu principale: l'ingresso ora
+// e' una card del carosello Coppe e Tornei (vedi rebuildCupsMenu in
+// v10-release.js), che chiama S9Trofeo.openFromCups(). Qui restano solo le
+// due schermate (setup squadre + hub torneo) da iniettare nel DOM.
 function boot(){
- const btn=document.createElement('button');btn.id='trofeoBirraBtn';btn.textContent='🍺 TROFEO BIRRA MORETTI';
- const menu=q('.menu-secondary');if(menu)menu.appendChild(btn);
  const setupScreen=document.createElement('section');setupScreen.id='trofeoSetup';setupScreen.className='screen';
  setupScreen.innerHTML='<div class="s9-exhibition-shell panel"></div>';
  document.querySelector('main').appendChild(setupScreen);
  const hubScreen=document.createElement('section');hubScreen.id='trofeoHub';hubScreen.className='screen';
  hubScreen.innerHTML='<div class="s9-exhibition-shell panel"></div>';
  document.querySelector('main').appendChild(hubScreen);
- btn.onclick=()=>{if(state&&!state.done){renderHub();show('trofeoHub')}else{renderSetup();show('trofeoSetup')}};
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

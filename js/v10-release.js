@@ -375,7 +375,11 @@ function competitionBrand(key){
   cdc:{style:'cdc',kicker:'EUROPA DEI CAMPIONI',setupTitle:'COPPA DEI CAMPIONI',tournamentTitle:'COPPA DEI CAMPIONI',cardTop:'COPPA EUROPEA',cardTitle:'COPPA DEI CAMPIONI',cardHook:'QUELLE NOTTI DI COPPA',year:'1999',logo:'assets/competition_buttons/coppa_campioni.png'},
   uefa:{style:'uefa',kicker:'EUROPA DELLE GRANDI PIAZZE',setupTitle:'COPPA UEFA',tournamentTitle:'COPPA UEFA',cardTop:'COPPA EUROPEA',cardTitle:'COPPA UEFA',cardHook:'MERCOLEDÌ DI COPPA',year:'1999',logo:'assets/competition_buttons/uefa_cup.png'},
   world:{style:'world',kicker:'COPPA DEL MONDO · 32 NAZIONALI',setupTitle:'FRANCIA 98',tournamentTitle:'FRANCIA 98',cardTop:'COPPA DEL MONDO',cardTitle:'FRANCIA 98',cardHook:'ESTATE MONDIALE',year:'1998',logo:'assets/competition_buttons/francia98.png'},
-  euro:{style:'euro',kicker:'CAMPIONATO EUROPEO · 16 NAZIONALI',setupTitle:'EURO 2000',tournamentTitle:'EURO 2000',cardTop:'CAMPIONATO EUROPEO',cardTitle:'EURO 2000',cardHook:'ANCORA UN PALLONE',year:'2000',logo:'assets/competition_buttons/euro2000.png'}
+  euro:{style:'euro',kicker:'CAMPIONATO EUROPEO · 16 NAZIONALI',setupTitle:'EURO 2000',tournamentTitle:'EURO 2000',cardTop:'CAMPIONATO EUROPEO',cardTitle:'EURO 2000',cardHook:'ANCORA UN PALLONE',year:'2000',logo:'assets/competition_buttons/euro2000.png'},
+  // FIX 2026-09 (46): "il trofeo birra moretti dovrebbe stare nella sezione
+  // coppe" - prima era un bottone a parte in home, ora e' una card in piu'
+  // nel carosello di Coppe e Tornei, come le altre competizioni.
+  trofeo:{style:'trofeo',kicker:'TRIANGOLARE ESTIVO',setupTitle:'TROFEO BIRRA MORETTI',tournamentTitle:'TROFEO BIRRA MORETTI',cardTop:'TRIANGOLARE',cardTitle:'TROFEO BIRRA MORETTI',cardHook:'CALDO, BIRRA E CALCIO',year:'',logo:'assets/competition_buttons/trofeo_birra_moretti.png'}
  };
  return brands[key]||{style:key||'cup',kicker:'COPPA',setupTitle:FORMATS?.[key]?.name||'COPPA',tournamentTitle:FORMATS?.[key]?.name||'COPPA',cardTop:'COPPA',cardTitle:FORMATS?.[key]?.name||'COPPA',cardHook:'TORNEO',year:''};
 }
@@ -389,7 +393,8 @@ function rebuildCupsMenu(){
   {key:'cdc',desc:'16 club · gironi + A/R',story:'Parte la musica, si alza la sciarpa. Quelle notti le aspettavi tutta la settimana. Adesso sei tu a decidere chi scende in campo. Occhio a non farti prendere dall\'ansia da telecronista.'},
   {key:'uefa',desc:'16 club · gironi + A/R',story:'La partita in TV, i compiti lasciati a metà. Un campo lontano, una maglia da riconoscere anche nella nebbia. Basta un gol e salta tutto il salotto - letteralmente, chiedi al vaso di fiori.'},
   {key:'world',desc:'Formato Francia 98 · 32 nazionali',story:'Le finestre aperte, le figurine sul tavolo, un urlo che arriva dal balcone accanto. È di nuovo Francia ’98. Stavolta, quel rigore lo giochi tu. Niente scuse, stavolta.'},
-  {key:'euro',desc:'Formato Euro 2000 · 16 nazionali',story:'L’estate del cucchiaio e del fiato sospeso fino all’ultimo pallone. Ci sono finali che fanno ancora male. Riparti da qui, con la tua nazionale - stavolta niente rigori dal dischetto, promesso (forse).'}
+  {key:'euro',desc:'Formato Euro 2000 · 16 nazionali',story:'L’estate del cucchiaio e del fiato sospeso fino all’ultimo pallone. Ci sono finali che fanno ancora male. Riparti da qui, con la tua nazionale - stavolta niente rigori dal dischetto, promesso (forse).'},
+  {key:'trofeo',desc:'3 squadre · girone all\'italiana · rigori su ogni pareggio',story:'Niente campionato, niente classifica: solo un ombrellone, una cassa di birre e un triangolare improvvisato tra amici. Chi perde offre il giro. Chi vince si tiene il trofeo sul comodino fino al prossimo anno.'}
  ].map(cfg=>({...cfg,...competitionBrand(cfg.key)}));
  let index=0;
  const saved=readStandaloneState();
@@ -437,7 +442,10 @@ function rebuildCupsMenu(){
  };
  const move=(dir)=>{index=(index+dir+cards.length)%cards.length;render();};
  q('.v105-cup-prev').onclick=()=>move(-1);q('.v105-cup-next').onclick=()=>move(1);
- const openCurrent=()=>openCupSetup(cards[index].key);
+ const openCurrent=()=>{
+  if(cards[index].key==='trofeo'){window.S9Trofeo?.openFromCups();return}
+  openCupSetup(cards[index].key);
+ };
  feature.onclick=openCurrent;q('#v105OpenCup').onclick=openCurrent;
  q('#cupsBack').onclick=()=>show('mainMenu');
  if(saved&&q('#v10ContinueCup'))q('#v10ContinueCup').onclick=continueStandalone;
