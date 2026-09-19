@@ -228,12 +228,30 @@ async function runMovingShootout(h,a){
 async function finishPlayedTie(){
  const ctx=S9V10.matchContext,m=current;
  if(ctx?.mode!=='trofeo'||!m||m.scoreH!==m.scoreA||m.decider||!state)return;
- await ov(S9Popups.html('penalties',{
-  kicker:'TROFEO BIRRA MORETTI',
-  title:'RIGORI IN MOVIMENTO',
-  detail:'Pareggio dopo i 45 minuti: si decide in conduzione da 30 metri, 5 secondi per battere il portiere, 3 tentativi a testa poi oltranza.'
- }),1800);
- const result=await runMovingShootout(m.h,m.a);
+ // FIX 2026-09 (53): "gli shotout pensavo fossero visivi invece sono solo
+ // testuali" - la sequenza "rigori in movimento" del Trofeo usava solo
+ // popup testuali (S9Popups). Ora, quando disponibile, usiamo la stessa
+ // animazione 3D del sistema rigori delle coppe a eliminazione diretta
+ // (js/v108-complete-match-flow.js), con conduzione piu' lunga e camera
+ // adattata (window.S9PlayMovingShootout). Il vecchio flusso testuale
+ // (runMovingShootout) resta come fallback difensivo se per qualche motivo
+ // quella funzione non fosse disponibile.
+ let result;
+ if(typeof window.S9PlayMovingShootout==='function'){
+  await ov(S9Popups.html('penalties',{
+   kicker:'TROFEO BIRRA MORETTI',
+   title:'RIGORI IN MOVIMENTO',
+   detail:'Pareggio dopo i 45 minuti: si decide in conduzione da 30 metri, 5 secondi per battere il portiere, 3 tentativi a testa poi oltranza.'
+  }),1400);
+  result=await window.S9PlayMovingShootout(m.h,m.a);
+ }else{
+  await ov(S9Popups.html('penalties',{
+   kicker:'TROFEO BIRRA MORETTI',
+   title:'RIGORI IN MOVIMENTO',
+   detail:'Pareggio dopo i 45 minuti: si decide in conduzione da 30 metri, 5 secondi per battere il portiere, 3 tentativi a testa poi oltranza.'
+  }),1800);
+  result=await runMovingShootout(m.h,m.a);
+ }
  m.decider=result;
  if(Array.isArray(m.keyEvents))m.keyEvents.push({type:'penalties',team:result.winner,detail:`Rigori in movimento ${result.score}`});
 }

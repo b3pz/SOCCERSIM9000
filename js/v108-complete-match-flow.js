@@ -75,7 +75,11 @@ function drawPenaltyScene(ctx,w,h,st){
     tiro da centrocampo invece di un rigore. Portata piu' vicina e piu'
     bassa (tipico angolo da diretta TV dietro il tiratore) e FOV piu'
     stretto/zoomato, cosi' la porta riempie di piu' l'inquadratura. */
- const p=g.camera([st.lateral*0.85,1.32,15.0],[0,1.05,0],w,h,32),scene=g.scene(ctx,p);
+ // Camera piu' arretrata e piu' alta per i "rigori in movimento" (st.runFar):
+ // la rincorsa parte molto piu' lontano di un rigore classico e va inquadrata
+ // per intero, non solo l'ultimo tratto vicino alla porta.
+ const camZ=st.runFar?33:15.0,camY=st.runFar?2.1:1.32,camFov=st.runFar?26:32;
+ const p=g.camera([st.lateral*0.85,camY,camZ],[0,1.05,0],w,h,camFov),scene=g.scene(ctx,p);
  g.pitchSurface(ctx,p,-9,-1.6,18,17,1.9);
  const post='#f4f3ea';
  scene.box([-3.66,1.22,0],[.14,2.44,.14],post);
@@ -85,7 +89,11 @@ function drawPenaltyScene(ctx,w,h,st){
  const keeperX=st.dive==='left'?-2.15*st.diveT:st.dive==='right'?2.15*st.diveT:0;
  const keeperAngle=st.dive==='left'?.55*st.diveT:st.dive==='right'?-.55*st.diveT:0;
  g.player(scene,keeperX,-.1,st.keeperKit,st.t*6,keeperAngle,1.1,'',true,0,null,st.keeperSkin||null,st.keeperLook||null);
- const runX=st.lateral*1.1*(1-st.runProgress*.5),runZ=11.3+(1-st.runProgress)*2.4;
+ // FIX 2026-09 (53): st.runFar/st.shotZ (passati da animateMovingKick) allungano
+ // la rincorsa per i "rigori in movimento" del Trofeo Birra Moretti, senza
+ // toccare il calcio di rigore classico (resta 11.3/2.4 di default).
+ const shotZ=st.shotZ??11.3,runSpan=st.runFar?20:2.4;
+ const runX=st.lateral*1.1*(1-st.runProgress*.5),runZ=shotZ+(1-st.runProgress)*runSpan;
  g.player(scene,runX,runZ,st.shooterKit,st.t*7,0,1.15,'',false,st.celebrate||0,null,st.shooterSkin||null,st.shooterLook||null);
  scene.flush();
  const bp=p(st.ball),edge=p([st.ball[0]+.11,st.ball[1],st.ball[2]]);
@@ -277,6 +285,125 @@ async function playShootout(h,a){
  penaltyOverlay.hidden=true;
  return {winner,score:`${hs}-${as} d.c.r.`};
 }
+
+/* FIX 2026-09 (53): "gli shootout pensavo fossero visivi invece sono solo
+   testuali" - il Trofeo Birra Moretti (js/trofeo-birra.js) decideva i
+   pareggi con una sequenza di SOLI popup testuali (stesso sistema di
+   gol/parate a partita in corso), mentre le coppe a eliminazione diretta
+   avevano gia' questa scena 3D animata vera (playShootout sopra). Qui sotto
+   una variante che riusa la STESSA infrastruttura (overlay, canvas,
+   S9Football3D, marcatori/punteggio) ma con rincorsa molto piu' lunga e
+   punto di tiro piu' vicino alla porta, per rendere visivamente la vera
+   regola storica del torneo (conduzione da centrocampo, 1 contro 1 col
+   portiere, tiro non dal dischetto) invece del calcio di rigore classico -
+   resta comunque l'esito deciso dalla forza delle squadre, non pilotabile.
+   Esposta su window perche' questo file e' un IIFE (playShootout() sopra
+   NON e' raggiungibile da fuori) e trofeo-birra.js e' un modulo separato. */
+async function animateMovingKick(side,shooter,outcome,kickNo,teams){
+ const canvas=$('#v108PenaltyCanvas'),name=$('#v108PenaltyPlayer'),res=$('#v108PenaltyResult'),stage=$('#v108PenaltyStage');
+ name.textContent=`${kickNo}° TENTATIVO · ${shooter?.name||'Tiratore'} · ${side==='home'?'CASA':'OSPITI'}`;res.textContent='';
+ stage.classList.remove('goal','save','miss');
+ if(!canvas||!canvas.getContext){await sleep(420);await sleep(1400);await sleep(720);return;}
+ const ctx=canvas.getContext('2d');
+ const ratio=Math.min(window.devicePixelRatio||1,1.5),cw=canvas.clientWidth||640,ch=canvas.clientHeight||255;
+ if(canvas.width!==Math.round(cw*ratio)||canvas.height!==Math.round(ch*ratio)){canvas.width=Math.round(cw*ratio);canvas.height=Math.round(ch*ratio)}
+ ctx.setTransform(ratio,0,0,ratio,0,0);
+ const dive=Math.random()<.5?'left':'right';
+ const isShooterHome=side==='home';
+ const teamH=teams?.h,teamA=teams?.a;
+ const shooterKit=kitFor(isShooterHome?teamH:teamA,false);
+ const keeperKit=kitFor(isShooterHome?teamA:teamH,true);
+ const shooterTeamId=isShooterHome?teamH:teamA,keeperTeamId=isShooterHome?teamA:teamH;
+ const keeperPlayer=career?.teamStates?.[keeperTeamId]?.players?.find(p=>p.pos==='GK');
+ const shooterLook=(typeof S9_ICONIC_LOOKS!=='undefined'&&shooter)?S9_ICONIC_LOOKS[shooter.realName||shooter.name]:null;
+ const keeperLook=(typeof S9_ICONIC_LOOKS!=='undefined'&&keeperPlayer)?S9_ICONIC_LOOKS[keeperPlayer.realName||keeperPlayer.name]:null;
+ const shooterSkin=(shooterLook?.skin&&typeof S9_SKIN_TONES!=='undefined')?S9_SKIN_TONES[shooterLook.skin]:((typeof s9SkinFor==='function'&&typeof T==='function')?s9SkinFor(T(shooterTeamId)?.country,shooter?.id||shooterTeamId):null);
+ const keeperSkin=(keeperLook?.skin&&typeof S9_SKIN_TONES!=='undefined')?S9_SKIN_TONES[keeperLook.skin]:((typeof s9SkinFor==='function'&&typeof T==='function'&&keeperPlayer)?s9SkinFor(T(keeperTeamId)?.country,keeperPlayer.id):null);
+ const lateral=(dive==='left'?-1:1)*(.35+Math.random()*.5);
+ // Punto di tiro piu' vicino alla porta di un rigore classico (il giocatore
+ // arriva gia' in conduzione, non e' fermo sul dischetto) - il tragitto
+ // lungo lo fa la rincorsa qui sotto (runZ), non il pallone.
+ const shotZ=7.4;
+ let ballEnd;
+ if(outcome==='goal')ballEnd=[dive==='left'?2.55:-2.55,1.95,0];
+ else if(outcome==='save')ballEnd=[dive==='left'?-2.35:2.35,.6,.6];
+ else ballEnd=[Math.random()<.5?-4.5:4.5,1.0,-.6];
+ const ballStart=[0,.13,shotZ];
+ window.S9SFX?.tone?.(1650,.08,'square',.05);
+ // Rincorsa molto piu' lunga (RUN) della fase "pronti": si vede davvero la
+ // conduzione palla al piede da lontano prima del tiro, come nella regola
+ // reale ("parte in conduzione da 30 metri, 5 secondi per superare il
+ // portiere"), non un tiro immediato dal dischetto.
+ const READY=350,RUN=1500,FLIGHT=850,HOLD=1500;
+ const t1=READY,t2=t1+RUN,t3=t2+FLIGHT,TOTAL=t3+HOLD;
+ await new Promise(resolve=>{
+  const t0=performance.now();let struckSound=false,resultShown=false;
+  function frame(now){
+   const el=now-t0;
+   const runProgress=el<=t1?0:Math.min(1,(el-t1)/RUN);
+   const struck=el>=t2;
+   if(struck&&!struckSound){struckSound=true;window.S9SFX?.kickThud?.();}
+   const flightT=struck?Math.min(1,(el-t2)/FLIGHT):0;
+   const ease=flightT*flightT*(3-2*flightT);
+   const ball=[ballStart[0]+(ballEnd[0]-ballStart[0])*ease,ballStart[1]+(ballEnd[1]-ballStart[1])*ease,ballStart[2]+(ballEnd[2]-ballStart[2])*ease];
+   const celebrateT=outcome==='goal'?Math.max(0,Math.min(1,(el-t3)/260)):0;
+   drawPenaltyScene(ctx,cw,ch,{t:el/1000,lateral,dive,diveT:flightT,runProgress,struck,shooterKit,keeperKit,ball,celebrate:celebrateT,shooterSkin,keeperSkin,shooterLook,keeperLook,runFar:true,shotZ});
+   if(el>=t3&&!resultShown){
+    resultShown=true;stage.classList.add(outcome);
+    res.textContent=outcome==='goal'?'GOL!':outcome==='save'?'PARATA!':'FUORI!';
+    if(outcome==='goal')window.S9SFX?.crowdCheer?.();
+    else if(outcome==='save')window.S9SFX?.saveSound?.();
+    else window.S9SFX?.crowdGroan?.();
+   }
+   if(el>=TOTAL){resolve();return;}
+   requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+ });
+}
+async function playMovingShootout(h,a){
+ ensurePenaltyOverlay();
+ const kicker=$('.v108-penalty-kicker');const prevKicker=kicker?kicker.textContent:null;
+ if(kicker)kicker.textContent='RIGORI IN MOVIMENTO';
+ const userTeam=(typeof career!=='undefined'?career?.user:null);
+ const spectator=!!window.S9V10?.matchContext?.spectator;
+ const homeTakers=(!spectator&&userTeam===h)?await pickTakers(h):penaltyTakers(h);
+ const awayTakers=(!spectator&&userTeam===a)?await pickTakers(a):penaltyTakers(a);
+ const homeKeeper=keeper(h),awayKeeper=keeper(a);
+ penaltyOverlay.hidden=false;
+ $('#v108PenaltyTitle').textContent=`${teamName(h)} vs ${teamName(a)}`;
+ let hs=0,as=0,hr=[],ar=[],kickIndex=0;
+ updatePenaltyUI(h,a,hs,as,hr,ar);
+ // 3 tentativi a testa (regola reale del Trofeo Birra Moretti), poi oltranza.
+ for(let round=0;round<6;round++){
+  const isHome=round%2===0,team=isHome?h:a,takers=isHome?homeTakers:awayTakers,oppKeeper=isHome?awayKeeper:homeKeeper;
+  const shooter=takers[Math.floor(round/2)%Math.max(1,takers.length)]||activePlayers(team)[0];
+  const outcome=resultForKick(shooter,oppKeeper);kickIndex++;
+  await animateMovingKick(isHome?'home':'away',shooter,outcome,kickIndex,{h,a});
+  if(isHome){hr.push(outcome);if(outcome==='goal')hs++;}else{ar.push(outcome);if(outcome==='goal')as++;}
+  updatePenaltyUI(h,a,hs,as,hr,ar);
+ }
+ let sudden=0;
+ while(hs===as&&sudden<12){
+  for(const isHome of [true,false]){
+   const team=isHome?h:a,takers=isHome?homeTakers:awayTakers,oppKeeper=isHome?awayKeeper:homeKeeper;
+   const shooter=takers[(3+sudden)%Math.max(1,takers.length)]||activePlayers(team)[0];
+   const outcome=resultForKick(shooter,oppKeeper);kickIndex++;
+   await animateMovingKick(isHome?'home':'away',shooter,outcome,kickIndex,{h,a});
+   if(isHome){hr.push(outcome);if(outcome==='goal')hs++;}else{ar.push(outcome);if(outcome==='goal')as++;}
+   updatePenaltyUI(h,a,hs,as,hr,ar);
+  }
+  sudden++;
+ }
+ if(hs===as){if(Math.random()<.5)hs++;else as++;}
+ const winner=hs>as?h:a;
+ $('#v108PenaltyResult').textContent=`VINCE ${teamName(winner).toUpperCase()} · ${hs}-${as}`;
+ await sleep(1500);
+ penaltyOverlay.hidden=true;
+ if(kicker)kicker.textContent=prevKicker||'CALCI DI RIGORE';
+ return {winner,score:`${hs}-${as}`};
+}
+window.S9PlayMovingShootout=playMovingShootout;
 
 function outfield(teamId){
  const ps=activePlayers(teamId).filter(p=>p.pos!=='GK');return ps.length?ps:(activePlayers(teamId));
