@@ -383,7 +383,19 @@
       }
       const support=find(side,e.assist?.id)||players.find(d=>d!==shooter);
       const third=players.find(d=>d!==shooter&&d!==support)||support;
-      const pattern=seed%4,wide=seed%2?20:80;
+      // FIX 2026-09 (37): SCELTE DI GIOCO LEGATE ALL'ATTEGGIAMENTO - prima
+      // lo schema d'azione (costruzione centrale/fascia/ripartenza/
+      // combinazione) e la scelta di provare il dribbling secco venivano
+      // decisi da un seed fisso, sempre con le stesse probabilita': la
+      // tattica scelta (mentality()) non aveva NESSUN effetto su come si
+      // sviluppava l'azione, solo sul posizionamento (vedi pressing/linea
+      // difensiva). Ora Offensivo cerca piu' spesso la ripartenza rapida e
+      // il dribbling secco, Difensivo si affida piu' spesso alla fascia e
+      // rischia meno il dribbling; Normale resta come prima (equilibrato).
+      const ment=(()=>{const id=side==='home'?current?.h:current?.a;return (typeof career!=='undefined')?career?.teamStates?.[id]?.mentality:null})();
+      const patternWeights=ment==='Offensivo'?[.2,.15,.4,.25]:ment==='Difensivo'?[.25,.4,.1,.25]:[.25,.25,.25,.25];
+      const pattern=(()=>{const r=(seed%97)/97;let acc=0;for(let i=0;i<4;i++){acc+=patternWeights[i];if(r<acc)return i}return 3})();
+      const wide=seed%2?20:80;
       label(['COSTRUZIONE CENTRALE','APERTURA SULLA FASCIA','RIPARTENZA','COMBINAZIONE AL LIMITE'][pattern]);
       const start=at(pattern===2?35:46,pattern===1?wide:52);
       await move([...shape(side,start,[third]),{el:third,...start},{el:ball(),...start}],850);
@@ -401,7 +413,8 @@
       }else{
         await pass(side,shooter,at(71,46));await pass(side,support,at(76,58));await pass(side,shooter,at(81,50));
       }
-      if(pattern===0||pattern===3){
+      const dribbleChance=ment==='Offensivo'?.85:ment==='Difensivo'?.35:.6;
+      if((pattern===0||pattern===3)&&Math.random()<dribbleChance){
         const defender=field(opposite(side)).find(d=>d!==shooter),p=pos(shooter),dir=right(side)?1:-1;
         if(defender){
           label(pattern===0?'TUNNEL':'DRIBBLING');
