@@ -94,15 +94,38 @@
     });
     return pairs;
   }
+  // FIX 2026-09 (35): PRESSING COORDINATO - prima OGNI difensore reagiva
+  // allo stesso modo al pallone (marcatura individuale, stesso richiamo
+  // proporzionale per tutti): nessuno "saltava" davvero a chiudere il
+  // portatore, quindi il pressing non si vedeva mai come scelta di squadra.
+  // Ora, ad ogni chiamata di shape(), si individua chi (tra i difensori) e'
+  // piu' vicino al pallone: quello/i va/vanno a pressare il portatore con
+  // decisione (ignorando per un istante il proprio marcato, e' il "salto"
+  // di pressing), mentre il resto della squadra continua a marcare/coprire
+  // lo spazio lasciato libero. Con atteggiamento Offensivo la squadra
+  // pressa piu' alta e in due (raddoppio), con Difensivo resta piu'
+  // guardinga e pressa in uno solo, piu' basso.
+  function pressers(defTeam,target){
+    const count=pressIntensity(defTeam)>=1.3?2:1;
+    return new Set(field(defTeam)
+      .map(d=>({d,dist:Math.hypot(pos(d).x-target.x,pos(d).y-target.y)}))
+      .sort((a,b)=>a.dist-b.dist)
+      .slice(0,count)
+      .map(x=>x.d));
+  }
   function shape(side,target,exclude=[]){
-    const marks=markAssignment(side,opposite(side));
+    const defTeam=opposite(side);
+    const marks=markAssignment(side,defTeam);
+    const press=pressers(defTeam,target);
     return ['home','away'].flatMap(team=>dots(team).filter(d=>!exclude.includes(d)).map(d=>{
       const base={x:+d.dataset.baseX,y:+d.dataset.baseY};
       const keeper=d.dataset.role==='GK';
       if(keeper)return {el:d,x:base.x,y:clamp(50+(target.y-50)*.12,43,57)};
       if(team===side)return {el:d,x:clamp(base.x+(target.x-50)*.22+(right(team)?5:-5)),y:clamp(base.y+(target.y-50)*.18,7,93)};
-      const pull=clamp(.15*pressIntensity(team),.08,.42);
+      const isPresser=team===defTeam&&press.has(d);
+      const pull=isPresser?clamp(.4*pressIntensity(team),.25,.62):clamp(.15*pressIntensity(team),.08,.42);
       const bx=base.x+(target.x-base.x)*pull,by=base.y+(target.y-base.y)*pull;
+      if(isPresser)return {el:d,x:clamp(bx),y:clamp(by,7,93)};
       const mark=marks.get(d);
       if(mark){
         const mp=pos(mark),goalX=xFor(team,3),markX=mp.x+(goalX-mp.x)*.22;
