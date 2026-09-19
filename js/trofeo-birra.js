@@ -14,6 +14,14 @@
    quando le altre due si sfidano fra loro resta CPU contro CPU, come prima.
    E' comunque un torneo "usa e getta": non tocca carriera, classifiche o
    albo d'oro, esattamente come l'Amichevole.
+   FIX 2026-09 (48): "RIGORI IN MOVIMENTO" - la formula storica del vero
+   Trofeo Birra Moretti (1997-2008) non usava i rigori classici dal dischetto
+   ma un uno-contro-uno: il giocatore parte in conduzione da 30 metri e ha
+   5 secondi per superare il portiere, 3 tentativi a testa e poi oltranza.
+   Qui e' presentata come sequenza di eventi (stesso sistema di popup delle
+   parate/gol a partita in corso), non come mini-gioco pilotabile: il
+   risultato di ogni tentativo resta comunque deciso dalla forza delle
+   squadre, come tutto il resto del motore di gioco.
 */
 (function(){
 'use strict';
@@ -57,10 +65,10 @@ function buildState(teams){
  };
 }
 
-function applyMatchResult(h,a,hg,ag){
+function applyMatchResult(h,a,hg,ag,decider){
  let winner,loser,shootout=null,pointsW=3,pointsL=0;
  if(hg===ag){
-  const p=S9V10.penaltyShootout(h,a);
+  const p=decider||S9V10.penaltyShootout(h,a);
   shootout=p;winner=p.winner;loser=winner===h?a:h;pointsW=2;pointsL=1;
  }else{
   winner=hg>ag?h:a;loser=winner===h?a:h;
@@ -144,11 +152,85 @@ function complete(){
  const ctx=S9V10.matchContext,m=current;
  if(ctx?.mode!=='trofeo'||!m?._finished||m._trofeoRecorded||!state)return;
  m._trofeoRecorded=true;
- applyMatchResult(m.h,m.a,m.scoreH,m.scoreA);
+ applyMatchResult(m.h,m.a,m.scoreH,m.scoreA,m.decider);
 }
 function finish(){complete();restore()}
 function openFromCups(){if(state&&!state.done){renderHub();show('trofeoHub')}else{renderSetup();show('trofeoSetup')}}
-window.S9Trofeo={start,restore,finish,complete,openFromCups,get active(){return !!saved}};
+
+// FIX 2026-09 (48): "RIGORI IN MOVIMENTO" - vedi nota in testa al file.
+// Sequenza di eventi (stile parate/gol a partita in corso) che simula il vero
+// formato storico del Trofeo Birra Moretti: 1 contro 1 in conduzione da 30
+// metri, 5 secondi per superare il portiere, 3 tentativi a testa e poi
+// oltranza (solo l'ultima edizione reale uso' i rigori classici dal dischetto
+// - qui restiamo fedeli alla versione "in movimento", la piu' rappresentativa
+// del torneo). L'esito di ogni tentativo e' comunque deciso dalla forza delle
+// due squadre (T(id).strength), non da un input del giocatore.
+function attemptChance(shooterId,keeperId){
+ const s=T(shooterId)?.strength??70,k=T(keeperId)?.strength??70;
+ const base=.62;
+ const skew=(s-k)/260;
+ return Math.max(.32,Math.min(.86,base+skew));
+}
+async function runMovingShootout(h,a){
+ const order=[h,a];
+ const scored={[h]:0,[a]:0};
+ const attempts={[h]:0,[a]:0};
+ let round=0,sudden=false;
+ while(true){
+  const isRegular=round<3;
+  if(!isRegular)sudden=true;
+  for(const shooter of order){
+   if(!isRegular){
+    // oltranza: si ferma appena una squadra ha segnato e l'altra no dopo
+    // lo stesso numero di tentativi in questo turno di oltranza
+   }
+   const other=shooter===h?a:h;
+   attempts[shooter]++;
+   const scoredIt=Math.random()<attemptChance(shooter,other);
+   if(scoredIt)scored[shooter]++;
+   const teamName=T(shooter)?.name||shooter;
+   await ov(S9Popups.html(scoredIt?'goal':'save',{
+    kicker:'RIGORI IN MOVIMENTO',
+    title:scoredIt?'GOL!':'PARATA!',
+    player:teamName,
+    detail:scoredIt?'Conduzione da 30 metri, supera il portiere in uno contro uno.':'Conduzione da 30 metri, il portiere gli chiude lo specchio.',
+    footer:`${teamName} ${scored[shooter]} — tentativo ${attempts[shooter]}`
+   }),1300);
+   if(sudden&&shooter===order[1]){
+    if(scored[h]!==scored[a]){
+     const winner=scored[h]>scored[a]?h:a;
+     const score=`${scored[h]}-${scored[a]}`;
+     await ov(S9Popups.html('penalties',{kicker:'RIGORI IN MOVIMENTO',title:'DECISIVO!',detail:`${T(winner)?.name||winner} vince la sfida a oltranza ${score}.`}),1600);
+     return {winner,score};
+    }
+   }
+  }
+  if(isRegular){
+   round++;
+   if(round===3){
+    if(scored[h]!==scored[a]){
+     const winner=scored[h]>scored[a]?h:a;
+     const score=`${scored[h]}-${scored[a]}`;
+     await ov(S9Popups.html('penalties',{kicker:'RIGORI IN MOVIMENTO',title:'FINITA!',detail:`${T(winner)?.name||winner} vince ${score} dopo tre tentativi a testa.`}),1600);
+     return {winner,score};
+    }
+   }
+  }
+ }
+}
+async function finishPlayedTie(){
+ const ctx=S9V10.matchContext,m=current;
+ if(ctx?.mode!=='trofeo'||!m||m.scoreH!==m.scoreA||m.decider||!state)return;
+ await ov(S9Popups.html('penalties',{
+  kicker:'TROFEO BIRRA MORETTI',
+  title:'RIGORI IN MOVIMENTO',
+  detail:'Pareggio dopo i 45 minuti: si decide in conduzione da 30 metri, 5 secondi per battere il portiere, 3 tentativi a testa poi oltranza.'
+ }),1800);
+ const result=await runMovingShootout(m.h,m.a);
+ m.decider=result;
+ if(Array.isArray(m.keyEvents))m.keyEvents.push({type:'penalties',team:result.winner,detail:`Rigori in movimento ${result.score}`});
+}
+window.S9Trofeo={start,restore,finish,complete,openFromCups,finishPlayedTie,get active(){return !!saved}};
 
 function start(teams){
  state=buildState(teams);renderHub();show('trofeoHub');

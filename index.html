@@ -779,7 +779,7 @@ main{max-width:none!important;padding:0!important}
 @media(max-height:500px){#mainMenu #cupsModeBtn .cups-mode-icon{width:40px!important;height:36px!important}}
 </style>
 
-<link rel="stylesheet" href="css/game.css?v=tactics-33">
+<link rel="stylesheet" href="css/game.css?v=tactics-34">
 <link rel="stylesheet" href="css/v106-match-experience.css?v=2">
 </head>
 <body>
@@ -806,7 +806,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.40</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.41</span></span></div>
 </div>
 <main>
 
@@ -840,7 +840,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.40
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.41
     </div>
   </div>
 </section>
@@ -2739,6 +2739,7 @@ async function launchMatch(){
    if(window.S9Anchors?.recap)await S9Anchors.recap({h:T(current.h).name,a:T(current.a).name,scoreH:current.scoreH,scoreA:current.scoreA,channel:current.channel});
  }
  if(window.S9V10?.finishPlayedTie)await S9V10.finishPlayedTie();
+ if(window.S9Trofeo?.finishPlayedTie)await S9Trofeo.finishPlayedTie();
  if(willExtraTime){
    window.S9SFX?.fullTimeWhistle?.();
    {const j=window.S9Commentary?.fulltime?.(T(current.h).name,T(current.a).name,current.scoreH,current.scoreA);if(j)log(`${current.minute}' 🎙️ ${j}`,"neutral");}
@@ -3668,7 +3669,7 @@ renderTeamPicker();
 <script src="js/pitch-invasion.js?v=2"></script>
 <script src="js/trophy-ceremony.js?v=lap-close-16"></script>
 <script src="js/exhibition.js?v=stability-16"></script>
-<script src="js/trofeo-birra.js?v=3"></script>
+<script src="js/trofeo-birra.js?v=4"></script>
 <script src="js/v106-match-experience.js?v=presentation-2"></script>
 <script src="js/v107-cup-polish.js?v=team-season-2"></script>
 <script src="js/v108-complete-match-flow.js?v=team-season-8"></script>
