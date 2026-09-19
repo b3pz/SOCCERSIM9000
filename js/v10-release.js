@@ -299,6 +299,10 @@ function normalizeCareer(c){
  c.honours=c.honours||{};['scudetti','coppaItalia','cdc','uefa','world','euro'].forEach(k=>c.honours[k]=c.honours[k]||[]);
  if(!Number.isFinite(c.fanSupport))c.fanSupport=65;
  if(!Number.isFinite(c.boardConfidence))c.boardConfidence=60;
+ // FIX 2026-09 (45): layer narrativo - rapporto con la stampa, terzo
+ // indicatore separato da tifoseria/societa'. Sale/scende con le risposte
+ // scelte in conferenza stampa (vedi s9GenerateInterview piu' avanti).
+ if(!Number.isFinite(c.mediaRapport))c.mediaRapport=50;
  c.europe=c.europe||legacyEuropeDummy();ensureTeamStates(V10.clubIds,c);
  Object.values(c.v10Cups||{}).forEach(normalizeTournament);if(c.v10FinalEight)normalizeTournament(c.v10FinalEight);
  return c;
@@ -604,7 +608,7 @@ function createCareerV10(){
  // risultato (vedi l'aggiornamento in index.html dopo ogni gara giocata),
  // quindi puoi avere un presidente soddisfatto ma lo stadio che fischia, o
  // il contrario.
- career={manager:name,user:team,round:0,seasonYear:1998,groups,userGroup:ug,otherGroup:og,fixtures:fixtures(groups[ug]),otherFixtures:fixtures(groups[og]),stats:initStats(),pstats:initPlayerStats(),teamStates:{},results:[],leagueDates:v4SeasonSundays(1998),calendar:v4BuildCalendar(1998),honours:{scudetti:[],coppaItalia:[],cdc:[],uefa:[],world:[],euro:[]},qualified:null,europe:legacyEuropeDummy(),v10FinalEight:null,managerHistory:[],boardConfidence:60,fanSupport:65};
+ career={manager:name,user:team,round:0,seasonYear:1998,groups,userGroup:ug,otherGroup:og,fixtures:fixtures(groups[ug]),otherFixtures:fixtures(groups[og]),stats:initStats(),pstats:initPlayerStats(),teamStates:{},results:[],leagueDates:v4SeasonSundays(1998),calendar:v4BuildCalendar(1998),honours:{scudetti:[],coppaItalia:[],cdc:[],uefa:[],world:[],euro:[]},qualified:null,europe:legacyEuropeDummy(),v10FinalEight:null,managerHistory:[],boardConfidence:60,fanSupport:65,mediaRapport:50};
  career.objective=assignObjectiveV10(team);
  ensureTeamStates(V10.clubIds,career);initCareerCups(career,null);renderSeason();show('season');
 }
@@ -723,6 +727,9 @@ function advanceCareerSeasonV10(){
  // (si dimentica in parte il rancore/entusiasmo passato) tornando verso la
  // via di mezzo, invece di trascinarsi identico per sempre.
  career.fanSupport=Math.round((career.fanSupport??65)*0.7+65*0.3);
+ // FIX 2026-09 (45): stessa logica di regressione verso la via di mezzo,
+ // anche per il rapporto con la stampa.
+ career.mediaRapport=Math.round((career.mediaRapport??50)*0.7+50*0.3);
  // Nuovo obiettivo per la stagione che sta per iniziare (il girone appena
  // ridisegnato puo' cambiare la forza relativa della squadra).
  career.objective=assignObjectiveV10(career.user);
@@ -1257,19 +1264,33 @@ function renderV105Postmatch(){
   ["Calci d'angolo",s.cornersH||0,s.cornersA||0]
  ];
  const st=career?.teamStates?.[career.user];
- stats.innerHTML=`<div class="v105-number-table"><div class="v105-number-head"><span>${escapeHTML(home)}</span><span>STATISTICA</span><span>${escapeHTML(away)}</span></div>${rows.map(r=>`<div class="v105-number-row"><b>${r[1]}</b><span>${r[0]}</span><b>${r[2]}</b></div>`).join('')}</div><div class="v105-tactic-line">Modulo <b>${escapeHTML(st?.formation||'—')}</b><span>·</span> Atteggiamento <b>${escapeHTML(st?.mentality||'—')}</b></div>`;
+ // FIX 2026-09 (45): questa funzione RISCRIVE #postStats da zero ad ogni
+ // "show('postmatch')" (vedi il patch di show() piu' sotto), quindi la riga
+ // "Umore tifoseria" scritta prima in index.html (delta della tifoseria
+ // per il risultato appena giocato) spariva subito, sovrascritta qui senza
+ // che l'utente facesse in tempo a vederla. Ripristinata qui.
+ const fanLine=m._fanDelta!=null?`<div class="v105-tactic-line">Umore tifoseria <b>${career.fanSupport}%</b><span>·</span>${m._fanDelta>=0?'+':''}${m._fanDelta} per questo risultato</div>`:'';
+ stats.innerHTML=`<div class="v105-number-table"><div class="v105-number-head"><span>${escapeHTML(home)}</span><span>STATISTICA</span><span>${escapeHTML(away)}</span></div>${rows.map(r=>`<div class="v105-number-row"><b>${r[1]}</b><span>${r[0]}</span><b>${r[2]}</b></div>`).join('')}</div><div class="v105-tactic-line">Modulo <b>${escapeHTML(st?.formation||'—')}</b><span>·</span> Atteggiamento <b>${escapeHTML(st?.mentality||'—')}</b></div>${fanLine}`;
  const played=(m.events||[]).filter(e=>e._processed&&Number(e.min||0)<=Number(m.minute||90));
  const goals=played.filter(e=>e.type==='goal');
  const assists=goals.filter(e=>e.assist);
  const cards=played.filter(e=>e.type==='yellow'||e.type==='red');
  const injuries=played.filter(e=>e.type==='injury');
  const list=(items,render,empty='Nessuno')=>items.length?items.map(render).join(''):`<div class="v105-event-empty">${empty}</div>`;
+ // FIX 2026-09 (45): stesso problema della riga tifoseria sopra - questa
+ // griglia ricostruisce #postEvents SOLO da gol/assist/cartellini/infortuni
+ // letti dagli eventi grezzi della partita, quindi le righe narrative che
+ // finiscono in current.keyEvents (giocatori che parlano, contestazione
+ // tifoseria) sparivano subito senza che l'utente le vedesse mai. Una
+ // sezione in piu', solo quando c'e' davvero qualcosa da mostrare.
+ const narrative=(m.keyEvents||[]).filter(x=>typeof x==='string'&&(x.includes('💬')||x.includes('Contestazione')));
+ const narrativeSection=narrative.length?`<section class="v105-narrative-section"><h4>NOTIZIE DAL SPOGLIATOIO</h4>${narrative.map(x=>`<div class="v105-narrative-row">${escapeHTML(x)}</div>`).join('')}</section>`:'';
  eventsBox.innerHTML=`<div class="v105-events-grid">
   <section><h4>MARCATORI</h4>${list(goals,e=>`<div class="v105-event-row"><b>${e.min}'</b><span>${escapeHTML(e.player?.name||'—')}</span></div>`,'Nessun gol')}</section>
   <section><h4>ASSIST</h4>${list(assists,e=>`<div class="v105-event-row"><b>${e.min}'</b><span>${escapeHTML(e.assist?.name||'—')}</span></div>`,'Nessun assist')}</section>
   <section><h4>CARTELLINI</h4>${list(cards,e=>`<div class="v105-event-row"><b>${e.min}'</b><span>${e.type==='red'?'🟥':'🟨'} ${escapeHTML(e.player?.name||'—')}</span></div>`,'Nessun cartellino')}</section>
   <section><h4>INFORTUNI</h4>${list(injuries,e=>`<div class="v105-event-row"><b>${e.min}'</b><span>${escapeHTML(e.player?.name||'—')}${e.injuryLabel?` · ${escapeHTML(e.injuryLabel)}`:''}</span></div>`,'Nessun infortunio')}</section>
- </div>`;
+ </div>${narrativeSection}`;
 }
 
 /* Finalize condition exactly once when a played match reaches post-match. */

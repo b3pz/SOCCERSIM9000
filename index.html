@@ -101,6 +101,14 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px;borde
 @keyframes s9SnowFall{from{background-position:0 0,20px 10px,40px 30px}to{background-position:18px 64px,-14px 58px,60px 110px}}
 @keyframes s9WindFlag{from{transform:skewX(0deg)}to{transform:skewX(8deg)}}
 #weatherBadge{white-space:nowrap}
+/* FIX 2026-09 (45): conferenza stampa - stesso pattern modale di #tacticsModal */
+.s9-press-panel{width:min(560px,94vw);max-height:90vh;overflow:auto}
+.s9-press-question{font:700 15px var(--s9-font-copy,inherit);color:#e8edf3;background:rgba(0,0,0,.22);border-left:3px solid #d3b264;padding:10px 12px;border-radius:4px;margin:10px 0 16px}
+.s9-press-answers{display:flex;flex-direction:column;gap:10px}
+.s9-press-answer{text-align:left;background:linear-gradient(145deg,#173f70,#0a1c37);border:1px solid var(--s9-gold,#d3b264);border-radius:8px;color:#f0e8d2;padding:10px 12px;cursor:pointer}
+.s9-press-answer:hover{filter:brightness(1.15)}
+.s9-press-answer b{display:block;color:#f4d94a;font-size:12px;letter-spacing:.03em;margin-bottom:4px}
+.s9-press-answer span{display:block;font-size:13px;font-style:italic;color:#dce7f5}
 .pitch-mark{position:absolute;pointer-events:none;z-index:1}
 .touchline{left:0;right:0;top:0;bottom:0;border:2px solid rgba(255,255,255,.95)}
 .halfway{left:50%;top:0;bottom:0;border-left:2px solid rgba(255,255,255,.95);transform:translateX(-1px)}
@@ -771,7 +779,7 @@ main{max-width:none!important;padding:0!important}
 @media(max-height:500px){#mainMenu #cupsModeBtn .cups-mode-icon{width:40px!important;height:36px!important}}
 </style>
 
-<link rel="stylesheet" href="css/game.css?v=tactics-27">
+<link rel="stylesheet" href="css/game.css?v=tactics-28">
 <link rel="stylesheet" href="css/v106-match-experience.css?v=2">
 </head>
 <body>
@@ -798,7 +806,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.36</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.37</span></span></div>
 </div>
 <main>
 
@@ -825,13 +833,14 @@ main{max-width:none!important;padding:0!important}
     <div class="menu-secondary">
       <button id="honoursBtn">ALBO D'ORO</button>
       <button id="archiveBtn">ARCHIVIO PARTITE</button>
+      <button id="pressReviewBtn">RASSEGNA STAMPA</button>
       <button id="optionsBtn">OPZIONI</button>
       <button id="menuMusicToggle">♪ MUSICA</button>
       <button id="menuMusicNext" title="Prossima canzone">⏭ CANZONE</button>
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.36
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.37
     </div>
   </div>
 </section>
@@ -1095,9 +1104,21 @@ main{max-width:none!important;padding:0!important}
 <div><h3>Statistiche</h3><div id="postStats"></div></div>
 <div><h3>Eventi chiave</h3><div id="postEvents"></div></div>
 </div>
+<!-- FIX 2026-09 (45): layer narrativo - conferenza stampa post-partita.
+     Nascosto di default, mostrato solo quando current._interview esiste
+     (partite di carriera vere, non amichevoli/tornei one-shot). -->
+<br><button id="pressConfBtn" style="display:none">🎤 CONFERENZA STAMPA ▶</button>
 <br><button class="primary" id="returnSeason">TORNA AL RIEPILOGO STAGIONE</button>
 </div>
 </section>
+
+<div id="pressConfModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:100;align-items:center;justify-content:center">
+<div class="panel s9-press-panel">
+<h2>🎤 CONFERENZA STAMPA</h2>
+<p id="pressConfQuestion" class="s9-press-question"></p>
+<div id="pressConfAnswers" class="s9-press-answers"></div>
+</div>
+</div>
 
 <div id="tacticsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;align-items:center;justify-content:center">
 <div class="panel" style="width:min(900px,94vw);max-height:90vh;overflow:auto">
@@ -1921,6 +1942,52 @@ function s9CurrentMatchMonth(){
   return d?new Date(d).getMonth():null;
  }catch(e){return null}
 }
+// FIX 2026-09 (45): layer narrativo - conferenza stampa post-partita. La
+// domanda del giornalista dipende dall'esito (vittoria netta/vittoria/
+// pareggio/sconfitta/sconfitta pesante); tre toni di risposta possibili,
+// ognuno con un effetto diverso su tifoseria/stampa/societa' - nessuno e'
+// "giusto", solo un compromesso diverso (grinta piace ai tifosi ma
+// inasprisce la stampa e preoccupa la societa'; l'umilta' e' l'opposto).
+function s9GenerateInterview(gf,ga,oppName){
+ const diff=gf-ga;
+ let kind,question;
+ if(diff>=3){kind='bigwin';question=`Vittoria netta contro ${oppName} (${gf}-${ga}). Che partita avete fatto?`;}
+ else if(diff>0){kind='win';question=`Tre punti pesanti contro ${oppName}. Come commenta questa vittoria?`;}
+ else if(diff===0){kind='draw';question=`Un pareggio contro ${oppName}. È soddisfatto del punto conquistato?`;}
+ else if(diff>=-2){kind='loss';question=`Una sconfitta contro ${oppName}. Cosa non ha funzionato stasera?`;}
+ else{kind='bigloss';question=`Una serata pesante contro ${oppName} (${gf}-${ga}). Come spiega questo risultato?`;}
+ const quotes={
+  bigwin:{dip:`Bravi i ragazzi, ma il merito è anche di ${oppName}: hanno reso la vita difficile fino alla fine.`,agg:`Volevamo dimostrare chi comanda in campo, e l'abbiamo fatto senza pietà.`,umi:`Restiamo con i piedi per terra, è una sola partita: da domani si ricomincia da zero.`},
+  win:{dip:`Tre punti importanti, ${oppName} ha lottato ma noi siamo stati più concreti.`,agg:`Li volevamo più di loro, si è visto in campo dal primo minuto.`,umi:`Bene così, ma dobbiamo ancora crescere molto prima di parlare di obiettivi.`},
+  draw:{dip:`Un pareggio giusto, ${oppName} ha meritato rispetto stasera.`,agg:`Con un po' più di fortuna sotto porta portavamo a casa tre punti, non uno.`,umi:`Dobbiamo migliorare in fase offensiva, il punto va bene ma non basta.`},
+  loss:{dip:`Complimenti a ${oppName}, oggi sono stati più bravi di noi.`,agg:`Certe decisioni arbitrali hanno pesato, ma non cerco scuse.`,umi:`La responsabilità è mia, sono io che devo trovare le soluzioni giuste.`},
+  bigloss:{dip:`Una lezione dura ma da cui dobbiamo imparare, ${oppName} ha giocato una grande partita.`,agg:`Una squadra e un arbitraggio contro, ma dovevamo reagire meglio noi.`,umi:`Sono il primo responsabile di una serata così negativa, mi assumo tutte le colpe.`}
+ };
+ const q=quotes[kind];
+ return {question,kind,answers:{
+  diplomatico:{label:'DIPLOMATICO',text:q.dip,effects:{fan:1,media:2,board:0}},
+  grinta:{label:'GRINTA',text:q.agg,effects:{fan:3,media:-3,board:-1}},
+  umile:{label:'UMILE',text:q.umi,effects:{fan:-1,media:3,board:1}}
+ }};
+}
+// FIX 2026-09 (45): "i giocatori che iniziano a parlarti" - prima versione,
+// solo testo di colore (nessun effetto su fitness/morale: non tocca il
+// motore partita). Pesca da scenari reali della gara appena giocata -
+// marcatore titolare, riserva senza minuti, infortunato - non da eventi
+// inventati a caso, cosi' sembra sempre pertinente a quello che e' successo.
+function s9GeneratePlayerTalk(mine){
+ const st=career.teamStates?.[career.user];if(!st)return null;
+ const players=st.players||[];
+ const scorerId=(current.events||[]).filter(e=>e.type==='goal'&&e.side===mine&&e.player).map(e=>e.player.id).find(id=>st.lineup.includes(id));
+ const scorer=scorerId?players.find(p=>p.id===scorerId):null;
+ const benched=players.filter(p=>!st.lineup.includes(p.id)&&!(p.injuryGames>0));
+ const injured=players.find(p=>p.injuryGames>0);
+ const candidates=[];
+ if(scorer)candidates.push({title:`${scorer.name} dopo la partita`,text:`Stasera mi sentivo in forma, e si è visto. Grazie mister per la fiducia.`});
+ if(benched.length){const p=pick(benched);candidates.push({title:`${p.name} chiede spazio`,text:`Capisco le scelte, ma ho bisogno di più minuti per dimostrare quello che valgo. Ne parliamo, mister?`});}
+ if(injured)candidates.push({title:`${injured.name} è giù di morale`,text:`Proprio ora che stavo trovando continuità... Non vedo l'ora di tornare in campo.`});
+ return candidates.length?pick(candidates):null;
+}
 function applyWeatherVisual(weather,night){
  const badge=$("#weatherBadge");
  if(badge)badge.textContent=(weather?`${weather.icon} ${weather.label}`:"")+(night?" · 🌙 NOTTURNA":"");
@@ -2710,11 +2777,23 @@ async function launchMatch(){
     current.keyEvents.push(`Contestazione: la curva protesta, rapporto con la tifoseria ai minimi.`);
     alert(`La curva si fa sentire: striscioni di protesta fuori dallo stadio. Il rapporto con la tifoseria è ai minimi storici (${career.fanSupport}%).`);
    }else if(career.fanSupport>40)career._fanProtestShown=false;
+   // FIX 2026-09 (45): stesso cancello della tifoseria - solo partite di
+   // carriera vere hanno una conferenza stampa dopo.
+   current._interview=s9GenerateInterview(gf,ga,T(oppId)?.name||oppId);
+   // "i giocatori che ti parlano" - non ogni partita, altrimenti diventa
+   // rumore di fondo invece che un momento che si nota.
+   if(Math.random()<.18){
+    const talk=s9GeneratePlayerTalk(mine);
+    if(talk)current.keyEvents.push(`💬 ${talk.title}: "${talk.text}"`);
+   }
   }
  }
  $("#postScore").innerHTML=`<h2>${T(current.h).name} ${T(current.h).season} ${current.scoreH} - ${current.scoreA} ${T(current.a).name} ${T(current.a).season}</h2>`;
  $("#postStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}<br>Modulo: ${career.teamStates[career.user].formation}<br>Atteggiamento: ${career.teamStates[career.user].mentality}`+(current._fanDelta!=null?`<br>Umore tifoseria: ${career.fanSupport}% (${current._fanDelta>=0?'+':''}${current._fanDelta})`:'');
  $("#postEvents").innerHTML=current.keyEvents.length?current.keyEvents.map(x=>`<div class="card">${x}</div>`).join(""):"Nessun evento chiave.";
+ // FIX 2026-09 (45): mostra "CONFERENZA STAMPA" solo quando il match-finish
+ // qui sopra ha davvero generato un'intervista (partita di carriera vera).
+ const s9PcBtn=$("#pressConfBtn");if(s9PcBtn)s9PcBtn.style.display=current._interview?'':'none';
  // FIX 2026-09 (42): ARCHIVIO PARTITE - prima la cronaca di una partita
  // esisteva solo live (#commentary/#postEvents) e spariva per sempre al
  // ritorno alla stagione. Ora ogni partita giocata dal vivo (carriera,
@@ -2735,6 +2814,30 @@ async function launchMatch(){
  }
  show("postmatch"); if(!window.S9V10?.matchContext&&career?.careerId)S9Save.putCareer(career).catch(e=>console.warn("Save:",e)); if(sb){sb.disabled=false;sb.textContent="SCEGLI DIVISE ▶"}
 }
+
+// FIX 2026-09 (45): apertura/risposta della conferenza stampa post-partita.
+$("#pressConfBtn").onclick=()=>{
+ const iv=current?._interview;if(!iv)return;
+ $("#pressConfQuestion").textContent=iv.question;
+ const box=$("#pressConfAnswers");box.innerHTML="";
+ Object.values(iv.answers).forEach(a=>{
+  const btn=document.createElement("button");
+  btn.className="s9-press-answer";
+  btn.innerHTML=`<b>${a.label}</b><span>"${a.text}"</span>`;
+  btn.onclick=()=>{
+   career.fanSupport=Math.max(0,Math.min(100,(career.fanSupport??65)+a.effects.fan));
+   career.mediaRapport=Math.max(0,Math.min(100,(career.mediaRapport??50)+a.effects.media));
+   career.boardConfidence=Math.max(0,Math.min(100,(career.boardConfidence??60)+a.effects.board));
+   $("#pressConfModal").style.display="none";
+   current._interview=null;
+   $("#pressConfBtn").style.display="none";
+   $("#postStats").innerHTML+=`<br><i>Dopo la conferenza stampa</i> — Umore tifoseria: ${career.fanSupport}% · Rapporto con la stampa: ${career.mediaRapport}%`;
+  };
+  box.appendChild(btn);
+ });
+ $("#pressConfModal").style.display="flex";
+};
+$("#pressConfModal").onclick=e=>{if(e.target.id==="pressConfModal")$("#pressConfModal").style.display="none"};
 
 $("#startMatch").onclick=()=>{
  selectedKits={home:"home",away:"away"};
@@ -3046,6 +3149,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     // societaria - stesso posto in cui il giocatore gia' guarda per
     // sapere "come sto andando", ma sono due indicatori separati.
     const fans=career.fanSupport??65;
+    const media=career.mediaRapport??50;
     const trophyRows=Object.entries(comp).map(([k,label])=>{
       const list=mine(k);
       return `<div class="card"><b>${label}</b><br>${list.length?list.map(h=>h.year).join(', '):'<span class="muted">mai vinta</span>'}</div>`;
@@ -3056,7 +3160,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       `<small>Obiettivo: ${s.objective} · ${s.esito}</small>`
     ).join('');
     return `<div class="headline">${escapeHTML(career.manager)} · ${T(career.user)?.name||career.user}</div>
-    <p>${totalTrophies} trofe${totalTrophies===1?'o':'i'} in ${seasons} stagion${seasons===1?'e':'i'} · Fiducia societaria attuale: <b>${conf}%</b> · Umore tifoseria: <b>${fans}%</b></p>
+    <p>${totalTrophies} trofe${totalTrophies===1?'o':'i'} in ${seasons} stagion${seasons===1?'e':'i'} · Fiducia societaria attuale: <b>${conf}%</b> · Umore tifoseria: <b>${fans}%</b> · Rapporto con la stampa: <b>${media}%</b></p>
     <h3 style="margin-top:16px">BACHECA</h3>${trophyRows}
     <h3 style="margin-top:16px">STORICO STAGIONI</h3>${historyRows||'<p class="muted">Nessuna stagione ancora conclusa.</p>'}`;
   };
@@ -3085,6 +3189,48 @@ document.addEventListener("DOMContentLoaded",()=>{
     return `<div class="headline">ARCHIVIO PARTITE</div><p>Le tue ultime ${games.length} partite giocate dal vivo, dalla più recente.</p>${rows}`;
   };
   if($m("#archiveBtn")) $m("#archiveBtn").onclick=()=>message("ARCHIVIO PARTITE",renderArchiveHTML());
+  // FIX 2026-09 (45): RASSEGNA STAMPA - non e' legata a un giorno preciso
+  // (richiederebbe tracciare la settimana), si rigenera fresca ogni volta
+  // che la apri a partire da: posizione in classifica, ultimo risultato
+  // vero (non amichevoli) e i tre indicatori (tifoseria/stampa/societa').
+  const renderPressReviewHTML=()=>{
+    if(!career)return "<div class='headline'>NESSUNA CARRIERA IN CORSO</div><p>La rassegna stampa segue la tua gestione: risultati, classifica e umore attorno alla squadra.</p>";
+    const rows=v4Standings(career.userGroup);
+    const posIdx=rows.findIndex(r=>r.t.id===career.user);
+    const pos=posIdx>=0?posIdx+1:null,total=rows.length,pts=posIdx>=0?rows[posIdx].s.pts:0;
+    const teamName=T(career.user)?.name||career.user;
+    const cards=[];
+    if(pos!=null){
+      let tag,tone;
+      if(pos===1){tag='CAPOLISTA';tone="in testa al girone, inseguita da tutte";}
+      else if(pos<=4){tag='ZONA PLAYOFF';tone="saldamente nella zona che conta";}
+      else if(pos<=total-3){tag='CENTROCLASSIFICA';tone="in una classifica ancora cortissima";}
+      else{tag='ZONA CALDA';tone="in una posizione che inizia a preoccupare";}
+      cards.push({headline:`${teamName.toUpperCase()}: ${tag}`,body:`${pos}° posto nel girone ${career.userGroup} a quota ${pts} punti, ${tone}.`});
+    }
+    const lastGame=(career.matchArchive||[]).find(g=>(g.h===career.user||g.a===career.user)&&g.competition!=='friendly');
+    if(lastGame){
+      const mine=lastGame.h===career.user?'h':'a';
+      const gf=mine==='h'?lastGame.hg:lastGame.ag,ga=mine==='h'?lastGame.ag:lastGame.hg;
+      const oppId=mine==='h'?lastGame.a:lastGame.h,oppName=T(oppId)?.name||oppId;
+      const verb=gf>ga?`batte ${oppName} ${gf}-${ga}`:gf<ga?`crolla contro ${oppName} (${gf}-${ga})`:`impatta ${gf}-${ga} contro ${oppName}`;
+      cards.push({headline:`ULTIMA USCITA: ${teamName.toUpperCase()} ${gf>ga?'VOLA':gf<ga?'IN CRISI':'FRENA'}`,body:`${teamName} ${verb} nell'ultimo impegno.`});
+    }
+    const fans=career.fanSupport??65;
+    if(fans>=80)cards.push({headline:'STADIO IN FESTA',body:`Il rapporto con la tifoseria è ai massimi (${fans}%): l'ambiente spinge la squadra.`});
+    else if(fans<=25)cards.push({headline:'CURVA IN RIVOLTA',body:`Il rapporto con la tifoseria è critico (${fans}%): cresce il malcontento sugli spalti.`});
+    else if(fans<=45)cards.push({headline:'TIFOSI IN ATTESA',body:`Il rapporto con la tifoseria resta fragile (${fans}%): serve continuità di risultati.`});
+    const media=career.mediaRapport??50;
+    if(media>=75)cards.push({headline:'STAMPA DALLA TUA PARTE',body:`I giornalisti raccontano una gestione serena (rapporto con la stampa: ${media}%).`});
+    else if(media<=25)cards.push({headline:"STAMPA ALL'ATTACCO",body:`I titoli si fanno duri: il rapporto con la stampa è ai minimi (${media}%).`});
+    const conf=career.boardConfidence??60;
+    if(conf<=25)cards.push({headline:'PANCHINA A RISCHIO',body:`Si rincorrono le voci in società: la fiducia nella tua gestione è appena al ${conf}%.`});
+    else if(conf>=80)cards.push({headline:"RINNOVO NELL'ARIA",body:`La società osserva con favore il tuo lavoro (fiducia: ${conf}%).`});
+    if(!cards.length)cards.push({headline:'GIORNATA TRANQUILLA',body:"Nessuna notizia particolare oggi: la stampa aspetta la prossima partita."});
+    const rowsHtml=cards.map(c=>`<div class="card s9-press-clip"><b>${escapeHTML(c.headline)}</b><div class="muted">${escapeHTML(c.body)}</div></div>`).join('');
+    return `<div class="headline">RASSEGNA STAMPA</div><p>I titoli di oggi su ${escapeHTML(teamName)}.</p>${rowsHtml}`;
+  };
+  if($m("#pressReviewBtn")) $m("#pressReviewBtn").onclick=()=>message("RASSEGNA STAMPA",renderPressReviewHTML());
 
   if($m("#optionsBtn")) $m("#optionsBtn").onclick=()=>message(
     "OPZIONI",
@@ -3506,7 +3652,7 @@ renderTeamPicker();
 <script src="js/v80-safari-iphone.js?v=23-1"></script>
 <script src="js/v91-final-touches.js?v=12-1"></script>
 <script src="js/v10-data.js?v=3d-1"></script>
-<script src="js/v10-release.js?v=stability-17"></script>
+<script src="js/v10-release.js?v=stability-18"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
 <script src="js/match-coherence.js?v=stability-22"></script>
 <script src="js/kit-profiles.js?v=2"></script>

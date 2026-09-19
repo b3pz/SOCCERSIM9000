@@ -4326,6 +4326,12 @@ body[data-v10-cup-theme] #match .match-shell{
 .v105-events-grid h4{margin:0 0 7px;color:#f0d47b;font-size:10px;letter-spacing:.08em}
 .v105-event-row{display:grid;grid-template-columns:38px minmax(0,1fr);gap:6px;padding:4px 0;border-top:1px solid rgba(255,255,255,.07);font-size:11px}
 .v105-event-row:first-of-type{border-top:0}.v105-event-row b{color:#f7dc82}.v105-event-row span{min-width:0;overflow-wrap:anywhere}
+/* FIX 2026-09 (45): sezione "notizie dallo spogliatoio" (giocatori che
+   parlano, contestazione tifoseria) sotto la griglia gol/assist/cartellini */
+.v105-narrative-section{margin-top:9px;padding:9px;border:1px solid rgba(213,184,95,.3);background:rgba(213,184,95,.06);border-radius:6px}
+.v105-narrative-section h4{margin:0 0 7px;color:#f0d47b;font-size:10px;letter-spacing:.08em}
+.v105-narrative-row{font-size:12px;font-style:italic;color:#e9dfc7;padding:4px 0;border-top:1px dashed rgba(255,255,255,.1)}
+.v105-narrative-row:first-of-type{border-top:0}
 .v105-event-empty{padding:7px 0;color:#aba58f;font-size:10px;font-style:italic}
 #postmatch #returnSeason{display:block!important;margin:16px auto 0!important;min-width:min(360px,90%)!important}
 
