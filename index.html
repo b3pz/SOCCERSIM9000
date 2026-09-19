@@ -806,7 +806,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.41</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.42</span></span></div>
 </div>
 <main>
 
@@ -840,7 +840,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.41
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.42
     </div>
   </div>
 </section>
@@ -2660,7 +2660,14 @@ async function launchMatch(){
  const s9ForcedOpts={};
  if(S9V10?.matchContext?.forcedWeather)s9ForcedOpts.weather=S9V10.matchContext.forcedWeather;
  if(S9V10?.matchContext?.forcedNight)s9ForcedOpts.night=true;
- current=buildMatch(g[0],g[1],s9ForcedOpts);current._running=true;current.half=1;current.coinToss=coinToss;current.channel=matchChannel;current.incitaUsed={h:0,a:0};setupPitch();show("match");updateScore();applyWeatherVisual(current.weather,current.night);hidePitch();updateIncitaButton();
+ // FIX 2026-09 (49): "è una richiesta esplicita" - il vero Trofeo Birra
+ // Moretti (1997-2008) durava 45' in tutto (due tempi da 22'30"), non 90'.
+ // toMin:45 comprime la generazione degli eventi (buildMatch) sulla stessa
+ // finestra 0-45 invece di 0-90, dimezzando anche il numero di occasioni
+ // attese in proporzione (stesso "span" gia' usato per i rebuild parziali).
+ const s9IsTrofeo=S9V10?.matchContext?.mode==='trofeo';
+ if(s9IsTrofeo)s9ForcedOpts.toMin=45;
+ current=buildMatch(g[0],g[1],s9ForcedOpts);current._running=true;current.half=1;current.coinToss=coinToss;current.channel=matchChannel;current.incitaUsed={h:0,a:0};current.trofeoShort=s9IsTrofeo;setupPitch();show("match");updateScore();applyWeatherVisual(current.weather,current.night);hidePitch();updateIncitaButton();
  /* FIX 2026-09: invasione di campo scenica. Ogni 3 partite giocate (contate
     solo quando l'utente guarda davvero la partita, non le simulazioni CPU
     di simOther) c'e' il 50% di probabilita' che scatti, ad un minuto
@@ -2693,7 +2700,7 @@ async function launchMatch(){
     acceso per tutta la durata di ogni tempo, spento durante l'intervallo e
     a fine partita. */
  try{window.S9SFX?.startAmbientCrowd?.()}catch(e){console.warn("audio",e)}
- await playHalf(1,45);
+ await playHalf(1,current.trofeoShort?22:45);
  try{window.S9SFX?.stopAmbientCrowd?.()}catch(e){console.warn("audio",e)}
  paused=true;
  $("#halftimeScore").innerHTML=`<h2>${T(current.h).name} ${T(current.h).season} ${current.scoreH} - ${current.scoreA} ${T(current.a).name} ${T(current.a).season}</h2>`;
@@ -2703,7 +2710,7 @@ async function launchMatch(){
  if(window.S9Anchors?.halftime)await S9Anchors.halftime({h:T(current.h).name,a:T(current.a).name,scoreH:current.scoreH,scoreA:current.scoreA,channel:current.channel});
  const intervalDone=new Promise(r=>halfResolver=r);if(!window.S9Match3D?.showInterval?.())show("halftime");await intervalDone;window.S9Match3D?.endInterval?.();paused=false;$("#pauseBtn").textContent="⏸ PAUSA";show("match");await window.S9Match3D?.kickoffCinematic?.("2° TEMPO");if(window.S9MatchVisual?.kickoff)await S9MatchVisual.kickoff(coinToss?.kickoffSide==='away'?'home':'away');
  try{window.S9SFX?.startAmbientCrowd?.()}catch(e){console.warn("audio",e)}
- await playHalf(46,90);
+ await playHalf(current.trofeoShort?23:46,current.trofeoShort?45:90);
  try{window.S9SFX?.stopAmbientCrowd?.()}catch(e){console.warn("audio",e)}
  /* FIX 2026-09 (32): "la telecronaca è piantata durante i supplementari, dice
     fine partita e chiude mentre si gioca ancora" - questo blocco al 90' era
@@ -2729,11 +2736,12 @@ async function launchMatch(){
    return tied;
  })();
  window.S9SFX?.fullTimeWhistle?.();
+ const s9FullTimeTag=current.trofeoShort?"45'":"90'";
  if(willExtraTime){
-   log("90' FINE TEMPI REGOLAMENTARI - Il punteggio resta in parita'.");
+   log(`${s9FullTimeTag} FINE TEMPI REGOLAMENTARI - Il punteggio resta in parita'.`);
  }else{
-   log("90' FINE PARTITA");
-   {const j=window.S9Commentary?.fulltime?.(T(current.h).name,T(current.a).name,current.scoreH,current.scoreA);if(j)log(`90' 🎙️ ${j}`,"neutral");}
+   log(`${s9FullTimeTag} FINE PARTITA`);
+   {const j=window.S9Commentary?.fulltime?.(T(current.h).name,T(current.a).name,current.scoreH,current.scoreA);if(j)log(`${s9FullTimeTag} 🎙️ ${j}`,"neutral");}
    /* FIX 2026-09: i telecronisti dell'emittente della partita ricompaiono per
       il riepilogo finale (tap per chiudere subito, altrimenti si chiude da sola). */
    if(window.S9Anchors?.recap)await S9Anchors.recap({h:T(current.h).name,a:T(current.a).name,scoreH:current.scoreH,scoreA:current.scoreA,channel:current.channel});
@@ -2850,9 +2858,10 @@ $("#confirmKits").onclick=()=>launchMatch();
 $("#resumeSecond").onclick=()=>{
  if(!halfResolver||!current)return;
  const resume=halfResolver;halfResolver=null;
- current.half=2;current.minute=45;paused=false;tacticsWasPaused=false;
+ const s9HalfEnd=current.trofeoShort?22:45;
+ current.half=2;current.minute=s9HalfEnd;paused=false;tacticsWasPaused=false;
  $("#tacticsModal").style.display="none";
- try{setupPitch();updateScore();applyWeatherVisual(current.weather,current.night);log("45' Le squadre cambiano campo. Inizia il secondo tempo.","neutral")}
+ try{setupPitch();updateScore();applyWeatherVisual(current.weather,current.night);log(`${s9HalfEnd}' Le squadre cambiano campo. Inizia il secondo tempo.`,"neutral")}
  finally{resume()}
 }
 $("#returnSeason").onclick=()=>{renderSeason();show("season")}
@@ -3669,7 +3678,7 @@ renderTeamPicker();
 <script src="js/pitch-invasion.js?v=2"></script>
 <script src="js/trophy-ceremony.js?v=lap-close-16"></script>
 <script src="js/exhibition.js?v=stability-16"></script>
-<script src="js/trofeo-birra.js?v=4"></script>
+<script src="js/trofeo-birra.js?v=5"></script>
 <script src="js/v106-match-experience.js?v=presentation-2"></script>
 <script src="js/v107-cup-polish.js?v=team-season-2"></script>
 <script src="js/v108-complete-match-flow.js?v=team-season-8"></script>

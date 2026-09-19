@@ -22,16 +22,25 @@
    parate/gol a partita in corso), non come mini-gioco pilotabile: il
    risultato di ogni tentativo resta comunque deciso dalla forza delle
    squadre, come tutto il resto del motore di gioco.
+   FIX 2026-09 (49): "è una richiesta esplicita" - le partite del Trofeo
+   durano davvero 45' (due tempi da 22'30", vedi index.html: buildMatch
+   riceve opts.toMin=45 e playHalf gioca 1-22/23-45 invece di 1-45/46-90
+   quando S9V10.matchContext.mode==='trofeo'). Riordinato anche il pool di
+   selezione squadre: prima le italiane di club 1998-2008, poi le estere,
+   poi le nazionali, infine le altre italiane (non citate fra le priorita').
 */
 (function(){
 'use strict';
 const q=s=>document.querySelector(s);
 let saved=null,state=null;
 
-// FIX 2026-09 (47): "c'erano le squadre dal 98/99 fino al 2008 ITALIANE
-// quindi mettile tra le prime selezionabili" - il pool ora mette prima le
-// italiane di quell'arco di stagioni, poi le altre italiane, poi i club
-// esteri, infine le nazionali.
+// FIX 2026-09 (49): "mi raccomando metti come prime scelte le italiane dei
+// club di quegli anni poi le straniere ed infine le nazionali" - ordine
+// ESPLICITO e definitivo del pool: 1) italiane di club 1998-2008 (l'epoca
+// d'oro del vero Trofeo Birra Moretti), 2) squadre estere di club, 3)
+// nazionali. Le squadre italiane FUORI da quell'arco di stagioni non sono
+// citate fra le priorita' dall'utente: restano comunque selezionabili, ma
+// in coda a tutte le altre categorie (non piu' subito dopo le "d'oro").
 function seasonStartYear(id){const s=T(id)?.season||'';const y=parseInt(s.slice(0,4),10);return Number.isFinite(y)?y:0}
 function teamPool(){
  const italian=(S9V10.italianIds||[]).slice();
@@ -39,7 +48,7 @@ function teamPool(){
  const otherItalian=italian.filter(id=>!golden.includes(id)).sort((a,b)=>T(a).name.localeCompare(T(b).name));
  const foreign=(S9V10.foreignIds||[]).slice().sort((a,b)=>T(a).name.localeCompare(T(b).name));
  const national=(S9V10.nationalIds||[]).slice().sort((a,b)=>T(a).name.localeCompare(T(b).name));
- return [...golden,...otherItalian,...foreign,...national];
+ return [...golden,...foreign,...national,...otherItalian];
 }
 
 function randomTeams(){
