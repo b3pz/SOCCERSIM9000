@@ -45,27 +45,37 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px;borde
 /* FIX 2026-09 (40): effetto visivo meteo sul campo - overlay leggero,
    non deve mai coprire i puntini giocatori (z-index sotto ai dot ma
    sopra alle righe del campo) e resta puramente decorativo. */
+/* FIX 2026-09 (44) v3: "se nevica o piove non si vede nella partita" -
+   alla scala reale del campo (molto piu' largo del ritaglio usato in
+   fase di test) le strisce/fiocchi sottili di prima si perdevano quasi
+   del tutto. Pattern piu' fitto, piu' opaco e con un velo colore fisso
+   sotto l'animazione, cosi' il meteo si nota SUBITO e non solo a
+   ridosso della telecamera. */
 #pitch.s9-weather-pioggia::after{
- content:"";position:absolute;inset:0;z-index:2;pointer-events:none;opacity:.5;
- background:repeating-linear-gradient(115deg,rgba(210,230,255,.55) 0 2px,transparent 2px 16px);
- animation:s9RainFall .3s linear infinite;
+ content:"";position:absolute;inset:0;z-index:2;pointer-events:none;opacity:.85;
+ background:
+  repeating-linear-gradient(112deg,rgba(225,240,255,.85) 0 3px,transparent 3px 11px),
+  repeating-linear-gradient(112deg,rgba(200,225,255,.4) 0 2px,transparent 2px 22px),
+  linear-gradient(rgba(30,50,80,.14),rgba(30,50,80,.14));
+ animation:s9RainFall .25s linear infinite;
 }
 #pitch.s9-weather-nebbia::after{
  content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
- background:radial-gradient(ellipse at center,rgba(235,235,235,.08) 0%,rgba(235,235,235,.42) 65%,rgba(225,225,225,.62) 100%);
+ background:radial-gradient(ellipse at center,rgba(235,235,235,.18) 0%,rgba(235,235,235,.55) 60%,rgba(225,225,225,.78) 100%);
 }
 #pitch.s9-weather-vento .pitch-mark.corner{animation:s9WindFlag 1.1s ease-in-out infinite alternate}
 /* FIX 2026-09 (44): fiocchi (non righe oblique come la pioggia), caduta
    lenta e verticale - fiocchi piu' grandi e piu' radi della pioggia. */
 #pitch.s9-weather-neve::after{
- content:"";position:absolute;inset:0;z-index:2;pointer-events:none;opacity:.75;
+ content:"";position:absolute;inset:0;z-index:2;pointer-events:none;opacity:.95;
  background-image:
-  radial-gradient(circle,rgba(255,255,255,.95) 1.6px,transparent 1.6px),
-  radial-gradient(circle,rgba(255,255,255,.8) 1.2px,transparent 1.2px),
-  radial-gradient(circle,rgba(255,255,255,.9) 1.4px,transparent 1.4px);
- background-size:64px 64px,48px 48px,80px 80px;
- background-position:0 0,20px 10px,40px 30px;
- animation:s9SnowFall 4.5s linear infinite;
+  radial-gradient(circle,rgba(255,255,255,1) 2.6px,transparent 2.6px),
+  radial-gradient(circle,rgba(255,255,255,.9) 2px,transparent 2px),
+  radial-gradient(circle,rgba(255,255,255,.95) 2.3px,transparent 2.3px),
+  linear-gradient(rgba(235,242,250,.1),rgba(235,242,250,.1));
+ background-size:34px 34px,26px 26px,44px 44px,100% 100%;
+ background-position:0 0,12px 8px,24px 20px,0 0;
+ animation:s9SnowFall 3.2s linear infinite;
 }
 /* FIX 2026-09 (44): "si vede anche visivamente se... giorno o notte" -
    il campo si scurisce (vignettatura) e compaiono i riflettori accesi sui
@@ -788,7 +798,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.35</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.36</span></span></div>
 </div>
 <main>
 
@@ -821,7 +831,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.35
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.36
     </div>
   </div>
 </section>
@@ -3505,7 +3515,7 @@ renderTeamPicker();
 <script src="js/tv-channels.js?v=3"></script>
 <script src="js/broadcast-anchors.js?v=5"></script>
 <script src="js/kit-presentation.js?v=1"></script>
-<script src="js/match-3d.js?v=stability-36"></script>
+<script src="js/match-3d.js?v=stability-37"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>

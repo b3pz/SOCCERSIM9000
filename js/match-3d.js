@@ -8,6 +8,67 @@ let intervalPanel=null,intervalActive=false,fullscreenExitPending=false;
 let uniforms={},playerDots=[],pitchHalf=0,pendingSetup=false;
 let visualTime=0,visualLast=0;
 let followCamera=newCamera();
+// FIX 2026-09 (44) v4: "se nevica o piove non si vede nella partita" - il
+// meteo/notturna erano stati implementati SOLO come CSS sul campo 2D
+// (#pitch), ma la modalita' di gioco di default e' quella 3D (canvas),
+// dove il campo CSS non e' nemmeno visibile (canvas.hidden solo in 2D).
+// Qui l'overlay va disegnato direttamente sul canvas, ogni frame, in
+// coordinate schermo (non nel mondo 3D: pioggia/neve/nebbia sono un
+// effetto "davanti alla telecamera", non oggetti sul terreno).
+let weatherParticles=null,weatherParticleKey=null;
+function ensureWeatherParticles(key,w,h){
+ const sig=key+':'+w+':'+h;
+ if(weatherParticleKey===sig&&weatherParticles)return weatherParticles;
+ weatherParticleKey=sig;
+ const count=key==='pioggia'?160:key==='neve'?110:0;
+ weatherParticles=Array.from({length:count},()=>({
+  x:Math.random()*w,y:Math.random()*h,
+  len:key==='pioggia'?14+Math.random()*12:0,
+  r:key==='neve'?1.6+Math.random()*2.6:0,
+  speed:key==='pioggia'?(10+Math.random()*5):(1.3+Math.random()*1.3),
+  drift:key==='neve'?(Math.random()-.5)*.7:0,
+  phase:Math.random()*Math.PI*2
+ }));
+ return weatherParticles;
+}
+function drawWeatherOverlay(w,h){
+ const weather=(typeof current!=='undefined'&&current)?current.weather:null;
+ if(!weather)return;
+ if(weather.key==='nebbia'){
+  const g=ctx.createRadialGradient(w/2,h*.38,h*.12,w/2,h*.42,h*.95);
+  g.addColorStop(0,'rgba(224,228,232,.04)');g.addColorStop(.55,'rgba(224,228,232,.24)');g.addColorStop(1,'rgba(206,210,214,.52)');
+  ctx.save();ctx.fillStyle=g;ctx.fillRect(0,0,w,h);ctx.restore();
+  return;
+ }
+ if(weather.key!=='pioggia'&&weather.key!=='neve')return;
+ const particles=ensureWeatherParticles(weather.key,w,h);
+ ctx.save();
+ if(weather.key==='pioggia'){
+  ctx.strokeStyle='rgba(216,232,255,.8)';ctx.lineWidth=1.3;ctx.lineCap='round';
+  for(const pt of particles){
+   pt.y+=pt.speed;pt.x-=pt.speed*.26;
+   if(pt.y>h+pt.len){pt.y=-pt.len;pt.x=Math.random()*w+60}
+   if(pt.x<-30){pt.x=w+20}
+   ctx.beginPath();ctx.moveTo(pt.x,pt.y);ctx.lineTo(pt.x+pt.speed*.26*2.1,pt.y-pt.len);ctx.stroke();
+  }
+ }else{
+  ctx.fillStyle='rgba(255,255,255,.95)';
+  for(const pt of particles){
+   pt.y+=pt.speed;pt.x+=Math.sin(visualTime/650+pt.phase)*pt.drift;
+   if(pt.y>h+4){pt.y=-4;pt.x=Math.random()*w}
+   ctx.beginPath();ctx.arc(pt.x,pt.y,pt.r,0,Math.PI*2);ctx.fill();
+  }
+ }
+ ctx.restore();
+}
+function drawNightOverlay(w,h){
+ if(!(typeof current!=='undefined'&&current?.night))return;
+ ctx.save();
+ ctx.fillStyle='rgba(4,9,20,.4)';ctx.fillRect(0,0,w,h);
+ const glow=(x,y)=>{const g=ctx.createRadialGradient(x,y,0,x,y,Math.max(w,h)*.3);g.addColorStop(0,'rgba(255,247,214,.32)');g.addColorStop(1,'rgba(255,247,214,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);};
+ glow(w*.06,h*.1);glow(w*.94,h*.1);
+ ctx.restore();
+}
 function newCamera(){return {x:52.5,z:34,vx:0,vz:0,last:0,blend:0,ballX:52.5,ballZ:34,lead:0,fit:null}}
 let highlightState=null; // camera delle azioni salienti: segue il pallone ma senza orbitare attorno alla scena
 let celebrationState=null; // breve cinematica fissa del gol con esultanza di gruppo
@@ -1043,8 +1104,16 @@ function render(now){
   const perspectivePx=Math.hypot(edge.x-b.x,edge.y-b.y)||0;
   const br=clamp(Math.max(perspectivePx,playerHalfWidthPx*1.1,3),3,90);
   ctx.fillStyle='#06180c88';ctx.beginPath();ctx.ellipse(ground.x,ground.y,Math.max(3,br*1.3),Math.max(1.4,br*.6),0,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#fff';ctx.strokeStyle='#142537';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(b.x,b.y,br,0,Math.PI*2);ctx.fill();ctx.stroke();
+  // FIX 2026-09 (44): "la palla dev'essere arancione se nevica" - come nel
+  // calcio vero, dove il pallone bianco si confonderebbe con la neve.
+  const snowBall=current?.weather?.key==='neve';
+  ctx.fillStyle=snowBall?'#ff8a1e':'#fff';ctx.strokeStyle=snowBall?'#7a3d00':'#142537';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(b.x,b.y,br,0,Math.PI*2);ctx.fill();ctx.stroke();
  }
+ // FIX 2026-09 (44) v4: overlay meteo/notturna in coordinate schermo, sopra
+ // a campo/giocatori/palla ma sotto al flash di esultanza e alle scritte
+ // (fuorigioco, banner AZIONI SALIENTI) cosi' restano sempre leggibili.
+ drawWeatherOverlay(w,h);
+ drawNightOverlay(w,h);
  if(celebration){const age=visualTime-celebration.started;const alpha=age<250?1-age/250:age>3900?(age-3900)/300:0;if(alpha>0){ctx.fillStyle='rgba(6,15,24,'+clamp(alpha,0,1)+')';ctx.fillRect(0,0,w,h);}}
  const offside=document.querySelector('#pitch .offside-line');if(offside){const x=parseFloat(offside.style.left)*1.05,a=p([x,.1,0]),b=p([x,.1,68]);ctx.strokeStyle='#ffe061';ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([])}
  if(mode==='highlights'&&!eventActive){ctx.fillStyle='#08182dcc';ctx.fillRect(0,0,w,32);ctx.fillStyle='#e9d797';ctx.font='12px Arial';ctx.textAlign='center';ctx.fillText('AZIONI SALIENTI · Avanzamento alla prossima azione',w/2,21)}
