@@ -383,6 +383,18 @@ function competitionBrand(key){
  };
  return brands[key]||{style:key||'cup',kicker:'COPPA',setupTitle:FORMATS?.[key]?.name||'COPPA',tournamentTitle:FORMATS?.[key]?.name||'COPPA',cardTop:'COPPA',cardTitle:FORMATS?.[key]?.name||'COPPA',cardHook:'TORNEO',year:''};
 }
+// FIX 2026-09 (47): "il logo in alto a destra delle diverse competizioni
+// durante la partita" - la Modalita' TV mostrava sempre la scritta fissa
+// "SERIEA 9000 SIM"; ora mostra il logo/bollino della competizione in
+// corso (lo stesso usato come pulsante nel carosello di Coppe e Tornei),
+// risolto da S9Competition.key() cosi' funziona per campionato, coppe,
+// amichevoli e Trofeo Birra Moretti allo stesso modo.
+function logoForCompetition(key){
+ const fixed={friendly:'assets/logo/seriea9000_logo.png',seriea:'assets/league/serie_a_league.png',supercoppa:'assets/league/serie_a_league.png'};
+ if(fixed[key])return fixed[key];
+ return competitionBrand(key)?.logo||'assets/logo/seriea9000_logo.png';
+}
+V10.logoForCompetition=logoForCompetition;
 function rebuildCupsMenu(){
  const shell=q('#cupsMenu .cups-shell');if(!shell)return;
  /* FIX 2026-09: aggiunta una coda ironica ad ogni "story", tenendo la
