@@ -29,6 +29,19 @@ function isNational(id){return V10.nationalIds.includes(id)}
 function isForeign(id){return V10.foreignIds.includes(id)}
 function crestFor(id){const t=T(id);if(t?.crest)return t.crest;return isNational(id)?`assets/crests/national/${id}.png`:isForeign(id)?`assets/crests/foreign/${id}.png`:`assets/crests/italian/${id}.png`}
 function kitFor(id,kind){return isNational(id)?`assets/kits/national/${kind}/${id}.png`:isForeign(id)?`assets/kits/foreign/${kind}/${id}.png`:`assets/kits/italian/${kind}/${id}.png`}
+/* FIX 2026-09 (34): "nazionale e club stranieri non caricano il proprio
+   stemma" - trovata la causa VERA: crestFor()/isNational()/isForeign() sono
+   dichiarate dentro la IIFE di questo file ((function(){...})() in cima),
+   quindi sono sempre state PRIVATE - invisibili da index.html, exhibition.js,
+   tactics-redesign.js ecc. Ogni fallback tipo
+   "typeof crestFor==='function'?crestFor(id):null" sparso nel codice
+   falliva SEMPRE silenziosamente (typeof --> 'undefined'), quindi qualsiasi
+   squadra fuori da CREST_ASSETS (tutte le nazionali/estere) finiva sempre
+   nel cerchio con le iniziali, in ogni schermata tranne quelle interne a
+   questo stesso file (Coppe, che infatti funzionava). Le si espone qui su
+   window cosi' tutti i fallback gia' scritti altrove iniziano davvero a
+   funzionare, senza dover toccare ogni singolo punto di chiamata. */
+try{window.crestFor=crestFor;window.kitFor=kitFor;window.isNational=isNational;window.isForeign=isForeign;}catch(e){}
 function fmtScore(r){return `${r.hg}–${r.ag}`}
 
 /* National/foreign visual integration. */
