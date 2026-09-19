@@ -722,13 +722,20 @@ main{max-width:none!important;padding:0!important}
   </div>
 </div>
 <span id="headerSub" hidden></span>
+<!-- FIX 2026-09 (32): "così sappiamo se è stata caricata la versione giusta"
+     - numero di versione visibile subito in schermata iniziale (e nel menu
+     principale), cosi' si vede a colpo d'occhio se il caricamento su GitHub
+     e' andato a buon fine senza dover controllare il codice sorgente.
+     Convenzione: ad ogni pacchetto full-code-sync consegnato, incrementare
+     questo numero qui sotto (id="s9BuildVersion") E la riga gemella nel
+     ".prototype-note" del menu principale poco piu' in basso. -->
 <div id="titleScreen" class="title-screen" role="dialog" aria-modal="true" aria-label="SerieA 9000 SIM">
   <div class="intro-content">
   <div class="intro-kicker">IL CALCIO DEGLI ANNI ’90 E 2000</div>
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.18</span></span></div>
 </div>
 <main>
 
@@ -760,7 +767,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.18
     </div>
   </div>
 </section>
