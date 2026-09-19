@@ -71,14 +71,44 @@
     const m=(typeof career!=='undefined')?career?.teamStates?.[id]?.mentality:null;
     return m==='Offensivo'?1.4:m==='Difensivo'?.7:1;
   }
+  // FIX 2026-09 (34): "devono essere misti perche' ci sono le marcature" -
+  // prima chi difendeva veniva solo tirato verso il pallone (zonale puro,
+  // stesso spostamento proporzionale per tutti), senza nessun legame
+  // visibile con un avversario preciso: da qui l'impressione di due
+  // schieramenti separati invece di giocatori "appaiati" come in una vera
+  // marcatura. markAssignment abbina ogni difensore all'attaccante libero
+  // piu' vicino (assegnazione greed, ricalcolata ad ogni chiamata di
+  // shape() cosi' segue l'azione), e shape() ora posiziona il difensore
+  // in parte verso il "lato porta" del suo marcato (marcatura vera e
+  // propria) e in parte verso il pallone (per restare comunque compatti).
+  function markAssignment(attSide,defTeam){
+    const attackers=field(attSide),defenders=field(defTeam),pairs=new Map(),usedAtt=new Set();
+    defenders.forEach(d=>{
+      const dp=pos(d);let best=null,bestDist=Infinity;
+      attackers.forEach(a=>{
+        if(usedAtt.has(a))return;
+        const ap=pos(a),dist=Math.hypot(ap.x-dp.x,ap.y-dp.y);
+        if(dist<bestDist){bestDist=dist;best=a;}
+      });
+      if(best){pairs.set(d,best);usedAtt.add(best);}
+    });
+    return pairs;
+  }
   function shape(side,target,exclude=[]){
+    const marks=markAssignment(side,opposite(side));
     return ['home','away'].flatMap(team=>dots(team).filter(d=>!exclude.includes(d)).map(d=>{
       const base={x:+d.dataset.baseX,y:+d.dataset.baseY};
       const keeper=d.dataset.role==='GK';
       if(keeper)return {el:d,x:base.x,y:clamp(50+(target.y-50)*.12,43,57)};
       if(team===side)return {el:d,x:clamp(base.x+(target.x-50)*.22+(right(team)?5:-5)),y:clamp(base.y+(target.y-50)*.18,7,93)};
       const pull=clamp(.15*pressIntensity(team),.08,.42);
-      return {el:d,x:clamp(base.x+(target.x-base.x)*pull),y:clamp(base.y+(target.y-base.y)*pull,7,93)};
+      const bx=base.x+(target.x-base.x)*pull,by=base.y+(target.y-base.y)*pull;
+      const mark=marks.get(d);
+      if(mark){
+        const mp=pos(mark),goalX=xFor(team,3),markX=mp.x+(goalX-mp.x)*.22;
+        return {el:d,x:clamp(markX*.7+bx*.3),y:clamp(mp.y*.7+by*.3,7,93)};
+      }
+      return {el:d,x:clamp(bx),y:clamp(by,7,93)};
     }));
   }
   /* FIX 2026-09: corners and free kicks used to move the defending team with the
