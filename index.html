@@ -724,7 +724,7 @@ main{max-width:none!important;padding:0!important}
 @media(max-height:500px){#mainMenu #cupsModeBtn .cups-mode-icon{width:40px!important;height:36px!important}}
 </style>
 
-<link rel="stylesheet" href="css/game.css?v=tactics-25">
+<link rel="stylesheet" href="css/game.css?v=tactics-26">
 <link rel="stylesheet" href="css/v106-match-experience.css?v=2">
 </head>
 <body>
@@ -751,7 +751,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.32</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.33</span></span></div>
 </div>
 <main>
 
@@ -783,7 +783,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.32
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.33
     </div>
   </div>
 </section>
@@ -1838,10 +1838,36 @@ const S9_WEATHER_TYPES=[
  {key:'nebbia',label:'NEBBIA',icon:'🌫️',weight:5,goalMult:.94,setPieceMult:.92,foulMult:1.08,offsideMult:.85},
  {key:'caldo',label:'CALDO AFOSO',icon:'🥵',weight:3,goalMult:.95,setPieceMult:1,foulMult:1.1,offsideMult:1}
 ];
-function pickWeather(){
- const total=S9_WEATHER_TYPES.reduce((n,w)=>n+w.weight,0);
+// FIX 2026-09 (41): "il meteo dev'essere coerente con la stagione, a
+// dicembre non ci puo' essere caldo afoso" - prima pickWeather() estraeva
+// SEMPRE fra tutte e 6 le condizioni con lo stesso peso fisso, quindi in
+// pieno inverno poteva capitare caldo afoso e in piena estate la nebbia.
+// Ora il mese della partita (derivato da career/v4CurrentDate quando c'e'
+// una carriera in corso) filtra il ventaglio di condizioni ammesse.
+const S9_WEATHER_SEASON_POOL={
+ estate:['sereno','nuvoloso','pioggia','vento','caldo'], // ago/set: niente nebbia
+ autunno:['sereno','nuvoloso','pioggia','vento','nebbia'], // ott/nov
+ inverno:['sereno','nuvoloso','pioggia','vento','nebbia'], // dic/gen/feb: niente caldo afoso
+ primavera:['sereno','nuvoloso','pioggia','vento','nebbia'] // mar/apr/mag
+};
+function s9SeasonBucket(month){
+ if(month===7||month===8)return'estate';
+ if(month===9||month===10)return'autunno';
+ if(month===11||month===0||month===1)return'inverno';
+ return'primavera';
+}
+function pickWeather(month){
+ const allowed=month!=null?S9_WEATHER_SEASON_POOL[s9SeasonBucket(month)]:null;
+ const pool=allowed?S9_WEATHER_TYPES.filter(w=>allowed.includes(w.key)):S9_WEATHER_TYPES;
+ const total=pool.reduce((n,w)=>n+w.weight,0);
  let r=Math.random()*total;
- return S9_WEATHER_TYPES.find(w=>(r-=w.weight)<=0)||S9_WEATHER_TYPES[0];
+ return pool.find(w=>(r-=w.weight)<=0)||pool[0];
+}
+function s9CurrentMatchMonth(){
+ try{
+  const d=(typeof v4CurrentDate==='function')?v4CurrentDate():null;
+  return d?new Date(d).getMonth():null;
+ }catch(e){return null}
 }
 function applyWeatherVisual(weather){
  const badge=$("#weatherBadge");
@@ -1868,7 +1894,7 @@ function buildMatch(h,a,opts){
  // richiamata per un rebuild parziale (opts.fromMin, es. "incitare la
  // squadra") il meteo va passato in opts.weather invece di essere
  // ri-estratto a caso a meta' partita.
- const weather=opts.weather||pickWeather();
+ const weather=opts.weather||pickWeather(s9CurrentMatchMonth());
  const hp=lineupPower(h)*mentalityMult(career.teamStates[h].mentality)*bmult('h'),ap=lineupPower(a)*mentalityMult(career.teamStates[a].mentality)*bmult('a');
  const attack=id=>avg(attackers(id).filter(p=>p.pos!=='GK').map(shotQuality))*(id===h?bmult('h'):bmult('a'));
  // Medie-gol attese (stesso modello di prima), pero' non vengono piu'
