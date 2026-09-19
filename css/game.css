@@ -5873,6 +5873,9 @@ button,input,select{font-family:var(--s9-font-ui)!important}
 #exhibitionSetup .s9-stadium-block{max-width:520px;margin:14px auto 0}
 #exhibitionSetup .s9-stadium-card{flex:1;text-align:center;background:linear-gradient(145deg,#173f70,#0a1c37);border:1px solid var(--s9-gold);border-radius:8px;padding:10px}
 #exhibitionSetup .s9-final-choice{display:flex;align-items:center;gap:8px;margin-top:16px;color:#dce7f5;font:700 13px var(--s9-font-copy)}
+/* FIX 2026-09 (44): riga meteo/orario in Amichevole */
+.s9-exhibition-weather-row{display:flex;gap:10px;max-width:520px;margin:6px auto 0}
+.s9-exhibition-weather-row select{flex:1;background:linear-gradient(145deg,#173f70,#0a1c37);border:1px solid var(--s9-gold);border-radius:8px;color:#f0e8d2;font:700 13px var(--s9-font-copy);padding:9px 10px}
 @media(max-width:600px){
   #exhibitionSetup .s9-picker-art{grid-template-columns:36px 30px minmax(0,1fr) 30px 36px;gap:5px}
   #exhibitionSetup .s9-picker-neighbor{width:36px}

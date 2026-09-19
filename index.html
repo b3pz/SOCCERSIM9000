@@ -55,7 +55,40 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px;borde
  background:radial-gradient(ellipse at center,rgba(235,235,235,.08) 0%,rgba(235,235,235,.42) 65%,rgba(225,225,225,.62) 100%);
 }
 #pitch.s9-weather-vento .pitch-mark.corner{animation:s9WindFlag 1.1s ease-in-out infinite alternate}
+/* FIX 2026-09 (44): fiocchi (non righe oblique come la pioggia), caduta
+   lenta e verticale - fiocchi piu' grandi e piu' radi della pioggia. */
+#pitch.s9-weather-neve::after{
+ content:"";position:absolute;inset:0;z-index:2;pointer-events:none;opacity:.75;
+ background-image:
+  radial-gradient(circle,rgba(255,255,255,.95) 1.6px,transparent 1.6px),
+  radial-gradient(circle,rgba(255,255,255,.8) 1.2px,transparent 1.2px),
+  radial-gradient(circle,rgba(255,255,255,.9) 1.4px,transparent 1.4px);
+ background-size:64px 64px,48px 48px,80px 80px;
+ background-position:0 0,20px 10px,40px 30px;
+ animation:s9SnowFall 4.5s linear infinite;
+}
+/* FIX 2026-09 (44): "si vede anche visivamente se... giorno o notte" -
+   il campo si scurisce (vignettatura) e compaiono i riflettori accesi sui
+   quattro angoli. Tutto su ::before: ::after resta libero per l'eventuale
+   effetto meteo (pioggia/neve/nebbia), che deve poter comparire insieme
+   ad una partita notturna senza che i due si sovrascrivano a vicenda. */
+/* FIX 2026-09 (44) v2: la sola vignettatura sui pseudo-elementi era troppo
+   debole per notarla a colpo d'occhio ("si vede anche visivamente" era il
+   punto) - il filtro su TUTTO #pitch (campo + puntini giocatori) scurisce
+   davvero la scena, che e' il segnale piu' chiaro di notturna vs diurna. */
+#pitch.s9-night{filter:brightness(.68) saturate(.82) contrast(1.08)}
+#pitch.s9-night::before{
+ content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+ background:
+  radial-gradient(ellipse 110px 75px at 0% 0%,rgba(255,247,214,.85),transparent 70%),
+  radial-gradient(ellipse 110px 75px at 100% 0%,rgba(255,247,214,.85),transparent 70%),
+  radial-gradient(ellipse 110px 75px at 0% 100%,rgba(255,247,214,.85),transparent 70%),
+  radial-gradient(ellipse 110px 75px at 100% 100%,rgba(255,247,214,.85),transparent 70%),
+  radial-gradient(ellipse at center,rgba(8,14,26,.08) 0%,rgba(6,11,22,.4) 68%,rgba(4,8,17,.62) 100%);
+ background-blend-mode:screen,screen,screen,screen,normal;
+}
 @keyframes s9RainFall{from{background-position:0 0}to{background-position:-32px 60px}}
+@keyframes s9SnowFall{from{background-position:0 0,20px 10px,40px 30px}to{background-position:18px 64px,-14px 58px,60px 110px}}
 @keyframes s9WindFlag{from{transform:skewX(0deg)}to{transform:skewX(8deg)}}
 #weatherBadge{white-space:nowrap}
 .pitch-mark{position:absolute;pointer-events:none;z-index:1}
@@ -728,7 +761,7 @@ main{max-width:none!important;padding:0!important}
 @media(max-height:500px){#mainMenu #cupsModeBtn .cups-mode-icon{width:40px!important;height:36px!important}}
 </style>
 
-<link rel="stylesheet" href="css/game.css?v=tactics-26">
+<link rel="stylesheet" href="css/game.css?v=tactics-27">
 <link rel="stylesheet" href="css/v106-match-experience.css?v=2">
 </head>
 <body>
@@ -755,7 +788,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.34</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.35</span></span></div>
 </div>
 <main>
 
@@ -788,7 +821,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.34
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.35
     </div>
   </div>
 </section>
@@ -1841,7 +1874,11 @@ const S9_WEATHER_TYPES=[
  {key:'pioggia',label:'PIOGGIA',icon:'🌧️',weight:20,goalMult:.93,setPieceMult:.87,foulMult:1.18,offsideMult:.9},
  {key:'vento',label:'VENTO FORTE',icon:'💨',weight:12,goalMult:.97,setPieceMult:.8,foulMult:1.05,offsideMult:1.08},
  {key:'nebbia',label:'NEBBIA',icon:'🌫️',weight:5,goalMult:.94,setPieceMult:.92,foulMult:1.08,offsideMult:.85},
- {key:'caldo',label:'CALDO AFOSO',icon:'🥵',weight:3,goalMult:.95,setPieceMult:1,foulMult:1.1,offsideMult:1}
+ {key:'caldo',label:'CALDO AFOSO',icon:'🥵',weight:3,goalMult:.95,setPieceMult:1,foulMult:1.1,offsideMult:1},
+ // FIX 2026-09 (44): "si dovrebbe poter scegliere il meteo... neve ecc" -
+ // mancava del tutto la neve. Peso basso e SOLO nel pool invernale (vedi
+ // S9_WEATHER_SEASON_POOL sotto): resta un evento raro anche a gennaio.
+ {key:'neve',label:'NEVE',icon:'❄️',weight:4,goalMult:.9,setPieceMult:.82,foulMult:1.15,offsideMult:.88}
 ];
 // FIX 2026-09 (41): "il meteo dev'essere coerente con la stagione, a
 // dicembre non ci puo' essere caldo afoso" - prima pickWeather() estraeva
@@ -1852,7 +1889,7 @@ const S9_WEATHER_TYPES=[
 const S9_WEATHER_SEASON_POOL={
  estate:['sereno','nuvoloso','pioggia','vento','caldo'], // ago/set: niente nebbia
  autunno:['sereno','nuvoloso','pioggia','vento','nebbia'], // ott/nov
- inverno:['sereno','nuvoloso','pioggia','vento','nebbia'], // dic/gen/feb: niente caldo afoso
+ inverno:['sereno','nuvoloso','pioggia','vento','nebbia','neve'], // dic/gen/feb: niente caldo afoso, ma puo' nevicare
  primavera:['sereno','nuvoloso','pioggia','vento','nebbia'] // mar/apr/mag
 };
 function s9SeasonBucket(month){
@@ -1874,15 +1911,19 @@ function s9CurrentMatchMonth(){
   return d?new Date(d).getMonth():null;
  }catch(e){return null}
 }
-function applyWeatherVisual(weather){
+function applyWeatherVisual(weather,night){
  const badge=$("#weatherBadge");
- if(badge)badge.textContent=weather?`${weather.icon} ${weather.label}`:"";
+ if(badge)badge.textContent=(weather?`${weather.icon} ${weather.label}`:"")+(night?" · 🌙 NOTTURNA":"");
  const p=$("#pitch");
  if(p){
-  p.classList.remove('s9-weather-pioggia','s9-weather-nebbia','s9-weather-vento');
+  p.classList.remove('s9-weather-pioggia','s9-weather-nebbia','s9-weather-vento','s9-weather-neve','s9-night');
   if(weather?.key==='pioggia')p.classList.add('s9-weather-pioggia');
   else if(weather?.key==='nebbia')p.classList.add('s9-weather-nebbia');
   else if(weather?.key==='vento')p.classList.add('s9-weather-vento');
+  else if(weather?.key==='neve')p.classList.add('s9-weather-neve');
+  // FIX 2026-09 (44): "e se giorno o notte si vede anche visivamente" - il
+  // campo si scurisce (vignettatura) e i riflettori diventano visibili.
+  if(night)p.classList.add('s9-night');
  }
 }
 function buildMatch(h,a,opts){
@@ -1900,6 +1941,10 @@ function buildMatch(h,a,opts){
  // squadra") il meteo va passato in opts.weather invece di essere
  // ri-estratto a caso a meta' partita.
  const weather=opts.weather||pickWeather(s9CurrentMatchMonth());
+ // FIX 2026-09 (44): notturna/diurna scelta in amichevole (opts.night) o,
+ // per le altre partite, resta di giorno com'era finora - nessun impatto
+ // sul motore, solo sull'aspetto del campo (applyWeatherVisual).
+ const night=!!opts.night;
  const hp=lineupPower(h)*mentalityMult(career.teamStates[h].mentality)*bmult('h'),ap=lineupPower(a)*mentalityMult(career.teamStates[a].mentality)*bmult('a');
  const attack=id=>avg(attackers(id).filter(p=>p.pos!=='GK').map(shotQuality))*(id===h?bmult('h'):bmult('a'));
  // Medie-gol attese (stesso modello di prima), pero' non vengono piu'
@@ -2036,7 +2081,7 @@ function buildMatch(h,a,opts){
  // evento in scaletta - solo quelli pericolosi generati sopra).
  cornersH+=Math.round(rand(1,3)*span);cornersA+=Math.round(rand(1,3)*span);
 
- return {h,a,scoreH:0,scoreA:0,minute:0,events:ev.sort((x,y)=>x.min-y.min),stats:{shotsH:0,shotsA:0,onH:0,onA:0,cornersH,cornersA},keyEvents:[],weather};
+ return {h,a,scoreH:0,scoreA:0,minute:0,events:ev.sort((x,y)=>x.min-y.min),stats:{shotsH:0,shotsA:0,onH:0,onA:0,cornersH,cornersA},keyEvents:[],weather,night};
 }
 
 // v12 — le modifiche tattiche dal vivo (cambi, modulo, atteggiamento) non
@@ -2532,7 +2577,13 @@ async function launchMatch(){
   catch(e){console.warn("Introduzione pre-partita",e)}
   try{stopEventMusic()}catch(e){console.warn("audio",e)}
  }
- current=buildMatch(g[0],g[1]);current._running=true;current.half=1;current.coinToss=coinToss;current.channel=matchChannel;current.incitaUsed={h:0,a:0};setupPitch();show("match");updateScore();applyWeatherVisual(current.weather);hidePitch();updateIncitaButton();
+ // FIX 2026-09 (44): in amichevole meteo e diurna/notturna possono essere
+ // scelti dal giocatore (S9V10.matchContext.forcedWeather/forcedNight);
+ // altrove restano automatici come prima (pickWeather + sempre giorno).
+ const s9ForcedOpts={};
+ if(S9V10?.matchContext?.forcedWeather)s9ForcedOpts.weather=S9V10.matchContext.forcedWeather;
+ if(S9V10?.matchContext?.forcedNight)s9ForcedOpts.night=true;
+ current=buildMatch(g[0],g[1],s9ForcedOpts);current._running=true;current.half=1;current.coinToss=coinToss;current.channel=matchChannel;current.incitaUsed={h:0,a:0};setupPitch();show("match");updateScore();applyWeatherVisual(current.weather,current.night);hidePitch();updateIncitaButton();
  /* FIX 2026-09: invasione di campo scenica. Ogni 3 partite giocate (contate
     solo quando l'utente guarda davvero la partita, non le simulazioni CPU
     di simOther) c'e' il 50% di probabilita' che scatti, ad un minuto
@@ -2624,8 +2675,35 @@ async function launchMatch(){
  }
  current._finished=true;current._running=false;
  if(window.S9Exhibition)S9Exhibition.complete();
+ // FIX 2026-09 (43): TIFOSERIA - umore separato dalla fiducia societaria
+ // (quella si giudica solo a fine stagione sull'obiettivo; questo reagisce
+ // partita per partita al risultato, come una vera curva). Amichevoli e
+ // tornei one-shot non contano: la posta in gioco e' troppo bassa perche'
+ // i tifosi se ne accorgano davvero.
+ if(career){
+  const s9Mode=window.S9V10?.matchContext?.mode;
+  if(s9Mode!=='friendly'&&s9Mode!=='standalone'&&(current.h===career.user||current.a===career.user)){
+   const mine=current.h===career.user?'h':'a';
+   const gf=mine==='h'?current.scoreH:current.scoreA,ga=mine==='h'?current.scoreA:current.scoreH;
+   const oppId=mine==='h'?current.a:current.h;
+   const myStr=T(career.user)?.strength||75,oppStr=T(oppId)?.strength||75;
+   let fanDelta;
+   if(gf>ga)fanDelta=4+Math.max(0,oppStr-myStr)*.15; // battere una piu' forte vale di piu'
+   else if(gf<ga)fanDelta=-(5+Math.max(0,myStr-oppStr)*.15); // perdere da favoriti pesa di piu'
+   else fanDelta=-.5;
+   if(career.teamStates[career.user]?.mentality==='Offensivo')fanDelta+=1; // gioco offensivo piace alla curva
+   const fanBefore=career.fanSupport??65;
+   career.fanSupport=Math.max(0,Math.min(100,Math.round(fanBefore+fanDelta)));
+   current._fanDelta=career.fanSupport-fanBefore;
+   if(career.fanSupport<=15&&!career._fanProtestShown){
+    career._fanProtestShown=true;
+    current.keyEvents.push(`Contestazione: la curva protesta, rapporto con la tifoseria ai minimi.`);
+    alert(`La curva si fa sentire: striscioni di protesta fuori dallo stadio. Il rapporto con la tifoseria è ai minimi storici (${career.fanSupport}%).`);
+   }else if(career.fanSupport>40)career._fanProtestShown=false;
+  }
+ }
  $("#postScore").innerHTML=`<h2>${T(current.h).name} ${T(current.h).season} ${current.scoreH} - ${current.scoreA} ${T(current.a).name} ${T(current.a).season}</h2>`;
- $("#postStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}<br>Modulo: ${career.teamStates[career.user].formation}<br>Atteggiamento: ${career.teamStates[career.user].mentality}`;
+ $("#postStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}<br>Modulo: ${career.teamStates[career.user].formation}<br>Atteggiamento: ${career.teamStates[career.user].mentality}`+(current._fanDelta!=null?`<br>Umore tifoseria: ${career.fanSupport}% (${current._fanDelta>=0?'+':''}${current._fanDelta})`:'');
  $("#postEvents").innerHTML=current.keyEvents.length?current.keyEvents.map(x=>`<div class="card">${x}</div>`).join(""):"Nessun evento chiave.";
  // FIX 2026-09 (42): ARCHIVIO PARTITE - prima la cronaca di una partita
  // esisteva solo live (#commentary/#postEvents) e spariva per sempre al
@@ -2659,7 +2737,7 @@ $("#resumeSecond").onclick=()=>{
  const resume=halfResolver;halfResolver=null;
  current.half=2;current.minute=45;paused=false;tacticsWasPaused=false;
  $("#tacticsModal").style.display="none";
- try{setupPitch();updateScore();applyWeatherVisual(current.weather);log("45' Le squadre cambiano campo. Inizia il secondo tempo.","neutral")}
+ try{setupPitch();updateScore();applyWeatherVisual(current.weather,current.night);log("45' Le squadre cambiano campo. Inizia il secondo tempo.","neutral")}
  finally{resume()}
 }
 $("#returnSeason").onclick=()=>{renderSeason();show("season")}
@@ -2796,7 +2874,7 @@ function applyIncita(side){
  const used=current.incitaUsed?.[side]||0;if(used>=INCITA_CAP)return;
  if(current.minute>=88)return;
  const fromMin=Math.min(89,current.minute+1);
- const rebuilt=buildMatch(current.h,current.a,{fromMin,toMin:90,boost:{side,mult:1.14},weather:current.weather});
+ const rebuilt=buildMatch(current.h,current.a,{fromMin,toMin:90,boost:{side,mult:1.14},weather:current.weather,night:current.night});
  const keptEvents=current.events.filter(e=>e.min<=current.minute);
  current.events=keptEvents.concat(rebuilt.events).sort((x,y)=>x.min-y.min);
  if(!current.incitaUsed)current.incitaUsed={h:0,a:0};
@@ -2954,6 +3032,10 @@ document.addEventListener("DOMContentLoaded",()=>{
     const totalTrophies=Object.keys(comp).reduce((n,k)=>n+mine(k).length,0);
     const seasons=career.managerHistory?.length||0;
     const conf=career.boardConfidence??60;
+    // FIX 2026-09 (43): tifoseria mostrata qui accanto alla fiducia
+    // societaria - stesso posto in cui il giocatore gia' guarda per
+    // sapere "come sto andando", ma sono due indicatori separati.
+    const fans=career.fanSupport??65;
     const trophyRows=Object.entries(comp).map(([k,label])=>{
       const list=mine(k);
       return `<div class="card"><b>${label}</b><br>${list.length?list.map(h=>h.year).join(', '):'<span class="muted">mai vinta</span>'}</div>`;
@@ -2964,7 +3046,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       `<small>Obiettivo: ${s.objective} · ${s.esito}</small>`
     ).join('');
     return `<div class="headline">${escapeHTML(career.manager)} · ${T(career.user)?.name||career.user}</div>
-    <p>${totalTrophies} trofe${totalTrophies===1?'o':'i'} in ${seasons} stagion${seasons===1?'e':'i'} · Fiducia societaria attuale: <b>${conf}%</b></p>
+    <p>${totalTrophies} trofe${totalTrophies===1?'o':'i'} in ${seasons} stagion${seasons===1?'e':'i'} · Fiducia societaria attuale: <b>${conf}%</b> · Umore tifoseria: <b>${fans}%</b></p>
     <h3 style="margin-top:16px">BACHECA</h3>${trophyRows}
     <h3 style="margin-top:16px">STORICO STAGIONI</h3>${historyRows||'<p class="muted">Nessuna stagione ancora conclusa.</p>'}`;
   };
@@ -3414,7 +3496,7 @@ renderTeamPicker();
 <script src="js/v80-safari-iphone.js?v=23-1"></script>
 <script src="js/v91-final-touches.js?v=12-1"></script>
 <script src="js/v10-data.js?v=3d-1"></script>
-<script src="js/v10-release.js?v=stability-16"></script>
+<script src="js/v10-release.js?v=stability-17"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
 <script src="js/match-coherence.js?v=stability-22"></script>
 <script src="js/kit-profiles.js?v=2"></script>
@@ -3428,7 +3510,7 @@ renderTeamPicker();
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>
 <script src="js/trophy-ceremony.js?v=lap-close-16"></script>
-<script src="js/exhibition.js?v=stability-15"></script>
+<script src="js/exhibition.js?v=stability-16"></script>
 <script src="js/v106-match-experience.js?v=presentation-2"></script>
 <script src="js/v107-cup-polish.js?v=team-season-2"></script>
 <script src="js/v108-complete-match-flow.js?v=team-season-8"></script>

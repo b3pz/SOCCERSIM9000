@@ -12,7 +12,11 @@ function start(config){
  career=S9V10.createMatchCareer(h,[h,a]);S9V10.standalone=null;
  const state={id:'friendly_'+Date.now(),key:config.competition,name:S9Competition.definitions[config.competition].name,exhibition:true,completed:false};
  const tie={a:h,b:a,twoLeg:false,directPens:false,legs:[]};
- S9V10.matchContext={mode:'friendly',state,spectator:!!config.spectator,stadium:config.stadium.trim(),final,match:{h,a,kind:final?'knockout':'friendly',tie,leg:1,stage:final?'FINALE · ESIBIZIONE':'AMICHEVOLE'}};
+ // FIX 2026-09 (44): meteo/orario scelti in Amichevole (config.weather e'
+ // la key, es. "pioggia", oppure "" per lasciare decidere pickWeather());
+ // buildMatch() in index.html legge questi due campi al calcio d'inizio.
+ const forcedWeather=config.weather&&typeof S9_WEATHER_TYPES!=='undefined'?S9_WEATHER_TYPES.find(w=>w.key===config.weather)||null:null;
+ S9V10.matchContext={mode:'friendly',state,spectator:!!config.spectator,stadium:config.stadium.trim(),final,forcedWeather,forcedNight:!!config.night,match:{h,a,kind:final?'knockout':'friendly',tie,leg:1,stage:final?'FINALE · ESIBIZIONE':'AMICHEVOLE'}};
  career.fixtures=[[[h,a]]];career.otherFixtures=[[]];
  S9V10.applyCompetitionTheme(config.competition);openPrematch([h,a]);q('#backSeason').textContent='← AMICHEVOLE';
  document.getElementById('match').classList.toggle('s9-spectator',!!config.spectator);
@@ -124,6 +128,17 @@ function boot(){
  </div>
  <label class="s9-final-choice"><input type="checkbox" id="exhibitionSpectator"> Guarda evento · CPU contro CPU</label>
  <label class="s9-final-choice"><input type="checkbox" id="exhibitionFinal"> Finale · in caso di pareggio, supplementari e rigori</label>
+ <!-- FIX 2026-09 (44): "in amichevole si dovrebbe poter scegliere il meteo
+      e se giorno o notte" - solo qui in Amichevole (le partite di carriera
+      restano automatiche/stagionali, vedi pickWeather in index.html). -->
+ <div class="s9-picker-mini-label">METEO E ORARIO</div>
+ <div class="s9-exhibition-weather-row">
+  <select id="exhibitionWeather" aria-label="Meteo"></select>
+  <select id="exhibitionDaynight" aria-label="Orario">
+   <option value="day">☀️ DIURNA</option>
+   <option value="night">🌙 NOTTURNA</option>
+  </select>
+ </div>
  <p class="s9-exhibition-note">Le esibizioni non modificano carriera, classifiche o albo d’oro. La finale include la premiazione con la coppa della competizione scelta.</p>
  </div>
  <div id="exhibitionError" role="alert"></div>
@@ -188,6 +203,15 @@ function boot(){
   }
   s.flush();
   ctx.fillStyle='rgba(3,10,22,.76)';ctx.fillRect(0,H-31,W,31);ctx.fillStyle='#f7e6b4';ctx.font='bold 12px Arial';ctx.textAlign='center';ctx.fillText(stadiumList[stadiumIndex].toUpperCase(),W/2,H-12);
+ }
+ // FIX 2026-09 (44): "meteo a scelta" in amichevole - "CASUALE" lascia
+ // decidere pickWeather() come sempre (nessun mese/stagione qui, quindi
+ // pesca da tutte e 6+1 le condizioni); scegliendo una voce specifica la
+ // partita la usa per intero (stesso meccanismo di opts.weather gia'
+ // usato da "incitare la squadra" per non ri-estrarre a meta' gara).
+ const weatherSelect=q('#exhibitionWeather');
+ if(weatherSelect&&typeof S9_WEATHER_TYPES!=='undefined'){
+  weatherSelect.innerHTML='<option value="">🎲 METEO CASUALE</option>'+S9_WEATHER_TYPES.map(w=>`<option value="${w.key}">${w.icon} ${w.label}</option>`).join('');
  }
  function setStadium(name){const i=stadiumList.indexOf(name);stadiumIndex=i>=0?i:0;renderStadium()}
  function stadiumStep(delta){stadiumIndex=(stadiumIndex+delta+stadiumList.length)%stadiumList.length;renderStadium()}
@@ -303,12 +327,14 @@ function boot(){
   }
   stadiumIndex=Math.floor(Math.random()*stadiumList.length);
   renderStadium();
+  if(weatherSelect)weatherSelect.value='';
+  q('#exhibitionDaynight').value=Math.random()<.5?'day':'night';
   showStep(3);
  };
 
  showStep(1);
  button.onclick=()=>{q('#exhibitionError').textContent='';show('exhibitionSetup');showStep(1)};
- q('#exhibitionForm').onsubmit=e=>{e.preventDefault();if(step<3){showStep(step+1);return}try{start({home:ids[homeIndex],away:ids[awayIndex],competition,stadium:q('#exhibitionStadium').value,final:q('#exhibitionFinal').checked,spectator:q('#exhibitionSpectator').checked})}catch(error){q('#exhibitionError').textContent=error.message}};
+ q('#exhibitionForm').onsubmit=e=>{e.preventDefault();if(step<3){showStep(step+1);return}try{start({home:ids[homeIndex],away:ids[awayIndex],competition,stadium:q('#exhibitionStadium').value,final:q('#exhibitionFinal').checked,spectator:q('#exhibitionSpectator').checked,weather:q('#exhibitionWeather').value,night:q('#exhibitionDaynight').value==='night'})}catch(error){q('#exhibitionError').textContent=error.message}};
 }
 // Spectator matches progress through the interval and both benches are automated.
 let intervalMatch=null,intervalTimer=0;

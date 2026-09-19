@@ -297,6 +297,8 @@ function normalizeCareer(c){
  c.leagueDates=(c.leagueDates||v4SeasonSundays(c.seasonYear)).map(d=>new Date(d));
  c.calendar=(c.calendar||v4BuildCalendar(c.seasonYear)).map(e=>({...e,date:new Date(e.date)}));
  c.honours=c.honours||{};['scudetti','coppaItalia','cdc','uefa','world','euro'].forEach(k=>c.honours[k]=c.honours[k]||[]);
+ if(!Number.isFinite(c.fanSupport))c.fanSupport=65;
+ if(!Number.isFinite(c.boardConfidence))c.boardConfidence=60;
  c.europe=c.europe||legacyEuropeDummy();ensureTeamStates(V10.clubIds,c);
  Object.values(c.v10Cups||{}).forEach(normalizeTournament);if(c.v10FinalEight)normalizeTournament(c.v10FinalEight);
  return c;
@@ -596,7 +598,13 @@ function evaluateSeasonV10(){
 }
 function createCareerV10(){
  const name=q('#managerName').value.trim()||'Manager',team=q('#managerTeam').value;const groups=v4DrawGroups(V10.italianIds),ug=groups.A.includes(team)?'A':'B',og=ug==='A'?'B':'A';
- career={manager:name,user:team,round:0,seasonYear:1998,groups,userGroup:ug,otherGroup:og,fixtures:fixtures(groups[ug]),otherFixtures:fixtures(groups[og]),stats:initStats(),pstats:initPlayerStats(),teamStates:{},results:[],leagueDates:v4SeasonSundays(1998),calendar:v4BuildCalendar(1998),honours:{scudetti:[],coppaItalia:[],cdc:[],uefa:[],world:[],euro:[]},qualified:null,europe:legacyEuropeDummy(),v10FinalEight:null,managerHistory:[],boardConfidence:60};
+ // FIX 2026-09 (43): fanSupport - umore della tifoseria, SEPARATO dalla
+ // fiducia societaria (boardConfidence). La societa' valuta l'obiettivo di
+ // stagione a fine anno; la tifoseria reagisce partita per partita al
+ // risultato (vedi l'aggiornamento in index.html dopo ogni gara giocata),
+ // quindi puoi avere un presidente soddisfatto ma lo stadio che fischia, o
+ // il contrario.
+ career={manager:name,user:team,round:0,seasonYear:1998,groups,userGroup:ug,otherGroup:og,fixtures:fixtures(groups[ug]),otherFixtures:fixtures(groups[og]),stats:initStats(),pstats:initPlayerStats(),teamStates:{},results:[],leagueDates:v4SeasonSundays(1998),calendar:v4BuildCalendar(1998),honours:{scudetti:[],coppaItalia:[],cdc:[],uefa:[],world:[],euro:[]},qualified:null,europe:legacyEuropeDummy(),v10FinalEight:null,managerHistory:[],boardConfidence:60,fanSupport:65};
  career.objective=assignObjectiveV10(team);
  ensureTeamStates(V10.clubIds,career);initCareerCups(career,null);renderSeason();show('season');
 }
@@ -711,6 +719,10 @@ function advanceCareerSeasonV10(){
  // cosi' come sono a fine stagione).
  const evalResult=evaluateSeasonV10();
  career.seasonYear=nextYear;career.groups=groups;career.userGroup=groups.A.includes(career.user)?'A':'B';career.otherGroup=career.userGroup==='A'?'B':'A';career.fixtures=fixtures(groups[career.userGroup]);career.otherFixtures=fixtures(groups[career.otherGroup]);career.round=0;career.stats=initStats();career.pstats=initPlayerStats();career.results=[];career.leagueDates=v4SeasonSundays(nextYear);career.calendar=v4BuildCalendar(nextYear);career.europe=legacyEuropeDummy();career.v10FinalEight=null;Object.values(career.teamStates||{}).forEach(st=>{st.subs=0;(st.players||[]).forEach(p=>{p.fitness=100;p.yellowStreak=0;p.injuryGames=Math.max(0,(p.injuryGames||0)-6)})});ensureTeamStates(V10.clubIds,career);initCareerCups(career,qualified);
+ // L'umore della tifoseria si stempera un po' da una stagione all'altra
+ // (si dimentica in parte il rancore/entusiasmo passato) tornando verso la
+ // via di mezzo, invece di trascinarsi identico per sempre.
+ career.fanSupport=Math.round((career.fanSupport??65)*0.7+65*0.3);
  // Nuovo obiettivo per la stagione che sta per iniziare (il girone appena
  // ridisegnato puo' cambiare la forza relativa della squadra).
  career.objective=assignObjectiveV10(career.user);
@@ -730,8 +742,13 @@ function advanceCareerSeasonV10(){
 ------------------------------------------------------------------ */
 try{
  const oldBuild=buildMatch;
- buildMatch=function(h,a){
-   const m=oldBuild(h,a),r=Math.random(),profile=r<.28?'PERMISSIVO':r<.82?'NORMALE':'SEVERO';m.referee=profile;
+ // FIX 2026-09 (44): questo wrapper chiamava oldBuild(h,a) SENZA il terzo
+ // argomento opts - qualunque chiamante passasse opts.weather (meteo
+ // forzato in amichevole, o il meteo "congelato" per un rebuild parziale
+ // come "incitare la squadra") lo perdeva silenziosamente, perche' dentro
+ // buildMatch() opts=opts||{} faceva ripartire pickWeather() da capo.
+ buildMatch=function(h,a,opts){
+   const m=oldBuild(h,a,opts),r=Math.random(),profile=r<.28?'PERMISSIVO':r<.82?'NORMALE':'SEVERO';m.referee=profile;
    const keep=profile==='PERMISSIVO'?.48:profile==='NORMALE'?.67:.82,redChance=profile==='PERMISSIVO'?.006:profile==='NORMALE'?.018:.038;
    m.events=m.events.filter(e=>{if(e.type!=='yellow'&&e.type!=='red')return true;if(Math.random()>keep)return false;if(e.type==='red'&&Math.random()>redChance)e.type='yellow';return true});
    return m;
@@ -946,10 +963,13 @@ function avgTeamFitness(id){
 /* Add injury events and keep cards/fouls on players who are actually on the pitch. */
 try{
  const oldBuildMatchV103=buildMatch;
- buildMatch=function(h,a){
+ // FIX 2026-09 (44): stesso bug del wrapper arbitro sopra - opts (meteo
+ // forzato/congelato, e fromMin/toMin/boost di "incitare") andava perso
+ // qui perche' non veniva inoltrato a oldBuildMatchV103.
+ buildMatch=function(h,a,opts){
    ensureAvailableLineup(h);ensureAvailableLineup(a);
    [h,a].forEach(id=>{career.teamStates[id].subs=0;career.teamStates[id].usedSubs=[]});
-   const m=oldBuildMatchV103(h,a);
+   const m=oldBuildMatchV103(h,a,opts);
    m._v103={teams:{[h]:teamTrack(h),[a]:teamTrack(a)},finalized:false};
    for(const e of m.events||[]){
      if(!['yellow','red','foul','offside','chance','goal'].includes(e.type))continue;
