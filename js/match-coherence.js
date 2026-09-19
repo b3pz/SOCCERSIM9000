@@ -229,8 +229,21 @@
         const shirt=(typeof s9SquadNumbers==='function'?s9SquadNumbers(st)[player.id]:null)||Math.max(1,st.players.findIndex(p=>p.id===player.id)+1);
         d.textContent=String(shirt);d.title=`N° ${shirt} · ${team.name} ${team.season} · ${player.name}`;
         d.setAttribute('aria-label',player.name);
-        if(typeof s9SkinFor==='function')d.dataset.skin=s9SkinFor(team.country,player.id);
-        {const look=(typeof S9_ICONIC_LOOKS!=='undefined'?S9_ICONIC_LOOKS[player.name]:null);if(look?.hair)d.dataset.hair=look.hair;else delete d.dataset.hair;}
+        {
+         // FIX 2026-09 (50): un pugno di giocatori storici realmente
+         // esistiti (S9_ICONIC_LOOKS.skin) hanno il tono di pelle forzato
+         // PRIMA della stima statistica per nazione - necessario perche' le
+         // 32 rose di club italiane nel DB non hanno il campo "country" e
+         // altrimenti ricadrebbero sempre sulla distribuzione europea.
+         // player.name e' il nome PARODIA (js/parody-names.js); il nome reale
+         // sopravvive in player.realName - S9_ICONIC_LOOKS e' indicizzata sul
+         // nome reale.
+         const look=(typeof S9_ICONIC_LOOKS!=='undefined'?S9_ICONIC_LOOKS[player.realName||player.name]:null);
+         const forcedTone=look?.skin&&typeof S9_SKIN_TONES!=='undefined'?S9_SKIN_TONES[look.skin]:null;
+         if(forcedTone)d.dataset.skin=forcedTone;
+         else if(typeof s9SkinFor==='function')d.dataset.skin=s9SkinFor(team.country,player.id);
+         if(look?.hair)d.dataset.hair=look.hair;else delete d.dataset.hair;
+        }
       }
     }
     label('IN CAMPO');

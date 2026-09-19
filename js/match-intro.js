@@ -163,7 +163,9 @@ async function play(options){
  const h=options.h,a=options.a,key=options.key||S9Competition.key(),brand=S9Competition.definitions[key]||S9Competition.definitions.friendly;
  const controlledSide=S9V10?.matchContext?.spectator?null:career?.user===h?'home':career?.user===a?'away':null;
  const context=S9V10?.matchContext,isFinal=!!context?.final||context?.match?.tie?.stage==='FINAL'||context?.match?.stage==='FINAL';
- const rosters=Object.fromEntries([['home',h],['away',a]].map(([side,id])=>{const st=career?.teamStates?.[id];return [side,(st?.lineup||[]).map(pid=>({number:String(st.players.findIndex(p=>p.id===pid)+1),keeper:st.players.find(p=>p.id===pid)?.pos==='GK'}))]}));
+ // FIX 2026-09 (50): stessi numeri "iconici" mostrati in campo/pre-partita
+ // anche nell'ingresso in campo cinematico, invece del solo indice in rosa.
+ const rosters=Object.fromEntries([['home',h],['away',a]].map(([side,id])=>{const st=career?.teamStates?.[id];const nums=typeof s9SquadNumbers==='function'&&st?s9SquadNumbers(st):null;return [side,(st?.lineup||[]).map(pid=>({number:String(nums?.[pid]||(st.players.findIndex(p=>p.id===pid)+1)),keeper:st.players.find(p=>p.id===pid)?.pos==='GK'}))]}));
  const item={h,a,key,brand,isFinal,rosters,elapsed:0,lastFrame:null,stadium:options.stadium||S9Competition.stadium(),venueStyle:S9Competition.stadiumStyle(options.stadium||S9Competition.stadium()),isNational:national(h)&&national(a),controlledSide,callingSide:controlledSide||'away',coinCall:null,coinFace:null,callAt:0,callPrompted:false,tossWinner:null,tossRevealed:false,decision:null,decisionAt:0,soundPlayed:false,reduced:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,started:0,
   /* FIX 2026-09: canale passato da index.html (uguale per tutta la partita,
      scorebug + eventuale invasione compresi); se manca, se ne sceglie uno

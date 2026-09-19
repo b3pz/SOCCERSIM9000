@@ -806,7 +806,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.42</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.43</span></span></div>
 </div>
 <main>
 
@@ -840,7 +840,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.42
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.43
     </div>
   </div>
 </section>
@@ -1215,26 +1215,74 @@ function s9SkinFor(country,pid){
    parte: il "numero" mostrato sulla schiena e' proprio la stringa "1+8"
    (la sua trovata dopo che Ronaldo/Recoba gli avevano preso la 9 e la 10 a
    Inter), lo slot numerico usato per evitare doppioni resta 18. */
+// FIX 2026-09 (50): "la vera carnagione dei calciatori... Gullit non puo'
+// essere biondo" - s9SkinFor(country,pid) sceglie il tono in base alla
+// nazione della SQUADRA, ma le 32 rose di club italiane sono definite
+// direttamente nel DB qui sopra SENZA il campo "country" (a differenza delle
+// squadre estere/nazionali caricate da v10-data.js), quindi per quei giocatori
+// il tono ricade sempre sulla distribuzione europea di default - sbagliato
+// per un giocatore reale e riconoscibile come Gullit, a prescindere dalla
+// nazione della squadra per cui gioca in quella stagione. Per un pugno di
+// giocatori storici realmente esistiti e riconoscibili (qui sotto, chiave
+// "skin": tono fisso da S9_SKIN_TONES) si forza il tono corretto, PRIMA di
+// ricadere sulla stima statistica per nazione (vedi il richiamo in
+// match-coherence.js). Non e' un elenco esaustivo di tutta la rosa - solo i
+// nomi reali riconoscibili presenti nei dati di gioco.
 const S9_ICONIC_LOOKS={
  "Roberto Baggio":{hair:'ponytail',number:10},
  "Alessandro Del Piero":{number:10},
  "Francesco Totti":{number:10},
  "Andrea Pirlo":{number:21},
- "Ronaldinho":{hair:'ponytail'},
- "Ronaldo":{hair:'bald'},
- "Iván Zamorano":{number:18,display:'1+8'}
+ "Ronaldinho":{hair:'ponytail',skin:'M'},
+ "Ronaldo":{hair:'bald',skin:'M',number:9},
+ "Iván Zamorano":{number:18,display:'1+8',skin:'M'},
+ "Ruud Gullit":{skin:'D2'},
+ "Nwankwo Kanu":{skin:'D2'},
+ "Patrick Vieira":{skin:'D2',number:4},
+ "Clarence Seedorf":{skin:'D1'},
+ "Edgar Davids":{skin:'D1',number:8},
+ "Frank Rijkaard":{skin:'D1'},
+ "Adriano":{skin:'M',number:9},
+ "Cafu":{skin:'D1',number:2},
+ "Dida":{skin:'D1'},
+ "Marcel Desailly":{skin:'D2',number:6},
+ "Jay-Jay Okocha":{skin:'D2'},
+ "Didier Drogba":{skin:'D2'},
+ "Michael Essien":{skin:'D2'},
+ "Thierry Henry":{skin:'D1',number:14},
+ "Nicolas Anelka":{skin:'D1'},
+ "Patrick Kluivert":{skin:'D1'},
+ "Hidetoshi Nakata":{skin:'L2'},
+ "Rivaldo":{skin:'D1'},
+ "Bebeto":{skin:'M'},
+ "Roberto Carlos":{skin:'D1'},
+ "Roger Milla":{skin:'D2'},
+ "Sunday Oliseh":{skin:'D2'},
+ "Daniel Amokachi":{skin:'D2'},
+ "Sylvain Wiltord":{skin:'D1'},
+ "Lilian Thuram":{skin:'D1'},
+ "Luís Figo":{number:7}
 };
+// FIX 2026-09 (50): BUG TROVATO - S9_ICONIC_LOOKS e' indicizzata per nome
+// REALE ("Roberto Baggio"...), ma js/parody-names.js (caricato per ultimo,
+// PRIMA che l'utente veda mai una rosa) rinomina ogni giocatore in un nome
+// "parodia" scritto in p.name (es. Baggio diventa "Divin Codino"), salvando
+// l'originale in p.realName. Il lookup qui sotto usava p.name: da quando
+// esiste parody-names.js, Baggio 10/Totti 10/Del Piero 10/Pirlo 21/Zamorano
+// 1+8 non scattavano mai piu' - corretto usando p.realName (con fallback a
+// p.name per i giocatori senza nome parodia, es. squadre non ancora
+// rinominate in questa sessione).
 function s9SquadNumbers(st){
  if(st._numMap)return st._numMap;
  const n=st.players.length,numbers=st.players.map((_,i)=>i+1);
  st.players.forEach((p,idx)=>{
-  const look=S9_ICONIC_LOOKS[p.name];
+  const look=S9_ICONIC_LOOKS[p.realName||p.name];
   if(!look?.number||look.number<1||look.number>n)return;
   const takenAt=numbers.indexOf(look.number);
   if(takenAt===idx)return;
   const mine=numbers[idx];numbers[idx]=look.number;if(takenAt>=0)numbers[takenAt]=mine;
  });
- const map={};st.players.forEach((p,i)=>{const look=S9_ICONIC_LOOKS[p.name];map[p.id]=look?.display||String(numbers[i])});
+ const map={};st.players.forEach((p,i)=>{const look=S9_ICONIC_LOOKS[p.realName||p.name];map[p.id]=look?.display||String(numbers[i])});
  st._numMap=map;
  return map;
 }
@@ -1758,15 +1806,20 @@ function renderV63TacticalXI(){
   "4-3-3":[[10,50],[24,12],[24,37],[24,63],[24,88],[50,24],[50,50],[50,76],[88,18],[88,50],[88,82]]
  };
  const pos=layouts[f]||layouts["4-4-1-1"];
- box.innerHTML=ordered.map((p,i)=>{const [x,y]=pos[i]||[50,50],shirt=st.players.findIndex(x=>x.id===p.id)+1;const short=p.name.split(" ").slice(-1)[0];return `<div class="v63-player" style="left:${x}%;top:${y}%"><div class="v63-dot" title="Numero di maglia ${shirt}">${shirt}</div><div class="v63-name">${short}</div></div>`}).join("");
+ // FIX 2026-09 (50): questo schermo formazione ignorava s9SquadNumbers e
+ // mostrava sempre l'indice in rosa - i giocatori iconici (Baggio, Totti...)
+ // qui perdevano il loro numero storico, a differenza dei puntini in campo.
+ const nums=typeof s9SquadNumbers==='function'?s9SquadNumbers(st):null;
+ box.innerHTML=ordered.map((p,i)=>{const [x,y]=pos[i]||[50,50],shirt=nums?.[p.id]||(st.players.findIndex(x=>x.id===p.id)+1);const short=p.name.split(" ").slice(-1)[0];return `<div class="v63-player" style="left:${x}%;top:${y}%"><div class="v63-dot" title="Numero di maglia ${shirt}">${shirt}</div><div class="v63-name">${short}</div></div>`}).join("");
 }
 
 function renderPrematchLineup(){
  let st=career.teamStates[career.user];
  let ps=st.lineup.map(id=>st.players.find(p=>p.id===id)).filter(Boolean);
+ const nums=typeof s9SquadNumbers==='function'?s9SquadNumbers(st):null;
  $("#lineupPreview").innerHTML=ps.map(p=>`
    <div class="lineup-row-v33 player-click" data-player-card="${p.id}">
-     <div class="lineup-player-main"><b>N° ${st.players.findIndex(x=>x.id===p.id)+1} · ${p.name}</b> · ${p.pos}</div>
+     <div class="lineup-player-main"><b>N° ${nums?.[p.id]||(st.players.findIndex(x=>x.id===p.id)+1)} · ${p.name}</b> · ${p.pos}</div>
      ${moraleBadge(p.morale)}
      <span class="lineup-ovr">OVR ${p.overall}</span>
    </div>`).join("");
@@ -3665,7 +3718,7 @@ renderTeamPicker();
 <script src="js/v10-data.js?v=3d-1"></script>
 <script src="js/v10-release.js?v=stability-21"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
-<script src="js/match-coherence.js?v=stability-22"></script>
+<script src="js/match-coherence.js?v=stability-23"></script>
 <script src="js/kit-profiles.js?v=2"></script>
 <script src="js/asset-quality.js?v=1"></script>
 <script src="js/football-3d.js?v=stability-14"></script>
@@ -3674,20 +3727,20 @@ renderTeamPicker();
 <script src="js/kit-presentation.js?v=1"></script>
 <script src="js/match-3d.js?v=stability-39"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
-<script src="js/match-intro.js?v=stability-14"></script>
+<script src="js/match-intro.js?v=stability-15"></script>
 <script src="js/pitch-invasion.js?v=2"></script>
 <script src="js/trophy-ceremony.js?v=lap-close-16"></script>
 <script src="js/exhibition.js?v=stability-16"></script>
 <script src="js/trofeo-birra.js?v=5"></script>
 <script src="js/v106-match-experience.js?v=presentation-2"></script>
 <script src="js/v107-cup-polish.js?v=team-season-2"></script>
-<script src="js/v108-complete-match-flow.js?v=team-season-8"></script>
+<script src="js/v108-complete-match-flow.js?v=team-season-9"></script>
 <script src="js/v110-prematch-ceremony.js?v=team-season-1"></script>
 <script src="js/presentation.js?v=presentation-2"></script>
 <script src="js/tactics-redesign.js?v=stability-13"></script>
 
 <!-- Patch 15: logo SerieA 9000 SIM aggiornato, logo pagine interne spostato dal centro, sfondo Coppe sostituito con versione trofei/stadio approvata. -->
-<script src="js/tactical-workspace.js?v=tactics-17"></script>
+<script src="js/tactical-workspace.js?v=tactics-18"></script>
 <script src="js/prematch-flavor.js?v=1"></script>
 <script src="js/parody-names.js?v=3"></script>
 <script src="js/match-commentary.js?v=5"></script>

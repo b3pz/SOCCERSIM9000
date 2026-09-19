@@ -39,7 +39,10 @@ function effectiveLayout(s){
 }
 const state=()=>career?.teamStates?.[career.user];
 const player=id=>state()?.players.find(p=>p.id===id);
-const number=p=>state().players.findIndex(x=>x.id===p.id)+1;
+// FIX 2026-09 (50): usare s9SquadNumbers (numeri iconici per un pugno di
+// giocatori storici riconoscibili) invece del solo indice in rosa, come
+// gia' avviene in campo e nella schermata pre-partita.
+const number=p=>{const st=state();return(typeof s9SquadNumbers==='function'&&st?s9SquadNumbers(st)[p.id]:null)||st.players.findIndex(x=>x.id===p.id)+1};
 const fit=p=>Math.round(p.fitness??100);
 const unavailable=p=>(p.injuryGames||0)>0||(p.suspensionGames||0)>0;
 function slots(formation){

@@ -111,10 +111,14 @@ async function animateKick(side,shooter,outcome,kickNo,teams){
     campo, anche nella scena 3D del rigore. */
  const shooterTeamId=isShooterHome?teamH:teamA,keeperTeamId=isShooterHome?teamA:teamH;
  const keeperPlayer=career?.teamStates?.[keeperTeamId]?.players?.find(p=>p.pos==='GK');
- const shooterSkin=(typeof s9SkinFor==='function'&&typeof T==='function')?s9SkinFor(T(shooterTeamId)?.country,shooter?.id||shooterTeamId):null;
- const keeperSkin=(typeof s9SkinFor==='function'&&typeof T==='function'&&keeperPlayer)?s9SkinFor(T(keeperTeamId)?.country,keeperPlayer.id):null;
- const shooterLook=(typeof S9_ICONIC_LOOKS!=='undefined'&&shooter?.name)?S9_ICONIC_LOOKS[shooter.name]:null;
- const keeperLook=(typeof S9_ICONIC_LOOKS!=='undefined'&&keeperPlayer)?S9_ICONIC_LOOKS[keeperPlayer.name]:null;
+ // FIX 2026-09 (50): shooter.name/keeperPlayer.name sono nomi PARODIA
+ // (js/parody-names.js) - S9_ICONIC_LOOKS e' indicizzata sul nome reale
+ // (player.realName). Anche qui il tono di pelle forzato per un pugno di
+ // giocatori storici va applicato PRIMA della stima statistica per nazione.
+ const shooterLook=(typeof S9_ICONIC_LOOKS!=='undefined'&&shooter)?S9_ICONIC_LOOKS[shooter.realName||shooter.name]:null;
+ const keeperLook=(typeof S9_ICONIC_LOOKS!=='undefined'&&keeperPlayer)?S9_ICONIC_LOOKS[keeperPlayer.realName||keeperPlayer.name]:null;
+ const shooterSkin=(shooterLook?.skin&&typeof S9_SKIN_TONES!=='undefined')?S9_SKIN_TONES[shooterLook.skin]:((typeof s9SkinFor==='function'&&typeof T==='function')?s9SkinFor(T(shooterTeamId)?.country,shooter?.id||shooterTeamId):null);
+ const keeperSkin=(keeperLook?.skin&&typeof S9_SKIN_TONES!=='undefined')?S9_SKIN_TONES[keeperLook.skin]:((typeof s9SkinFor==='function'&&typeof T==='function'&&keeperPlayer)?s9SkinFor(T(keeperTeamId)?.country,keeperPlayer.id):null);
  const lateral=(dive==='left'?-1:1)*(.5+Math.random()*.35);
  let ballEnd;
  if(outcome==='goal')ballEnd=[dive==='left'?2.65:-2.65,2.05,0];
