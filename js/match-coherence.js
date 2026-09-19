@@ -56,11 +56,29 @@
       requestAnimationFrame(frame);
     });
   }
+  /* FIX 2026-09 (30): "implementiamo l'IA" (pressing/possesso visibili nei
+     movimenti, non solo nei numeri) - prima chi difendeva si muoveva con lo
+     STESSO piccolo scarto proporzionale di chi attaccava, senza mai vedere
+     davvero la palla: sembrava che la difesa "seguisse le linee" invece di
+     pressare. Ora, quando la squadra non ha la palla, i giocatori vengono
+     tirati verso la posizione REALE del pallone (non solo uno scarto), con
+     un'intensita' legata all'atteggiamento tattico scelto (Offensivo preme
+     alto e stretto, Difensivo resta piu' basso e compatto) - lo stesso
+     campo st.mentality gia' usato dal motore per calcolare le probabilita'
+     degli eventi, qui reso visibile nei movimenti. */
+  function pressIntensity(team){
+    const id=team==='home'?current?.h:current?.a;
+    const m=(typeof career!=='undefined')?career?.teamStates?.[id]?.mentality:null;
+    return m==='Offensivo'?1.4:m==='Difensivo'?.7:1;
+  }
   function shape(side,target,exclude=[]){
     return ['home','away'].flatMap(team=>dots(team).filter(d=>!exclude.includes(d)).map(d=>{
       const base={x:+d.dataset.baseX,y:+d.dataset.baseY};
       const keeper=d.dataset.role==='GK';
-      return {el:d,x:keeper?base.x:clamp(base.x+(target.x-50)*.22+(team===side?(right(team)?5:-5):0)),y:keeper?clamp(50+(target.y-50)*.12,43,57):clamp(base.y+(target.y-50)*.18,7,93)};
+      if(keeper)return {el:d,x:base.x,y:clamp(50+(target.y-50)*.12,43,57)};
+      if(team===side)return {el:d,x:clamp(base.x+(target.x-50)*.22+(right(team)?5:-5)),y:clamp(base.y+(target.y-50)*.18,7,93)};
+      const pull=clamp(.15*pressIntensity(team),.08,.42);
+      return {el:d,x:clamp(base.x+(target.x-base.x)*pull),y:clamp(base.y+(target.y-base.y)*pull,7,93)};
     }));
   }
   /* FIX 2026-09: corners and free kicks used to move the defending team with the
@@ -176,8 +194,26 @@
       carrier=winger;
     }
     await pass(side,receiver,{x:xFor(side,cross?79:38+minute%4*9),y:cross?50:22+minute%5*14},cross);
-    if(minute%3===0){
-      const other=opposite(side),p=pos(carrier);
+    /* FIX 2026-09 (30): "implementiamo l'IA" - prima il possesso passava
+       all'altra squadra a orario fisso (ogni 3 minuti, sempre), qualunque
+       fosse la forza reale delle due squadre: il possesso "visibile" non
+       aveva alcun legame con chi fosse davvero piu' forte. Ora la
+       probabilita' di perdere palla in questo minuto dipende dal rapporto
+       di forza tra chi ha palla e chi difende (usando la stessa
+       lineupPower/mentalityMult gia' usate dal motore per gli eventi reali,
+       vedi index.html) - una squadra nettamente piu' forte (o con
+       atteggiamento piu' offensivo) tiene il possesso piu' a lungo e lo
+       riconquista piu' spesso, invece di un turnover meccanico a orologio. */
+    const other=opposite(side);
+    const power=team=>{
+      const id=team==='home'?current?.h:current?.a;
+      if(typeof lineupPower!=='function'||!id)return 50;
+      const m=(typeof career!=='undefined')?career?.teamStates?.[id]?.mentality:null;
+      return lineupPower(id)*(typeof mentalityMult==='function'?mentalityMult(m):1);
+    };
+    const turnoverChance=clamp(.24+(power(other)-power(side))/110,.1,.48);
+    if(Math.random()<turnoverChance){
+      const p=pos(carrier);
       const defender=field(other).sort((a,b)=>Math.hypot(pos(a).x-p.x,pos(a).y-p.y)-Math.hypot(pos(b).x-p.x,pos(b).y-p.y))[0];
       if(defender){
         label('CONTRASTO');await move([{el:defender,x:p.x+(right(other)?-2:2),y:p.y+1}],450);
