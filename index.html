@@ -2028,19 +2028,46 @@ async function showGoalReplay(e){
   hidePitch();
  }
 }
+/* FIX 2026-09 (30): "quando ci riguardano potremmo far vedere un replay del
+   fallo" - prima della moviola in studio, un breve replay al rallentatore
+   sul campo (stessa telecamera/slow-motion gia' usata per i replay dei gol)
+   inquadrato dove si trovava l'azione un attimo fa: non e' una ricostruzione
+   esatta del fallo (non ne conserviamo le coordinate), ma lo stacco
+   "rallentatore sul posto" e' esattamente l'effetto da vera moviola
+   televisiva. Poi si passa allo stacco in studio con il parere a parole. */
+async function showIncidentReplay(side){
+ if(!window.S9Match3D||S9Match3D.mode==="2d")return;
+ const wrap=$("#pitchWrap90");if(!wrap)return;
+ const banner=document.createElement("div");banner.className="s9-replay-banner";banner.innerHTML="<span>MOVIOLA</span>";
+ wrap.appendChild(banner);
+ requestAnimationFrame(()=>banner.classList.add("show"));
+ const prevSpeed=speed;speed=.35;
+ S9Match3D.beginReplay?.(side);
+ try{await wait(1400)}catch(err){console.warn("Replay episodio",err)}
+ finally{
+  S9Match3D.endReplay?.();
+  speed=prevSpeed;
+  banner.classList.remove("show");
+  await new Promise(r=>setTimeout(r,220));
+  banner.remove();
+ }
+}
 /* FIX 2026-09 (30): "meglio la moviola che il VAR, non esisteva ai tempi" -
    breve stacco in studio dopo un episodio dubbio (rigore assegnato,
    espulsione) dove i due telecronisti rivedono l'episodio A PAROLE e dando
    un parere, mai un sistema che cambia la decisione gia' presa in campo.
    Non ad ogni episodio (altrimenti diventa stucchevole): gated a caso, come
    gia' fanno le altre chiacchiere di contorno in questo file. */
-async function maybeMoviola(kind){
+async function maybeMoviola(kind,side){
  if(!window.S9Anchors?.moviola||Math.random()>.55)return;
- try{await S9Anchors.moviola(kind,{h:T(current.h).name,a:T(current.a).name,channel:current.channel})}catch(e){}
+ try{
+  await showIncidentReplay(side);
+  await S9Anchors.moviola(kind,{h:T(current.h).name,a:T(current.a).name,channel:current.channel});
+ }catch(e){}
 }
 async function doEvent(e){
  while(paused)await wait(250);current.minute=e.min;updateScore();
- if(e.source==='penalty'){whistle();log(`${e.min}' CALCIO DI RIGORE · ${T(e.side==='home'?current.h:current.a).name} · ${e.player.name}`,e.side);current.keyEvents.push(`${e.min}' RIGORE · ${e.player.name}`);await maybeMoviola('penalty');}
+ if(e.source==='penalty'){whistle();log(`${e.min}' CALCIO DI RIGORE · ${T(e.side==='home'?current.h:current.a).name} · ${e.player.name}`,e.side);current.keyEvents.push(`${e.min}' RIGORE · ${e.player.name}`);await maybeMoviola('penalty',e.side);}
 
  if(e.type==="chance"){
    let team=T(e.side==="home"?current.h:current.a);
@@ -2086,7 +2113,7 @@ async function doEvent(e){
      await wait(e.type==="red"?900:650);
    }else await ov(S9Popups.html(e.type,{player:e.player.name,detail:e.secondYellow?'Seconda ammonizione.':''}),1400);
    hidePitch();
-   if(e.type==="red")await maybeMoviola('red');
+   if(e.type==="red")await maybeMoviola('red',e.side);
  }
 
  if(e.type==="goal"){
