@@ -735,7 +735,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.22</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.23</span></span></div>
 </div>
 <main>
 
@@ -767,7 +767,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.22
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.23
     </div>
   </div>
 </section>
@@ -1484,7 +1484,7 @@ const CREST_ASSETS={"samp_9091":"assets/embedded/embedded_005.png","juve_baggio_
 function renderTeamPicker(){
  const t=teams[selectedTeamIndex],m=teamMeta[t.id]||{city:"Italia",stadium:"Stadio Comunale",motto:"Forza!",colors:["#333","#aaa"]};
  $("#managerTeam").value=t.id;
- const crest=CREST_ASSETS[t.id];
+ const crest=CREST_ASSETS[t.id]||(typeof crestFor==='function'?crestFor(t.id):null);
  $("#teamEmblem").innerHTML=crest
    ? `<img src="${crest}" alt="Stemma ${t.name} ${t.season}">`
    : `<span>${t.name.substring(0,2).toUpperCase()}</span>`;
@@ -1944,12 +1944,17 @@ function setupPitch(){
        y = 50;
      } else {
        // Disposizione base dei giocatori di movimento.
+       // FIX 2026-09: le due squadre stavano su due blocchi rigidi e separati
+       // (colonne 27/50/72 vs 73/50/28), senza alcuna marcatura visiva.
+       // Ora le zone sono piu' compresse verso il centro e le righe delle due
+       // squadre sono sfalsate, cosi' i giocatori risultano misti/appaiati
+       // (marcatura) invece di due schieramenti a blocchi separati.
        const fieldIndex = Math.max(1,i);
-       const baseCol = fieldIndex<5 ? 27 : (fieldIndex<9 ? 50 : 72);
+       const baseCol = fieldIndex<5 ? 35 : (fieldIndex<9 ? 50 : 64);
        const attacksRight = side==="home" ? !secondHalf : secondHalf;
        x = attacksRight ? baseCol : 100-baseCol;
 
-       const rowMap=[16,32,50,68,84];
+       const rowMap = side==="home" ? [14,30,50,70,86] : [22,38,50,62,78];
        y = rowMap[(fieldIndex-1)%rowMap.length];
      }
 
@@ -3005,7 +3010,7 @@ function renderHubNext(){
    return;
  }
  const h=T(g[0]),a=T(g[1]),d=career.leagueDates[career.round];
- const crest=id=>CREST_ASSETS[id]?`<img src="${CREST_ASSETS[id]}" alt="">`:`<span>${T(id).name.substring(0,2).toUpperCase()}</span>`;
+ const crest=id=>{const src=CREST_ASSETS[id]||(typeof crestFor==='function'?crestFor(id):null);return src?`<img src="${src}" alt="" onerror="this.outerHTML='<span>${T(id).name.substring(0,2).toUpperCase()}</span>'">`:`<span>${T(id).name.substring(0,2).toUpperCase()}</span>`};
  el.innerHTML=`<div class="hub-kicker"><img class="hub-comp-logo" src="assets/league/serie_a_league.png" alt="">SERIE A · GIRONE ${career.userGroup} · GIORNATA ${career.round+1}</div>
  <div class="hub-fixture">
   <div class="hub-team">${crest(g[0])}<b>${h.name} ${h.season}</b></div>
@@ -3165,7 +3170,7 @@ const _v4RenderTeamPicker=renderTeamPicker;
 renderTeamPicker=function(){
  const t=teams[selectedTeamIndex],m=teamMeta[t.id]||{city:"—",stadium:"—",motto:"—",colors:["#333","#ddd"]};
  $("#managerTeam").value=t.id;
- const crest=CREST_ASSETS[t.id];
+ const crest=CREST_ASSETS[t.id]||(typeof crestFor==='function'?crestFor(t.id):null);
  $("#teamEmblem").innerHTML=crest
   ? `<img src="${crest}" alt="Stemma ${t.name} ${t.season}">`
   : `<div class="fallback-crest-v4"><div class="fc-big">${t.name}</div><div class="fc-small">${t.season}</div></div>`;
