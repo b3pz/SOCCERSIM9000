@@ -113,15 +113,28 @@
       .slice(0,count)
       .map(x=>x.d));
   }
+  // FIX 2026-09 (36): LINEA DIFENSIVA IN BLOCCO - prima la riga difensiva
+  // restava sempre alla stessa altezza della formazione base, qualunque
+  // fosse l'atteggiamento scelto: Offensivo e Difensivo si "vedevano" solo
+  // nei numeri delle formule, mai nella disposizione vera in campo. Ora la
+  // riga sale o scende COLLETTIVAMENTE (stessa quantita' per tutta la
+  // squadra, non giocatore per giocatore) in base alla tattica: Offensivo
+  // spinge la linea piu' vicina a centrocampo (squadra piu' corta, spazi
+  // stretti agli avversari), Difensivo la tiene piu' vicina alla propria
+  // porta (blocco basso, piu' prudente). Questo si riflette automaticamente
+  // anche nella linea del fuorigioco (api.offside legge le posizioni reali
+  // dei difensori), senza bisogno di toccare quella funzione.
+  function lineHeight(team){return (pressIntensity(team)-1)*6*(right(team)?1:-1)}
   function shape(side,target,exclude=[]){
     const defTeam=opposite(side);
     const marks=markAssignment(side,defTeam);
     const press=pressers(defTeam,target);
     return ['home','away'].flatMap(team=>dots(team).filter(d=>!exclude.includes(d)).map(d=>{
-      const base={x:+d.dataset.baseX,y:+d.dataset.baseY};
+      const rawBase={x:+d.dataset.baseX,y:+d.dataset.baseY};
       const keeper=d.dataset.role==='GK';
-      if(keeper)return {el:d,x:base.x,y:clamp(50+(target.y-50)*.12,43,57)};
-      if(team===side)return {el:d,x:clamp(base.x+(target.x-50)*.22+(right(team)?5:-5)),y:clamp(base.y+(target.y-50)*.18,7,93)};
+      if(keeper)return {el:d,x:rawBase.x,y:clamp(50+(target.y-50)*.12,43,57)};
+      if(team===side)return {el:d,x:clamp(rawBase.x+(target.x-50)*.22+(right(team)?5:-5)),y:clamp(rawBase.y+(target.y-50)*.18,7,93)};
+      const base={x:rawBase.x+lineHeight(team),y:rawBase.y};
       const isPresser=team===defTeam&&press.has(d);
       const pull=isPresser?clamp(.4*pressIntensity(team),.25,.62):clamp(.15*pressIntensity(team),.08,.42);
       const bx=base.x+(target.x-base.x)*pull,by=base.y+(target.y-base.y)*pull;
