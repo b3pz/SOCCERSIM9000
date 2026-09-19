@@ -1298,11 +1298,24 @@ function s9EnsureGoalRoarEl(){
  return s9GoalRoarEl;
 }
 function playGoalRoarClip(){
+ /* FIX 2026-09 (31): "non dopo 5 secondi dall'animazione, ma che parta dai
+    suoi 5 secondi" - non era un ritardo prima di far partire la
+    registrazione da zero, ma il PUNTO della registrazione stessa da cui far
+    partire l'ascolto: i primi ~5s del file sono il pre-boato/rumore di
+    fondo, il boato vero e proprio comincia dal secondo 5. Ora la clip parte
+    subito (in sync con l'esultanza) ma da el.currentTime=5.1, saltando
+    dritti al boato invece di aspettarlo. */
  if(s9GoalRoarTimer)clearTimeout(s9GoalRoarTimer);
- s9GoalRoarTimer=setTimeout(()=>{
-  s9GoalRoarTimer=null;
-  try{const el=s9EnsureGoalRoarEl();el.pause();el.currentTime=0;el.play().catch(()=>{})}catch(e){}
- },5100);
+ s9GoalRoarTimer=null;
+ try{
+  const el=s9EnsureGoalRoarEl();el.pause();el.currentTime=5.1;
+  el.play().catch(()=>{
+   // Alcuni browser rifiutano un currentTime impostato prima che i
+   // metadati siano pronti: si riprova dopo 'loadedmetadata'.
+   const onMeta=()=>{el.currentTime=5.1;el.play().catch(()=>{});el.removeEventListener('loadedmetadata',onMeta)};
+   el.addEventListener('loadedmetadata',onMeta);
+  });
+ }catch(e){}
 }
 /* FIX 2026-09 (19): "la musica ambientale dev'esserci molto piu rumore di
    tifo" - non si puo' scaricare/ridistribuire audio da YouTube (copyright),
