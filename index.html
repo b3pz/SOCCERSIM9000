@@ -42,6 +42,22 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px;borde
  overflow:visible;
  box-shadow:inset 0 0 0 2px rgba(0,0,0,.18);
 }
+/* FIX 2026-09 (40): effetto visivo meteo sul campo - overlay leggero,
+   non deve mai coprire i puntini giocatori (z-index sotto ai dot ma
+   sopra alle righe del campo) e resta puramente decorativo. */
+#pitch.s9-weather-pioggia::after{
+ content:"";position:absolute;inset:0;z-index:2;pointer-events:none;opacity:.5;
+ background:repeating-linear-gradient(115deg,rgba(210,230,255,.55) 0 2px,transparent 2px 16px);
+ animation:s9RainFall .3s linear infinite;
+}
+#pitch.s9-weather-nebbia::after{
+ content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+ background:radial-gradient(ellipse at center,rgba(235,235,235,.08) 0%,rgba(235,235,235,.42) 65%,rgba(225,225,225,.62) 100%);
+}
+#pitch.s9-weather-vento .pitch-mark.corner{animation:s9WindFlag 1.1s ease-in-out infinite alternate}
+@keyframes s9RainFall{from{background-position:0 0}to{background-position:-32px 60px}}
+@keyframes s9WindFlag{from{transform:skewX(0deg)}to{transform:skewX(8deg)}}
+#weatherBadge{white-space:nowrap}
 .pitch-mark{position:absolute;pointer-events:none;z-index:1}
 .touchline{left:0;right:0;top:0;bottom:0;border:2px solid rgba(255,255,255,.95)}
 .halfway{left:50%;top:0;bottom:0;border-left:2px solid rgba(255,255,255,.95);transform:translateX(-1px)}
@@ -735,7 +751,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.31</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.32</span></span></div>
 </div>
 <main>
 
@@ -767,7 +783,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.31
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.32
     </div>
   </div>
 </section>
@@ -997,7 +1013,7 @@ main{max-width:none!important;padding:0!important}
         <div id="overlay" role="status" aria-live="polite"><div id="overlayBox"></div></div>
       </div></div>
 
-      <div class="radio-strip"><span>● LIVE</span><span id="stadiumLabel">DIRETTA DALLO STADIO</span><span>SERIEA 9000 SIM</span></div>
+      <div class="radio-strip"><span>● LIVE</span><span id="stadiumLabel">DIRETTA DALLO STADIO</span><span id="weatherBadge"></span><span>SERIEA 9000 SIM</span></div>
     </div>
 
     <aside class="match-history-panel">
@@ -1806,6 +1822,38 @@ function nonGoalOutcome(p,keeper,posts=0){
  const r=Math.random(),post=.025/(1+posts*3);
  return r<post?'post':r<post+on?'save':'miss';
 }
+
+// FIX 2026-09 (40): METEO - prima non esisteva alcun sistema meteo: ogni
+// partita era sempre sullo stesso "campo asciutto" invisibile. Ora ogni
+// partita riceve una condizione meteo estratta a peso (per lo piu' sereno,
+// ma con pioggia/vento/nebbia/caldo afoso che ricorrono con la loro
+// frequenza realistica), che si vede in campo (badge + effetto visivo) e
+// che incide davvero sulla simulazione: precisione al tiro, calci piazzati,
+// falli e fuorigioco cambiano leggermente con le condizioni.
+const S9_WEATHER_TYPES=[
+ {key:'sereno',label:'SERENO',icon:'☀️',weight:38,goalMult:1,setPieceMult:1,foulMult:1,offsideMult:1},
+ {key:'nuvoloso',label:'NUVOLOSO',icon:'⛅',weight:22,goalMult:1,setPieceMult:1,foulMult:1,offsideMult:1},
+ {key:'pioggia',label:'PIOGGIA',icon:'🌧️',weight:20,goalMult:.93,setPieceMult:.87,foulMult:1.18,offsideMult:.9},
+ {key:'vento',label:'VENTO FORTE',icon:'💨',weight:12,goalMult:.97,setPieceMult:.8,foulMult:1.05,offsideMult:1.08},
+ {key:'nebbia',label:'NEBBIA',icon:'🌫️',weight:5,goalMult:.94,setPieceMult:.92,foulMult:1.08,offsideMult:.85},
+ {key:'caldo',label:'CALDO AFOSO',icon:'🥵',weight:3,goalMult:.95,setPieceMult:1,foulMult:1.1,offsideMult:1}
+];
+function pickWeather(){
+ const total=S9_WEATHER_TYPES.reduce((n,w)=>n+w.weight,0);
+ let r=Math.random()*total;
+ return S9_WEATHER_TYPES.find(w=>(r-=w.weight)<=0)||S9_WEATHER_TYPES[0];
+}
+function applyWeatherVisual(weather){
+ const badge=$("#weatherBadge");
+ if(badge)badge.textContent=weather?`${weather.icon} ${weather.label}`:"";
+ const p=$("#pitch");
+ if(p){
+  p.classList.remove('s9-weather-pioggia','s9-weather-nebbia','s9-weather-vento');
+  if(weather?.key==='pioggia')p.classList.add('s9-weather-pioggia');
+  else if(weather?.key==='nebbia')p.classList.add('s9-weather-nebbia');
+  else if(weather?.key==='vento')p.classList.add('s9-weather-vento');
+ }
+}
 function buildMatch(h,a,opts){
  /* FIX 2026-09: "incitare la squadra" - opts permette di rigenerare solo
     la parte RESIDUA di una partita gia' in corso (fromMin..toMin) con un
@@ -1816,13 +1864,21 @@ function buildMatch(h,a,opts){
  const fromMin=opts.fromMin??0,toMin=opts.toMin??90,boost=opts.boost||null;
  const span=Math.max(.08,(toMin-fromMin)/90);
  const bmult=side=>boost&&boost.side===side?boost.mult:1;
+ // Il meteo resta lo stesso per tutta la gara: se buildMatch() viene
+ // richiamata per un rebuild parziale (opts.fromMin, es. "incitare la
+ // squadra") il meteo va passato in opts.weather invece di essere
+ // ri-estratto a caso a meta' partita.
+ const weather=opts.weather||pickWeather();
  const hp=lineupPower(h)*mentalityMult(career.teamStates[h].mentality)*bmult('h'),ap=lineupPower(a)*mentalityMult(career.teamStates[a].mentality)*bmult('a');
  const attack=id=>avg(attackers(id).filter(p=>p.pos!=='GK').map(shotQuality))*(id===h?bmult('h'):bmult('a'));
  // Medie-gol attese (stesso modello di prima), pero' non vengono piu'
  // tirate a sorte SUBITO come conteggio finale: servono solo a calibrare
  // quanto spesso un tiro si trasforma in gol dentro la simulazione qui sotto.
- const expH=Math.max(.25,1.16+(hp-ap)/22+(attack(h)-keeperQuality(a))*.014)*span;
- const expA=Math.max(.2,1.02+(ap-hp)/22+(attack(a)-keeperQuality(h))*.014)*span;
+ // Il moltiplicatore meteo (goalMult) rende le condizioni avverse (pioggia,
+ // nebbia, caldo afoso) leggermente meno prolifiche in gol, senza stravolgere
+ // l'equilibrio fra le due squadre.
+ const expH=Math.max(.25,1.16+(hp-ap)/22+(attack(h)-keeperQuality(a))*.014)*span*weather.goalMult;
+ const expA=Math.max(.2,1.02+(ap-hp)/22+(attack(a)-keeperQuality(h))*.014)*span*weather.goalMult;
  const ev=[];
  const minLo=Math.max(4,fromMin),minHi=Math.max(minLo,Math.min(89,toMin));
  const randMin=()=>rand(minLo,minHi);
@@ -1876,15 +1932,15 @@ function buildMatch(h,a,opts){
   const id=side==='home'?h:a,oppId=side==='home'?a:h;
   const isPenaltyMove=idx===penaltyMoveIdx;
 
-  if(!isPenaltyMove&&Math.random()<.16){
+  if(!isPenaltyMove&&Math.random()<.16*weather.offsideMult){
    ev.push({min,type:'offside',side,player:weightedAttacker(id)});
    return;
   }
-  if(!isPenaltyMove&&Math.random()<.14){
+  if(!isPenaltyMove&&Math.random()<.14*weather.foulMult){
    const pool=foulers(oppId);
    if(pool.length){ev.push({min,type:'foul',side:side==='home'?'away':'home',player:pick(pool)});return;}
   }
-  if(!isPenaltyMove&&Math.random()<.05){
+  if(!isPenaltyMove&&Math.random()<.05*weather.foulMult){
    const pool=foulers(side==='home'?a:h);
    if(pool.length){ev.push({min,type:Math.random()<.12?'red':'yellow',side:side==='home'?'away':'home',player:pick(pool)});return;}
   }
@@ -1916,7 +1972,11 @@ function buildMatch(h,a,opts){
    source='corner';
   }else shooter=weightedAttacker(id);
 
-  const perShotGoalProb=Math.max(.06,Math.min(.42,(side==='home'?expH:expA)/estShots(side)));
+  // Vento e pioggia rendono in particolare punizioni e angoli meno precisi
+  // (setPieceMult): un tiro da azione manovrata risente solo del goalMult
+  // gia' incorporato in expH/expA.
+  const setPieceFactor=(isFreekick||isCorner)?weather.setPieceMult:1;
+  const perShotGoalProb=Math.max(.06,Math.min(.42,(side==='home'?expH:expA)/estShots(side)*setPieceFactor));
   if(Math.random()<perShotGoalProb){
    side==='home'?simH++:simA++;
    let assist=null,receiver=shooter;
@@ -1945,7 +2005,7 @@ function buildMatch(h,a,opts){
  // evento in scaletta - solo quelli pericolosi generati sopra).
  cornersH+=Math.round(rand(1,3)*span);cornersA+=Math.round(rand(1,3)*span);
 
- return {h,a,scoreH:0,scoreA:0,minute:0,events:ev.sort((x,y)=>x.min-y.min),stats:{shotsH:0,shotsA:0,onH:0,onA:0,cornersH,cornersA},keyEvents:[]};
+ return {h,a,scoreH:0,scoreA:0,minute:0,events:ev.sort((x,y)=>x.min-y.min),stats:{shotsH:0,shotsA:0,onH:0,onA:0,cornersH,cornersA},keyEvents:[],weather};
 }
 
 // v12 — le modifiche tattiche dal vivo (cambi, modulo, atteggiamento) non
@@ -2441,7 +2501,7 @@ async function launchMatch(){
   catch(e){console.warn("Introduzione pre-partita",e)}
   try{stopEventMusic()}catch(e){console.warn("audio",e)}
  }
- current=buildMatch(g[0],g[1]);current._running=true;current.half=1;current.coinToss=coinToss;current.channel=matchChannel;current.incitaUsed={h:0,a:0};setupPitch();show("match");updateScore();hidePitch();updateIncitaButton();
+ current=buildMatch(g[0],g[1]);current._running=true;current.half=1;current.coinToss=coinToss;current.channel=matchChannel;current.incitaUsed={h:0,a:0};setupPitch();show("match");updateScore();applyWeatherVisual(current.weather);hidePitch();updateIncitaButton();
  /* FIX 2026-09: invasione di campo scenica. Ogni 3 partite giocate (contate
     solo quando l'utente guarda davvero la partita, non le simulazioni CPU
     di simOther) c'e' il 50% di probabilita' che scatti, ad un minuto
@@ -2455,8 +2515,12 @@ async function launchMatch(){
  if(coinToss){
   const winner=coinToss.winner==='home'?current.h:current.a,kickoff=coinToss.kickoffSide==='home'?current.h:current.a,field=coinToss.fieldSide==='home'?current.h:current.a;
   log(`00' SORTEGGIO - ${T(winner).name} ${T(winner).season} sceglie ${coinToss.choice==='ball'?'palla':'campo'}. ${T(field).name} ${T(field).season} verso ${coinToss.fieldEnd}.`,"neutral");
+  if(current.weather)log(`00' METEO - ${current.weather.icon} ${current.weather.label}`,"neutral");
   log(`00' CALCIO D'INIZIO - ${T(kickoff).name} ${T(kickoff).season}`,"neutral");
- }else log(`00' CALCIO D'INIZIO - ${T(current.h).name} ${T(current.h).season} contro ${T(current.a).name} ${T(current.a).season}`,"neutral");
+ }else{
+  if(current.weather)log(`00' METEO - ${current.weather.icon} ${current.weather.label}`,"neutral");
+  log(`00' CALCIO D'INIZIO - ${T(current.h).name} ${T(current.h).season} contro ${T(current.a).name} ${T(current.a).season}`,"neutral");
+ }
  {const j=window.S9Commentary?.kickoff?.(T(current.h).name,T(current.a).name,current.h,current.a);if(j)log(`00' 🎙️ ${j}`,"neutral");}
  try{crowd(.035,2.5)}catch(e){console.warn("audio",e)}
  paused=false;
@@ -2546,7 +2610,7 @@ $("#resumeSecond").onclick=()=>{
  const resume=halfResolver;halfResolver=null;
  current.half=2;current.minute=45;paused=false;tacticsWasPaused=false;
  $("#tacticsModal").style.display="none";
- try{setupPitch();updateScore();log("45' Le squadre cambiano campo. Inizia il secondo tempo.","neutral")}
+ try{setupPitch();updateScore();applyWeatherVisual(current.weather);log("45' Le squadre cambiano campo. Inizia il secondo tempo.","neutral")}
  finally{resume()}
 }
 $("#returnSeason").onclick=()=>{renderSeason();show("season")}
@@ -2683,7 +2747,7 @@ function applyIncita(side){
  const used=current.incitaUsed?.[side]||0;if(used>=INCITA_CAP)return;
  if(current.minute>=88)return;
  const fromMin=Math.min(89,current.minute+1);
- const rebuilt=buildMatch(current.h,current.a,{fromMin,toMin:90,boost:{side,mult:1.14}});
+ const rebuilt=buildMatch(current.h,current.a,{fromMin,toMin:90,boost:{side,mult:1.14},weather:current.weather});
  const keptEvents=current.events.filter(e=>e.min<=current.minute);
  current.events=keptEvents.concat(rebuilt.events).sort((x,y)=>x.min-y.min);
  if(!current.incitaUsed)current.incitaUsed={h:0,a:0};
