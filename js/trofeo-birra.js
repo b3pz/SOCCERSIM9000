@@ -1,4 +1,4 @@
-/* TROFEO BIRRA MORETTI — triangolare a 3 squadre, "girone all'italiana"
+/* TROFEO BIRRA GORETTI — triangolare a 3 squadre, "girone all'italiana"
    con regolamento fornito dall'utente:
    - 3 punti per vittoria diretta, 0 per sconfitta diretta.
    - Ogni pareggio si decide ai rigori: 2 punti a chi vince, 1 punto a chi
@@ -15,7 +15,7 @@
    E' comunque un torneo "usa e getta": non tocca carriera, classifiche o
    albo d'oro, esattamente come l'Amichevole.
    FIX 2026-09 (48): "RIGORI IN MOVIMENTO" - la formula storica del vero
-   Trofeo Birra Moretti (1997-2008) non usava i rigori classici dal dischetto
+   Trofeo Birra Goretti (1997-2008) non usava i rigori classici dal dischetto
    ma un uno-contro-uno: il giocatore parte in conduzione da 30 metri e ha
    5 secondi per superare il portiere, 3 tentativi a testa e poi oltranza.
    Qui e' presentata come sequenza di eventi (stesso sistema di popup delle
@@ -36,7 +36,7 @@ let saved=null,state=null;
 
 // FIX 2026-09 (52): "la selezione delle squadre dev'essere circoscritta
 // alle sole squadre italiane del periodo 97-2008, tutte le altre devono
-// essere escluse" - il Trofeo Birra Moretti (modalita' COPPA) ora seleziona
+// essere escluse" - il Trofeo Birra Goretti (modalita' COPPA) ora seleziona
 // ESCLUSIVAMENTE club italiani 1997-2008: niente piu' estere/nazionali/altre
 // italiane fuori periodo, a differenza dell'Amichevole che invece resta
 // libera su tutto il roster (l'utente lo ha confermato esplicitamente:
@@ -111,10 +111,15 @@ function renderHub(){
  const rows=standings.map((id,i)=>`<tr class="${state.done&&id===state.champion?'s9-trofeo-champ-row':''}"><td>${i+1}</td><td>${crest(id)} ${teamLabel(id)}</td><td><b>${state.pts[id]}</b></td><td>${state.gf[id]-state.ga[id]}</td><td>${state.gf[id]}</td><td>${state.ga[id]}</td></tr>`).join('');
  const played=state.log.map((m,i)=>matchRowHTML(m,i+1)).join('');
  const myMatch=state.nextMatch&&(state.nextMatch.h===state.myTeam||state.nextMatch.a===state.myTeam);
- const upcoming=!state.done&&state.nextMatch?`<div class="s9-trofeo-next"><div class="s9-picker-mini-label">PROSSIMA PARTITA · ${state.matchNum===3?'FINALE':'PARTITA '+state.matchNum}${myMatch?' · 🎮 GIOCHI TU':' · CPU vs CPU'}</div><div class="s9-trofeo-vs">${crest(state.nextMatch.h)} <b>${teamLabel(state.nextMatch.h)}</b> vs <b>${teamLabel(state.nextMatch.a)}</b> ${crest(state.nextMatch.a)}</div><button class="primary" id="trofeoPlayNext">${myMatch?'SCENDI IN CAMPO ▶':'SIMULA PARTITA ▶'}</button></div>`:'';
- const trophyBanner=state.done?`<div class="s9-trofeo-trophy"><img src="assets/competition_buttons/trofeo_birra_moretti.png" alt="Trofeo Birra Moretti"><div><div class="s9-trofeo-trophy-kicker">CAMPIONE DEL TRIANGOLARE</div><h2>${teamLabel(state.champion)}</h2></div></div><button class="primary" id="trofeoNew">NUOVO TRIANGOLARE ▶</button>`:'';
+ // FIX 2026-09 (55): "le partite che non si giocano si possono simulare
+ // anche andando direttamente al risultato finale" - per le partite CPU vs
+ // CPU, oltre a "SIMULA PARTITA ▶" (che le fa comunque disputare per intero,
+ // solo senza controlli utente) ora c'e' anche un risultato istantaneo, senza
+ // aprire per niente la schermata partita.
+ const upcoming=!state.done&&state.nextMatch?`<div class="s9-trofeo-next"><div class="s9-picker-mini-label">PROSSIMA PARTITA · ${state.matchNum===3?'FINALE':'PARTITA '+state.matchNum}${myMatch?' · 🎮 GIOCHI TU':' · CPU vs CPU'}</div><div class="s9-trofeo-vs">${crest(state.nextMatch.h)} <b>${teamLabel(state.nextMatch.h)}</b> vs <b>${teamLabel(state.nextMatch.a)}</b> ${crest(state.nextMatch.a)}</div><div class="s9-trofeo-next-actions"><button class="primary" id="trofeoPlayNext">${myMatch?'SCENDI IN CAMPO ▶':'SIMULA PARTITA ▶'}</button>${myMatch?'':'<button type="button" id="trofeoSimResult">RISULTATO ISTANTANEO ▶</button>'}</div></div>`:'';
+ const trophyBanner=state.done?`<div class="s9-trofeo-trophy"><img src="assets/competition_buttons/trofeo_birra_goretti.png" alt="Trofeo Birra Goretti"><div><div class="s9-trofeo-trophy-kicker">CAMPIONE DEL TRIANGOLARE</div><h2>${teamLabel(state.champion)}</h2></div></div><button class="primary" id="trofeoNew">NUOVO TRIANGOLARE ▶</button>`:'';
  hub.querySelector('.panel').innerHTML=`
-  <div class="s9-exhibition-kicker">TROFEO BIRRA MORETTI</div>
+  <div class="s9-exhibition-kicker">TROFEO BIRRA GORETTI</div>
   <h1>Triangolare all'italiana</h1>
   ${trophyBanner}
   ${upcoming}
@@ -124,8 +129,35 @@ function renderHub(){
   <div class="s9-exhibition-actions"><button type="button" id="trofeoBack">← MENU</button></div>
  `;
  if(q('#trofeoPlayNext'))q('#trofeoPlayNext').onclick=playNext;
+ if(q('#trofeoSimResult'))q('#trofeoSimResult').onclick=simulateNext;
  if(q('#trofeoNew'))q('#trofeoNew').onclick=()=>{state=null;show('trofeoSetup');renderSetup()};
  q('#trofeoBack').onclick=()=>show('cupsMenu');
+}
+
+// FIX 2026-09 (55): risultato istantaneo per una partita CPU vs CPU del
+// Trofeo - stessa logica di generazione (buildMatch con toMin:45, come le
+// partite giocate dal vivo qui, FIX 49) ma senza aprire la schermata
+// partita: legge solo il punteggio finale dagli eventi generati, come gia'
+// fa simOther() in index.html per le altre partite del girone di Carriera.
+// Il sorteggio "avviene" comunque (s9CoinToss, globale in index.html), solo
+// senza nessuna interfaccia essendo una partita mai mostrata a schermo.
+function simulateNext(){
+ if(!state||state.done||!state.nextMatch||current?._running||S9V10.matchContext)return;
+ const {h,a}=state.nextMatch;
+ if(h===state.myTeam||a===state.myTeam)return;
+ const m=buildMatch(h,a,{toMin:45});
+ if(typeof s9CoinToss==='function')m.coinToss=s9CoinToss(h,a);
+ const hg=m.events.filter(e=>e.type==='goal'&&e.side==='home').length;
+ const ag=m.events.filter(e=>e.type==='goal'&&e.side==='away').length;
+ applyMatchResult(h,a,hg,ag,null);
+ renderHub();
+ // FIX 2026-09 (54): la finale con risultato istantaneo deve comunque
+ // premiare il campione con la cerimonia della coppa, esattamente come la
+ // finale giocata dal vivo (vedi complete() sopra).
+ if(state.done&&state.champion&&window.S9Celebration?.exhibition){
+  const other=state.teams.find(t=>t!==state.champion)||a;
+  window.S9Celebration.exhibition({id:'trofeo_'+Date.now(),key:'trofeo',exhibition:true,completed:true,champion:state.champion},{h:state.champion,a:other,_finished:true},teamMeta[h]?.stadium||'Stadio Comunale');
+ }
 }
 
 function playNext(){
@@ -139,7 +171,7 @@ function playNext(){
  saved={career,standalone:S9V10.standalone,savedCareer:S9V10.savedCareer};
  career=S9V10.createMatchCareer(userTeam,state.teams);S9V10.standalone=null;
  career.fixtures=[[[h,a]]];career.otherFixtures=[[]];
- const stage=state.matchNum===3?'FINALE · TROFEO BIRRA MORETTI':'TROFEO BIRRA MORETTI · PARTITA '+state.matchNum;
+ const stage=state.matchNum===3?'FINALE · TROFEO BIRRA GORETTI':'TROFEO BIRRA GORETTI · PARTITA '+state.matchNum;
  S9V10.matchContext={mode:'trofeo',spectator:!myMatch,stadium:teamMeta[h]?.stadium||'Stadio Comunale',state:{key:'trofeo'},match:{h,a,kind:'friendly',stage}};
  S9V10.applyCompetitionTheme('friendly');
  openPrematch([h,a]);q('#backSeason').textContent='← TROFEO';
@@ -160,13 +192,29 @@ function complete(){
  if(ctx?.mode!=='trofeo'||!m?._finished||m._trofeoRecorded||!state)return;
  m._trofeoRecorded=true;
  applyMatchResult(m.h,m.a,m.scoreH,m.scoreA,m.decider);
+ // FIX 2026-09 (54): "non si alza la coppa ed anche lì è un trofeo con una
+ // finale quindi ci vuole la coppa" - alla terza partita (quella che decide
+ // il campione del triangolare) si attiva la stessa cerimonia cinematica
+ // (S9Celebration, gia' usata dalle finali delle coppe a eliminazione
+ // diretta e dall'Amichevole "Finale") invece del solo banner statico nella
+ // hub. S9Celebration.exhibition() richiede che il campione compaia fra le
+ // due squadre dell'oggetto match passato: nel Trofeo pero' il campione non
+ // e' sempre una delle due squadre della partita 3 appena giocata (puo'
+ // vincere il triangolare anche la squadra che ha riposato in quel turno,
+ // per differenza reti sulle 2 partite giocate) - percio' non riusiamo "m"
+ // cosi' com'e' ma costruiamo un piccolo oggetto match che garantisce che il
+ // campione ci sia sempre, cosi' la premiazione parte in ogni caso.
+ if(state.done&&state.champion&&window.S9Celebration?.exhibition){
+  const other=state.teams.find(t=>t!==state.champion)||m.a;
+  window.S9Celebration.exhibition({id:'trofeo_'+Date.now(),key:'trofeo',exhibition:true,completed:true,champion:state.champion},{h:state.champion,a:other,_finished:true},ctx?.stadium);
+ }
 }
 function finish(){complete();restore()}
 function openFromCups(){if(state&&!state.done){renderHub();show('trofeoHub')}else{renderSetup();show('trofeoSetup')}}
 
 // FIX 2026-09 (48): "RIGORI IN MOVIMENTO" - vedi nota in testa al file.
 // Sequenza di eventi (stile parate/gol a partita in corso) che simula il vero
-// formato storico del Trofeo Birra Moretti: 1 contro 1 in conduzione da 30
+// formato storico del Trofeo Birra Goretti: 1 contro 1 in conduzione da 30
 // metri, 5 secondi per superare il portiere, 3 tentativi a testa e poi
 // oltranza (solo l'ultima edizione reale uso' i rigori classici dal dischetto
 // - qui restiamo fedeli alla versione "in movimento", la piu' rappresentativa
@@ -239,14 +287,14 @@ async function finishPlayedTie(){
  let result;
  if(typeof window.S9PlayMovingShootout==='function'){
   await ov(S9Popups.html('penalties',{
-   kicker:'TROFEO BIRRA MORETTI',
+   kicker:'TROFEO BIRRA GORETTI',
    title:'RIGORI IN MOVIMENTO',
    detail:'Pareggio dopo i 45 minuti: si decide in conduzione da 30 metri, 5 secondi per battere il portiere, 3 tentativi a testa poi oltranza.'
   }),1400);
   result=await window.S9PlayMovingShootout(m.h,m.a);
  }else{
   await ov(S9Popups.html('penalties',{
-   kicker:'TROFEO BIRRA MORETTI',
+   kicker:'TROFEO BIRRA GORETTI',
    title:'RIGORI IN MOVIMENTO',
    detail:'Pareggio dopo i 45 minuti: si decide in conduzione da 30 metri, 5 secondi per battere il portiere, 3 tentativi a testa poi oltranza.'
   }),1800);
@@ -279,7 +327,7 @@ function renderSetup(){
  let idx=initial.map(id=>pool.indexOf(id));
  const screen=q('#trofeoSetup');
  screen.querySelector('.panel').innerHTML=`
-  <div class="s9-exhibition-kicker">TROFEO BIRRA MORETTI</div>
+  <div class="s9-exhibition-kicker">TROFEO BIRRA GORETTI</div>
   <h1>Scegli le tre squadre</h1>
   <p class="s9-exhibition-note">Girone all'italiana fra tre squadre. 3 punti per vittoria diretta, 2 punti per vittoria ai rigori (1 alla sconfitta ai rigori), 0 punti per sconfitta diretta. Il sorteggio decide chi gioca la prima partita: la terza squadra riposa e sfida chi perde. La tua squadra (slot 1) è sotto il tuo controllo in ogni partita in cui gioca; quando le altre due si sfidano resta CPU contro CPU.</p>
   <div class="s9-trofeo-picks">
@@ -318,7 +366,7 @@ function renderSetup(){
  renderAll();
 }
 
-// FIX 2026-09 (46): "il trofeo birra moretti dovrebbe stare nella sezione
+// FIX 2026-09 (46): "il trofeo birra goretti dovrebbe stare nella sezione
 // coppe" - niente piu' bottone proprio nel menu principale: l'ingresso ora
 // e' una card del carosello Coppe e Tornei (vedi rebuildCupsMenu in
 // v10-release.js), che chiama S9Trofeo.openFromCups(). Qui restano solo le

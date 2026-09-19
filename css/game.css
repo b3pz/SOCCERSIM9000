@@ -4297,6 +4297,14 @@ body[data-v10-cup-theme] #match .match-shell{
   min-width:120px;padding:8px 14px;border:1px solid #d5b85f;border-radius:6px;
   color:#f6dc7a;background:rgba(2,10,30,.82);font:900 clamp(25px,3vw,40px)/1 Impact,Arial,sans-serif;
 }
+/* FIX 2026-09 (56): "non evidenzi in nessun modo chi ha vinto" dopo i rigori -
+   riga dedicata, ben distinta dal punteggio dei tempi regolamentari sopra. */
+.v105-post-decider,.s9-post-decider{
+  text-align:center;margin:2px auto 16px;font:900 clamp(13px,1.6vw,17px) var(--s9-font-ui,inherit);
+  letter-spacing:.05em;color:#0e1420;background:linear-gradient(180deg,#f6dc7a,#d5b85f);
+  display:inline-block;padding:6px 16px;border-radius:20px;
+}
+#postScore{text-align:center}
 #postmatch>.panel>.grid{
   display:grid!important;
   grid-template-columns:minmax(300px,.82fr) minmax(0,1.6fr)!important;
@@ -4332,7 +4340,7 @@ body[data-v10-cup-theme] #match .match-shell{
 .v105-narrative-section h4{margin:0 0 7px;color:#f0d47b;font-size:10px;letter-spacing:.08em}
 .v105-narrative-row{font-size:12px;font-style:italic;color:#e9dfc7;padding:4px 0;border-top:1px dashed rgba(255,255,255,.1)}
 .v105-narrative-row:first-of-type{border-top:0}
-/* FIX 2026-09 (46/47): TROFEO BIRRA MORETTI - triangolare a 3 squadre.
+/* FIX 2026-09 (46/47): TROFEO BIRRA GORETTI - triangolare a 3 squadre.
    FIX 2026-09 (47): "la scelta non è visibile niente e la schermata è
    brutta" - i 3 <select> testuali sono stati sostituiti da un picker
    visivo (stemma grande + frecce, come nel resto del gioco), con testo
@@ -4357,6 +4365,12 @@ body[data-v10-cup-theme] #match .match-shell{
 .s9-trofeo-vs img,.s9-trofeo-vs span{width:28px;height:28px;border-radius:50%;object-fit:cover}
 .s9-trofeo-champ-row{background:rgba(213,184,95,.16)}
 .s9-trofeo-champ-row td{font-weight:700}
+/* FIX 2026-09 (55): "RISULTATO ISTANTANEO" affiancato a "SIMULA PARTITA" per
+   le partite CPU vs CPU del Trofeo, stesso trattamento di .hub-fixture-actions. */
+.s9-trofeo-next-actions{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.s9-trofeo-next-actions .primary{margin:0}
+#trofeoSimResult{background:rgba(255,255,255,.08);border:1px solid rgba(213,184,95,.4);color:#f0d47b;border-radius:8px;padding:10px 16px;font:900 12px var(--s9-font-ui,inherit);cursor:pointer;letter-spacing:.03em}
+#trofeoSimResult:hover{background:rgba(213,184,95,.18)}
 .s9-trofeo-trophy{display:flex;align-items:center;gap:16px;margin:10px 0 18px;padding:14px;border:1px solid var(--s9-gold,#d3b264);border-radius:10px;background:linear-gradient(145deg,#173f70,#0a1c37)}
 .s9-trofeo-trophy img{width:74px;height:auto;border-radius:6px}
 .s9-trofeo-trophy-kicker{font-size:11px;letter-spacing:.08em;color:#f0d47b}
@@ -5843,6 +5857,13 @@ button,input,select{font-family:var(--s9-font-ui)!important}
 .hub-vs{font:900 15px var(--s9-font-ui);color:var(--s9-gold)}
 .hub-date{text-align:center;font:700 12px var(--s9-font-copy);color:#dce7f5;margin-bottom:10px}
 .hub-next .primary{display:block;margin:0 auto}
+/* FIX 2026-09 (55): "SIMULA" affiancato a "PREPARA PARTITA" nell'hub di
+   Carriera - stessa riga centrata, il pulsante secondario resta piu' discreto
+   (stile neutro, non "primary") per non competere visivamente col CTA principale. */
+.hub-fixture-actions{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.hub-fixture-actions .primary{margin:0}
+#hubSimMatch,#seasonSimMatch{background:rgba(255,255,255,.08);border:1px solid rgba(217,186,92,.4);color:var(--s9-gold);border-radius:8px;padding:10px 16px;font:900 12px var(--s9-font-ui);cursor:pointer;letter-spacing:.03em}
+#hubSimMatch:hover,#seasonSimMatch:hover{background:rgba(217,186,92,.18)}
 .hub-empty{text-align:center;color:#dce7f5;padding:20px 0}
 .hub-standings-table{width:100%;border-collapse:collapse;font:12px var(--s9-font-copy)}
 .hub-standings-table th{text-align:left;color:var(--s9-gold);font:900 10px var(--s9-font-ui);padding:2px 6px;border-bottom:1px solid rgba(217,186,92,.3)}

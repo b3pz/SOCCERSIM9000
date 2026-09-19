@@ -10,7 +10,13 @@ const definitions={
  uefa:{name:'COPPA UEFA',accent:'#eeb976',dark:'#423024',trophy:'uefa'},
  world:{name:'COPPA DEL MONDO · FRANCIA 98',accent:'#e2c467',dark:'#163d78',trophy:'world'},
  euro:{name:'EURO 2000',accent:'#82d4df',dark:'#173f55',trophy:'euro'},
- supercoppa:{name:'SUPERCOPPA ITALIANA',accent:'#d6adc9',dark:'#3c2850',trophy:'supercoppa'}
+ supercoppa:{name:'SUPERCOPPA ITALIANA',accent:'#d6adc9',dark:'#3c2850',trophy:'supercoppa'},
+ // FIX 2026-09 (54): "anche lì è un trofeo con una finale quindi ci vuole
+ // la coppa" - prima il Trofeo Birra Goretti usava il tema "friendly" senza
+ // identita' propria; ora ha un colore/nome dedicati (la cerimonia usa
+ // comunque la forma di coppa generica, vedi trophy() in trophy-ceremony.js
+ // per type "friendly" nel default/else).
+ trofeo:{name:'TROFEO BIRRA GORETTI',accent:'#e0a934',dark:'#3d2a10',trophy:'friendly'}
 };
 function key(){return S9V10.matchContext?.state?.key||'seriea'}
 function active(){return definitions[key()]||definitions.seriea}

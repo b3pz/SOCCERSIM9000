@@ -90,7 +90,7 @@ function drawPenaltyScene(ctx,w,h,st){
  const keeperAngle=st.dive==='left'?.55*st.diveT:st.dive==='right'?-.55*st.diveT:0;
  g.player(scene,keeperX,-.1,st.keeperKit,st.t*6,keeperAngle,1.1,'',true,0,null,st.keeperSkin||null,st.keeperLook||null);
  // FIX 2026-09 (53): st.runFar/st.shotZ (passati da animateMovingKick) allungano
- // la rincorsa per i "rigori in movimento" del Trofeo Birra Moretti, senza
+ // la rincorsa per i "rigori in movimento" del Trofeo Birra Goretti, senza
  // toccare il calcio di rigore classico (resta 11.3/2.4 di default).
  const shotZ=st.shotZ??11.3,runSpan=st.runFar?20:2.4;
  const runX=st.lateral*1.1*(1-st.runProgress*.5),runZ=shotZ+(1-st.runProgress)*runSpan;
@@ -287,7 +287,7 @@ async function playShootout(h,a){
 }
 
 /* FIX 2026-09 (53): "gli shootout pensavo fossero visivi invece sono solo
-   testuali" - il Trofeo Birra Moretti (js/trofeo-birra.js) decideva i
+   testuali" - il Trofeo Birra Goretti (js/trofeo-birra.js) decideva i
    pareggi con una sequenza di SOLI popup testuali (stesso sistema di
    gol/parate a partita in corso), mentre le coppe a eliminazione diretta
    avevano gia' questa scena 3D animata vera (playShootout sopra). Qui sotto
@@ -374,7 +374,7 @@ async function playMovingShootout(h,a){
  $('#v108PenaltyTitle').textContent=`${teamName(h)} vs ${teamName(a)}`;
  let hs=0,as=0,hr=[],ar=[],kickIndex=0;
  updatePenaltyUI(h,a,hs,as,hr,ar);
- // 3 tentativi a testa (regola reale del Trofeo Birra Moretti), poi oltranza.
+ // 3 tentativi a testa (regola reale del Trofeo Birra Goretti), poi oltranza.
  for(let round=0;round<6;round++){
   const isHome=round%2===0,team=isHome?h:a,takers=isHome?homeTakers:awayTakers,oppKeeper=isHome?awayKeeper:homeKeeper;
   const shooter=takers[Math.floor(round/2)%Math.max(1,takers.length)]||activePlayers(team)[0];
@@ -502,6 +502,33 @@ function patchMatchDeciders(){
    const p=await playShootout(m.h,m.a);m.decider={winner:p.winner,note:`RIGORI ${p.score}`};m.keyEvents.push(m.decider.note);log(m.decider.note,'neutral');paused=false;
  };
 }
-function init(){ensurePenaltyOverlay();patchMatchDeciders();}
+// FIX 2026-09 (56): "dopo la scelta dei rigori tiriamo gli shootout ma poi
+// rimane questa schermata, vedi che dietro c'è il risultato" - il selettore
+// rigoristi (#v108TakerPicker) e la scena rigori (#v108PenaltyOverlay) sono
+// due overlay a parte, fuori dal sistema di "schermate" (.screen/show()):
+// restano sopra qualunque cosa sia attiva sotto. In teoria la sequenza che li
+// apre e' sempre "await"ata prima che index.html chiami show("postmatch"),
+// ma qui aggiungiamo comunque una rete di sicurezza esplicita, cosi' anche se
+// per qualunque motivo (un altro show() in corsa nel frattempo, un futuro
+// punto di chiamata non ancora "await"ato) partisse un cambio schermata verso
+// "postmatch" mentre uno di questi due overlay e' ancora aperto, quel cambio
+// viene rimandato finche' l'utente non conferma/la scena rigori non finisce,
+// invece di mostrare il risultato "scoperto" dietro un selettore ancora
+// bloccato in attesa di un tocco.
+window.S9PenaltyUIBusy=function(){return !!(takerPicker&&!takerPicker.hidden)||!!(penaltyOverlay&&!penaltyOverlay.hidden)};
+function guardShowAgainstPenaltyUI(){
+ if(typeof window.show!=='function')return;
+ const original=window.show;
+ window.show=function(id){
+  if(id==='postmatch'&&window.S9PenaltyUIBusy()){
+   const retry=()=>{if(window.S9PenaltyUIBusy())requestAnimationFrame(retry);else original('postmatch')};
+   requestAnimationFrame(retry);
+   return;
+  }
+  return original.apply(this,arguments);
+ };
+ try{show=window.show}catch(e){}
+}
+function init(){ensurePenaltyOverlay();patchMatchDeciders();guardShowAgainstPenaltyUI();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

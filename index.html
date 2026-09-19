@@ -779,7 +779,7 @@ main{max-width:none!important;padding:0!important}
 @media(max-height:500px){#mainMenu #cupsModeBtn .cups-mode-icon{width:40px!important;height:36px!important}}
 </style>
 
-<link rel="stylesheet" href="css/game.css?v=tactics-34">
+<link rel="stylesheet" href="css/game.css?v=tactics-35">
 <link rel="stylesheet" href="css/v106-match-experience.css?v=2">
 </head>
 <body>
@@ -806,7 +806,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.45</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.47</span></span></div>
 </div>
 <main>
 
@@ -840,7 +840,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.45
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.47
     </div>
   </div>
 </section>
@@ -1261,7 +1261,13 @@ const S9_ICONIC_LOOKS={
  "Daniel Amokachi":{skin:'D2'},
  "Sylvain Wiltord":{skin:'D1'},
  "Lilian Thuram":{skin:'D1'},
- "Luís Figo":{number:7}
+ "Luís Figo":{number:7},
+ // FIX 2026-09 (57): numeri storici confermati dall'utente ("recoba 20
+ // fiamoso vieri 32 cordoba 2 zamorano bello 1+8" - Zamorano gia' presente
+ // sopra, gli altri tre mancavano).
+ "Álvaro Recoba":{number:20},
+ "Christian Vieri":{number:32},
+ "Iván Córdoba":{number:2}
 };
 // FIX 2026-09 (50): BUG TROVATO - S9_ICONIC_LOOKS e' indicizzata per nome
 // REALE ("Roberto Baggio"...), ma js/parody-names.js (caricato per ultimo,
@@ -1277,7 +1283,13 @@ function s9SquadNumbers(st){
  const n=st.players.length,numbers=st.players.map((_,i)=>i+1);
  st.players.forEach((p,idx)=>{
   const look=S9_ICONIC_LOOKS[p.realName||p.name];
-  if(!look?.number||look.number<1||look.number>n)return;
+  if(!look?.number||look.number<1)return;
+  // FIX 2026-09 (57): "vieri 32" - alcuni numeri storici reali superano la
+  // rosa numerata 1..N (qui N=dimensione rosa, es. 29): in quel caso non
+  // c'e' nessuno slot 1..N da scambiare (il numero non esiste ancora nella
+  // rosa), quindi si assegna direttamente senza toccare gli altri numeri
+  // sequenziali - non puo' mai entrare in conflitto con quelli 1..N.
+  if(look.number>n){numbers[idx]=look.number;return}
   const takenAt=numbers.indexOf(look.number);
   if(takenAt===idx)return;
   const mine=numbers[idx];numbers[idx]=look.number;if(takenAt>=0)numbers[takenAt]=mine;
@@ -1731,8 +1743,9 @@ function renderSeasonView(v){
   let g=nextUserGame();
   if(!g){c.innerHTML="<h3>STAGIONE TERMINATA</h3>";return}
   let h=T(g[0]),a=T(g[1]);
-  c.innerHTML=`<h2>PROSSIMA PARTITA</h2><div class="matchhead">${h.name} ${h.season} vs ${a.name} ${a.season}</div><p>Giornata ${career.round+1}</p><button class="primary" id="goPrematch">PREPARA PARTITA</button>`;
+  c.innerHTML=`<h2>PROSSIMA PARTITA</h2><div class="matchhead">${h.name} ${h.season} vs ${a.name} ${a.season}</div><p>Giornata ${career.round+1}</p><button class="primary" id="goPrematch">PREPARA PARTITA</button> <button type="button" id="seasonSimMatch">SIMULA ▶</button>`;
   $("#goPrematch").onclick=()=>openPrematch(g);
+  $("#seasonSimMatch").onclick=()=>{if(confirm(`Simulare ${h.name} ${h.season} vs ${a.name} ${a.season} senza scendere in campo?`))s9SimulateUserMatch()};
  }
  if(v==="results"){
   c.innerHTML="<h2>RISULTATI</h2>"+(career.results.length?career.results.slice().reverse().map(r=>`<div class="card">${T(r.h).name} ${T(r.h).season} ${r.hg} - ${r.ag} ${T(r.a).name} ${T(r.a).season} <span class="muted">G${r.round}</span></div>`).join(""):"Nessuna partita giocata.");
@@ -2634,7 +2647,18 @@ async function playHalf(a,b){
  current.minute=b;updateScore();
 }
 function updateLeague(m){if(m._leagueRegistered)return;m._leagueRegistered=true;let H=career.stats[m.h],A=career.stats[m.a];H.p++;A.p++;H.gf+=m.scoreH;H.ga+=m.scoreA;A.gf+=m.scoreA;A.ga+=m.scoreH;if(m.scoreH>m.scoreA){H.w++;A.l++;H.pts+=3}else if(m.scoreH<m.scoreA){A.w++;H.l++;A.pts+=3}else{H.d++;A.d++;H.pts++;A.pts++};career.results.push({round:career.round+1,group:(career.groups?(career.groups.A.includes(m.h)?"A":"B"):"?"),date:(career.leagueDates?.[career.round]?v4FmtDate(career.leagueDates[career.round]):""),h:m.h,a:m.a,hg:m.scoreH,ag:m.scoreA})}
-function simOther(h,a){let m=buildMatch(h,a);m.scoreH=m.events.filter(e=>e.type==="goal"&&e.side==="home").length;m.scoreA=m.events.filter(e=>e.type==="goal"&&e.side==="away").length;m.events.filter(e=>e.type==="goal").forEach(e=>{
+// FIX 2026-09 (55): "il lancio della moneta deve avvenire in ogni partita di
+// ogni tipo di competizione" - anche le partite simulate/instant (mai
+// mostrate a schermo, niente S9MatchIntro) devono comunque "avere" un
+// sorteggio: un sorteggio virtuale minimo (chi vince, cosa sceglie), senza
+// nessuna UI, cosi' il dato esiste per ogni partita del gioco, non solo per
+// quelle giocate/guardate dal vivo con l'ingresso in campo.
+function s9CoinToss(h,a){
+ const winner=Math.random()<.5?h:a,choice=Math.random()<.5?'ball':'field';
+ const kickoffSide=choice==='ball'?winner:(winner===h?a:h);
+ return {winner,choice,kickoffSide};
+}
+function simOther(h,a){let m=buildMatch(h,a);m.coinToss=s9CoinToss(h,a);m.scoreH=m.events.filter(e=>e.type==="goal"&&e.side==="home").length;m.scoreA=m.events.filter(e=>e.type==="goal"&&e.side==="away").length;m.events.filter(e=>e.type==="goal").forEach(e=>{
  if(!career.pstats[e.player.id])career.pstats[e.player.id]={name:e.player.name,team:(e.side==="home"?m.h:m.a),goals:0,assists:0,apps:0};
  career.pstats[e.player.id].goals++;
  if(e.assist){
@@ -2642,6 +2666,49 @@ function simOther(h,a){let m=buildMatch(h,a);m.scoreH=m.events.filter(e=>e.type=
   career.pstats[e.assist.id].assists++;
  }
 });updateLeague(m)}
+// FIX 2026-09 (55): "possiamo simulare senza giocare anche le partite nella
+// carriera dev'essere un'opzione" - prima in Carriera l'unico modo di
+// risolvere la PROPRIA partita di giornata era giocarla per intero
+// (openPrematch->...->launchMatch); le altre partite del girone erano gia'
+// sempre risolte all'istante con simOther(). Questa funzione applica la
+// stessa logica "istantanea" anche alla partita dell'utente, quando sceglie
+// di non giocarla: stesso avanzamento di classifica/statistiche/calendario
+// del percorso giocato, senza pero' aprire schermata partita, ingresso in
+// campo o sorteggio visibile (il sorteggio comunque "avviene" via
+// s9CoinToss, solo senza interfaccia - vedi nota sopra).
+function s9SimulateUserMatch(){
+ if(!career||current?._running||window.S9V10?.matchContext)return;
+ const g=nextUserGame();if(!g)return;
+ const [h,a]=g;
+ let m=buildMatch(h,a);m.h=h;m.a=a;m.coinToss=s9CoinToss(h,a);
+ m.scoreH=m.events.filter(e=>e.type==="goal"&&e.side==="home").length;
+ m.scoreA=m.events.filter(e=>e.type==="goal"&&e.side==="away").length;
+ m.events.filter(e=>e.type==="goal").forEach(e=>{
+  if(!career.pstats[e.player.id])career.pstats[e.player.id]={name:e.player.name,team:(e.side==="home"?m.h:m.a),goals:0,assists:0,apps:0};
+  career.pstats[e.player.id].goals++;
+  if(e.assist){
+   if(!career.pstats[e.assist.id])career.pstats[e.assist.id]={name:e.assist.name,team:(e.side==="home"?m.h:m.a),goals:0,assists:0,apps:0};
+   career.pstats[e.assist.id].assists++;
+  }
+ });
+ updateLeague(m);
+ // Umore tifoseria: stessa formula usata a fine partita giocata (vedi piu'
+ // sotto in finishMatch), qui applicata in forma ridotta perche' non c'e'
+ // stata nessuna partecipazione diretta dell'utente.
+ const mine=m.h===career.user?'h':'a',gf=mine==='h'?m.scoreH:m.scoreA,ga=mine==='h'?m.scoreA:m.scoreH,oppId=mine==='h'?m.a:m.h;
+ const myStr=T(career.user)?.strength||75,oppStr=T(oppId)?.strength||75;
+ let fanDelta=gf>ga?(3+Math.max(0,oppStr-myStr)*.1):gf<ga?-(4+Math.max(0,myStr-oppStr)*.1):-.5;
+ const fanBefore=career.fanSupport??65;career.fanSupport=Math.max(0,Math.min(100,Math.round(fanBefore+fanDelta)));
+ career.matchArchive=career.matchArchive||[];
+ career.matchArchive.unshift({h:m.h,a:m.a,hg:m.scoreH,ag:m.scoreA,competition:(typeof S9Competition!=='undefined'&&S9Competition?.key?.())||'seriea',keyEvents:[],simulated:true,seasonYear:career.seasonYear});
+ if(career.matchArchive.length>40)career.matchArchive.length=40;
+ let games=career.fixtures[career.round];for(const [gh,ga2] of games){if(gh===h&&ga2===a)continue;simOther(gh,ga2)}
+ if(window.v4SimOtherGroupRound)window.v4SimOtherGroupRound(career.round);
+ career.round++;
+ if(career.careerId)S9Save.putCareer(career).catch(e=>console.warn("Save:",e));
+ const hName=`${T(h).name} ${T(h).season}`,aName=`${T(a).name} ${T(a).season}`;
+ ov(`<div class="s9-event-card" data-event-kind="simresult"><div class="s9-event-copy"><div class="s9-event-kicker">PARTITA SIMULATA</div><h2>${hName} ${m.scoreH} - ${m.scoreA} ${aName}</h2><div class="s9-event-detail">Giornata risolta senza scendere in campo.</div></div></div>`,2200).then(()=>renderSeason());
+}
 
 
 const KIT_ASSET={"samp_9091":"samp_9091","juve_baggio_9091":"juve_baggio_9091","foggia_9192":"foggia_9192","genoa_9091":"genoa_9091","parma_9293":"parma_9293","torino_9293":"torino_9293","juve_9596":"juve_9596","fiorentina_9596":"fiorentina_9596","vicenza_9697":"vicenza_9697","inter_9798":"inter_9798","juve_9798":"juve_9798","lazio_9798":"lazio_9798","udinese_9798":"udinese_9798","fiorentina_9899":"fiorentina_9899","parma_9899":"parma_9899","venezia_9899":"venezia_9899","inter_9900":"inter_9900","bari_9900":"bari_9900","reggina_9900":"reggina_9900","perugia_9900":"perugia_9900","roma_0001":"roma_0001","brescia_0001":"brescia_0001","chievo_0102":"chievo_0102","reggina_0203":"reggina_0203","juve_0203":"juve_0203","milan_0607":"milan_0607","empoli_0607":"empoli_0607","palermo_0708":"palermo_0708","milan_0809":"milan_0809","udinese_0910":"udinese_0910","inter_0910":"inter_0910","milan_9091":"milan_9091"};
@@ -2714,7 +2781,7 @@ async function launchMatch(){
  if(S9V10?.matchContext?.forcedWeather)s9ForcedOpts.weather=S9V10.matchContext.forcedWeather;
  if(S9V10?.matchContext?.forcedNight)s9ForcedOpts.night=true;
  // FIX 2026-09 (49): "è una richiesta esplicita" - il vero Trofeo Birra
- // Moretti (1997-2008) durava 45' in tutto (due tempi da 22'30"), non 90'.
+ // Goretti (1997-2008) durava 45' in tutto (due tempi da 22'30"), non 90'.
  // toMin:45 comprime la generazione degli eventi (buildMatch) sulla stessa
  // finestra 0-45 invece di 0-90, dimezzando anche il numero di occasioni
  // attese in proporzione (stesso "span" gia' usato per i rebuild parziali).
@@ -2851,7 +2918,21 @@ async function launchMatch(){
    }
   }
  }
- $("#postScore").innerHTML=`<h2>${T(current.h).name} ${T(current.h).season} ${current.scoreH} - ${current.scoreA} ${T(current.a).name} ${T(current.a).season}</h2>`;
+ // FIX 2026-09 (56): "il risultato non è chiaro dopo i rigori perché c'è
+ // scritto solo il pareggio ma non evidenzi in nessun modo chi ha vinto" -
+ // current.scoreH/scoreA restano il pareggio dei 90' (o 45' nel Trofeo)
+ // anche quando la partita e' decisa ai rigori/supplementari: current.decider
+ // (impostato da S9V10.finishPlayedTie / S9Trofeo.finishPlayedTie) e' l'unico
+ // posto dove sta scritto chi vince davvero in quel caso, quindi va mostrato
+ // esplicitamente qui. Questa scritta e' comunque poi sovrascritta subito da
+ // renderV105Postmatch() (js/v10-release.js) quando presente - stesso fix
+ // applicato anche li' - ma resta come fallback se quel modulo manca.
+ {
+  const dec=current.decider;
+  const decNote=dec?(dec.note||(dec.score?`RIGORI ${dec.score}`:'')):'';
+  const decLine=dec?`<div class="s9-post-decider">${T(dec.winner)?.name||dec.winner} VINCE${decNote?' · '+decNote:''}</div>`:'';
+  $("#postScore").innerHTML=`<h2>${T(current.h).name} ${T(current.h).season} ${current.scoreH} - ${current.scoreA} ${T(current.a).name} ${T(current.a).season}</h2>${decLine}`;
+ }
  $("#postStats").innerHTML=`Tiri: ${current.stats.shotsH} - ${current.stats.shotsA}<br>Tiri in porta: ${current.stats.onH} - ${current.stats.onA}<br>Modulo: ${career.teamStates[career.user].formation}<br>Atteggiamento: ${career.teamStates[career.user].mentality}`+(current._fanDelta!=null?`<br>Umore tifoseria: ${career.fanSupport}% (${current._fanDelta>=0?'+':''}${current._fanDelta})`:'');
  $("#postEvents").innerHTML=current.keyEvents.length?current.keyEvents.map(x=>`<div class="card">${x}</div>`).join(""):"Nessun evento chiave.";
  // FIX 2026-09 (45): mostra "CONFERENZA STAMPA" solo quando il match-finish
@@ -3531,8 +3612,15 @@ function renderHubNext(){
   <div class="hub-team">${crest(g[1])}<b>${a.name} ${a.season}</b></div>
  </div>
  <div class="hub-date">${v4FmtDate(d)}</div>
- <button class="primary" id="hubGoPrematch">PREPARA PARTITA</button>`;
+ <div class="hub-fixture-actions">
+  <button class="primary" id="hubGoPrematch">PREPARA PARTITA</button>
+  <!-- FIX 2026-09 (55): "possiamo simulare senza giocare anche le partite
+       nella carriera dev'essere un'opzione" - alternativa rapida a
+       "PREPARA PARTITA": risolve la giornata senza scendere in campo. -->
+  <button type="button" id="hubSimMatch">SIMULA ▶</button>
+ </div>`;
  $("#hubGoPrematch").onclick=()=>openPrematch(g);
+ $("#hubSimMatch").onclick=()=>{if(confirm(`Simulare ${h.name} ${h.season} vs ${a.name} ${a.season} senza scendere in campo?`))s9SimulateUserMatch()};
 }
 function renderHubStandings(){
  const el=$("#hubStandings"),group=hubGroupShown||career.userGroup,rows=v4Standings(group).slice(0,7);
@@ -3717,7 +3805,7 @@ renderTeamPicker();
 <script src="js/v80-safari-iphone.js?v=23-1"></script>
 <script src="js/v91-final-touches.js?v=12-1"></script>
 <script src="js/v10-data.js?v=3d-1"></script>
-<script src="js/v10-release.js?v=stability-21"></script>
+<script src="js/v10-release.js?v=stability-22"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
 <script src="js/match-coherence.js?v=stability-23"></script>
 <script src="js/kit-profiles.js?v=2"></script>
@@ -3727,21 +3815,21 @@ renderTeamPicker();
 <script src="js/broadcast-anchors.js?v=5"></script>
 <script src="js/kit-presentation.js?v=1"></script>
 <script src="js/match-3d.js?v=stability-39"></script>
-<script src="js/competition-presentation.js?v=stadium-identity-2"></script>
+<script src="js/competition-presentation.js?v=stadium-identity-3"></script>
 <script src="js/match-intro.js?v=stability-15"></script>
 <script src="js/pitch-invasion.js?v=2"></script>
 <script src="js/trophy-ceremony.js?v=lap-close-16"></script>
 <script src="js/exhibition.js?v=stability-16"></script>
-<script src="js/trofeo-birra.js?v=7"></script>
+<script src="js/trofeo-birra.js?v=8"></script>
 <script src="js/v106-match-experience.js?v=presentation-2"></script>
 <script src="js/v107-cup-polish.js?v=team-season-2"></script>
-<script src="js/v108-complete-match-flow.js?v=team-season-10"></script>
+<script src="js/v108-complete-match-flow.js?v=team-season-11"></script>
 <script src="js/v110-prematch-ceremony.js?v=team-season-1"></script>
 <script src="js/presentation.js?v=presentation-2"></script>
 <script src="js/tactics-redesign.js?v=stability-13"></script>
 
 <!-- Patch 15: logo SerieA 9000 SIM aggiornato, logo pagine interne spostato dal centro, sfondo Coppe sostituito con versione trofei/stadio approvata. -->
-<script src="js/tactical-workspace.js?v=tactics-18"></script>
+<script src="js/tactical-workspace.js?v=tactics-19"></script>
 <script src="js/prematch-flavor.js?v=1"></script>
 <script src="js/parody-names.js?v=3"></script>
 <script src="js/match-commentary.js?v=5"></script>

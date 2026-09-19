@@ -113,7 +113,16 @@ function render(){
  <div class="tw-transfer" aria-live="polite"><div><small>${out?'TITOLARE SELEZIONATO':'GESTIONE FORMAZIONE'}</small><strong>${out?`N° ${number(out)} · ${esc(out.name)}`:'Scegli chi schierare'}</strong><span>${out?`${roles[out.pos]} · OVR ${out.overall} · Condizione ${fit(out)}% · Morale ${out.morale}`:(mode==='live'?'Tocca un titolare: puoi scambiarlo con un altro titolare (gratis) o farlo uscire per una riserva (consuma un cambio).':'I cambi pre-partita sono liberi. Ogni riserva prende il posto selezionato.')}</span>${out?'<button type="button" data-action="profile">Scheda giocatore</button>':''}</div><div><small>${incoming?'GIOCATORE IN ENTRATA':'CONFRONTO'}</small><strong>${incoming?`N° ${number(incoming)} · ${esc(incoming.name)}`:'Seleziona una riserva'}</strong><span>${incoming?`${roles[incoming.pos]} · OVR ${incoming.overall} (${incoming.overall-out.overall>=0?'+':''}${incoming.overall-out.overall}) · Condizione ${fit(incoming)}%`:'Qualità, condizione e ruolo prima di confermare.'}</span>${incoming&&!compatible(incoming,layout[slot]?.role)?'<em>Attenzione: ruolo diverso dalla posizione selezionata.</em>':''}</div><button type="button" data-action="confirm" class="tw-primary" ${canConfirm?'':'disabled'}>${incoming&&s.lineup.includes(incoming.id)?'SCAMBIA POSIZIONI':'CONFERMA CAMBIO'}</button></div>
  <div class="tw-notice" role="status">${esc(notice)}</div>`;
  root.querySelector('.tw-reserves').scrollTop=scroll;
- root.querySelector('#twFormation').onchange=e=>{save();s.lineup=arrange(s,e.target.value);s.formation=e.target.value;s.customLayout=null;slot=null;candidate=null;notice='Modulo aggiornato: gli stessi undici sono stati riposizionati per ruolo.';render();};
+ // FIX 2026-09 (57): "se gli cambio posizione devono prendere quella in cui
+ // li ho messi... poi io magari ridisegno il modulo e deve andare, altrimenti
+ // che l'abbiamo messa la disposizione libera" - cambiare modulo azzerava
+ // SEMPRE s.customLayout, buttando via ogni disposizione libera gia'
+ // impostata dall'utente. slots(formation) restituisce sempre 11 posizioni
+ // (1 portiere + 10 giocatori di movimento, qualunque sia il modulo), quindi
+ // effectiveLayout() puo' continuare ad applicare le stesse coordinate
+ // personalizzate per indice anche sul nuovo modulo, senza bisogno di
+ // azzerarle qui.
+ root.querySelector('#twFormation').onchange=e=>{save();s.lineup=arrange(s,e.target.value);s.formation=e.target.value;slot=null;candidate=null;notice='Modulo aggiornato: gli stessi undici sono stati riposizionati per ruolo.'+(s.customLayout?' La disposizione libera resta quella impostata.':'');render();};
  root.querySelector('#twSearch').oninput=e=>{query=e.target.value;const cursor=e.target.selectionStart;render();const input=root.querySelector('#twSearch');input.focus({preventScroll:true});try{input.setSelectionRange(cursor,cursor)}catch(_){}};
  /* FIX 2026-09: trascinamento diretto in disposizione libera (richiesta di
     un tester: "considerare il trascinamento nella gestione tattiche"). Il

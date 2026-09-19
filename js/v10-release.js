@@ -376,10 +376,10 @@ function competitionBrand(key){
   uefa:{style:'uefa',kicker:'EUROPA DELLE GRANDI PIAZZE',setupTitle:'COPPA UEFA',tournamentTitle:'COPPA UEFA',cardTop:'COPPA EUROPEA',cardTitle:'COPPA UEFA',cardHook:'MERCOLEDÌ DI COPPA',year:'1999',logo:'assets/competition_buttons/uefa_cup.png'},
   world:{style:'world',kicker:'COPPA DEL MONDO · 32 NAZIONALI',setupTitle:'FRANCIA 98',tournamentTitle:'FRANCIA 98',cardTop:'COPPA DEL MONDO',cardTitle:'FRANCIA 98',cardHook:'ESTATE MONDIALE',year:'1998',logo:'assets/competition_buttons/francia98.png'},
   euro:{style:'euro',kicker:'CAMPIONATO EUROPEO · 16 NAZIONALI',setupTitle:'EURO 2000',tournamentTitle:'EURO 2000',cardTop:'CAMPIONATO EUROPEO',cardTitle:'EURO 2000',cardHook:'ANCORA UN PALLONE',year:'2000',logo:'assets/competition_buttons/euro2000.png'},
-  // FIX 2026-09 (46): "il trofeo birra moretti dovrebbe stare nella sezione
+  // FIX 2026-09 (46): "il trofeo birra goretti dovrebbe stare nella sezione
   // coppe" - prima era un bottone a parte in home, ora e' una card in piu'
   // nel carosello di Coppe e Tornei, come le altre competizioni.
-  trofeo:{style:'trofeo',kicker:'TRIANGOLARE ESTIVO',setupTitle:'TROFEO BIRRA MORETTI',tournamentTitle:'TROFEO BIRRA MORETTI',cardTop:'TRIANGOLARE',cardTitle:'TROFEO BIRRA MORETTI',cardHook:'CALDO, BIRRA E CALCIO',year:'',logo:'assets/competition_buttons/trofeo_birra_moretti.png'}
+  trofeo:{style:'trofeo',kicker:'TRIANGOLARE ESTIVO',setupTitle:'TROFEO BIRRA GORETTI',tournamentTitle:'TROFEO BIRRA GORETTI',cardTop:'TRIANGOLARE',cardTitle:'TROFEO BIRRA GORETTI',cardHook:'CALDO, BIRRA E CALCIO',year:'',logo:'assets/competition_buttons/trofeo_birra_goretti.png'}
  };
  return brands[key]||{style:key||'cup',kicker:'COPPA',setupTitle:FORMATS?.[key]?.name||'COPPA',tournamentTitle:FORMATS?.[key]?.name||'COPPA',cardTop:'COPPA',cardTitle:FORMATS?.[key]?.name||'COPPA',cardHook:'TORNEO',year:''};
 }
@@ -388,7 +388,7 @@ function competitionBrand(key){
 // "SERIEA 9000 SIM"; ora mostra il logo/bollino della competizione in
 // corso (lo stesso usato come pulsante nel carosello di Coppe e Tornei),
 // risolto da S9Competition.key() cosi' funziona per campionato, coppe,
-// amichevoli e Trofeo Birra Moretti allo stesso modo.
+// amichevoli e Trofeo Birra Goretti allo stesso modo.
 function logoForCompetition(key){
  const fixed={friendly:'assets/logo/seriea9000_logo.png',seriea:'assets/league/serie_a_league.png',supercoppa:'assets/league/serie_a_league.png'};
  if(fixed[key])return fixed[key];
@@ -1279,7 +1279,18 @@ function renderV105Postmatch(){
  if(headings[0])headings[0].textContent='NUMERI DEL MATCH';
  if(headings[1])headings[1].textContent='PROTAGONISTI';
  const home=T(m.h)?.name||m.h,away=T(m.a)?.name||m.a,s=m.stats||{};
- score.innerHTML=`<div class="v105-post-score"><span>${escapeHTML(home)}</span><strong>${m.scoreH} - ${m.scoreA}</strong><span>${escapeHTML(away)}</span></div>`;
+ // FIX 2026-09 (56): "il risultato non è chiaro dopo i rigori perché c'è
+ // scritto solo il pareggio ma non evidenzi in nessun modo chi ha vinto" -
+ // questa funzione riscrive #postScore SOPRA quello gia' scritto in
+ // index.html (vedi commento gemello li'), quindi il decider va ripetuto
+ // anche qui altrimenti la schermata finale mostra di nuovo solo il
+ // pareggio. m.decider ha forma {winner,note} (rigori/supplementari classici,
+ // v10-release.js/v108-complete-match-flow.js) oppure {winner,score} (Trofeo
+ // Birra Goretti "rigori in movimento", js/trofeo-birra.js).
+ const decider=m.decider;
+ const deciderNote=decider?(decider.note||(decider.score?`RIGORI ${decider.score}`:'')):'';
+ const deciderHTML=decider?`<div class="v105-post-decider">${escapeHTML(T(decider.winner)?.name||decider.winner)} VINCE${deciderNote?' · '+escapeHTML(deciderNote):''}</div>`:'';
+ score.innerHTML=`<div class="v105-post-score"><span>${escapeHTML(home)}</span><strong>${m.scoreH} - ${m.scoreA}</strong><span>${escapeHTML(away)}</span></div>${deciderHTML}`;
  const rows=[
   ['Possesso',`${s.possessionH??50}%`,`${s.possessionA??50}%`],
   ['Tiri',s.shotsH||0,s.shotsA||0],
