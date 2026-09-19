@@ -954,6 +954,16 @@ setupPitch=function(){
  if(changed||half!==pitchHalf){
   trackedMatch=current;pitchHalf=half;positions.clear();lastTime=0;followCamera=newCamera();
   highlightState=null;celebrationState=null;replayState=null;visualTime=0;visualLast=0;pendingSetup=false;
+  /* FIX 2026-09 (31): "durante il secondo tempo sparisce l'arbitro e la
+     terna" - visualTime torna a 0 ad ogni cambio tempo/frazione (qui sopra),
+     ma officialsLastT (l'ultimo timestamp usato da drawOfficials() per
+     calcolare il delta-tempo di arbitro/guardalinee) restava al valore
+     enorme accumulato nel tempo precedente. Al fotogramma successivo il
+     delta risultava fortemente NEGATIVO, spingendo arbitro e guardalinee
+     fuori dai limiti del campo (mai piu' visibili). Reset di tutto lo stato
+     della terna insieme a visualTime risolve alla radice. */
+  officialsLastT=0;refereeHold=0;refereeHoldSpot=null;refereeCard=null;linesmanFlagUntil=0;
+  benchReaction={home:0,away:0};refereeState={x:52.5,z:38};lineState=[{x:52.5},{x:52.5}];
   if(changed){uniforms={};document.getElementById('v7EventToast')?.classList.remove('show');delete document.getElementById('match').dataset.cinematic;}
  }
  playerDots=Array.from(document.querySelectorAll('#pitch .dot'));

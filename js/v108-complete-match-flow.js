@@ -331,13 +331,33 @@ function patchMatchDeciders(){
    m.__v108ExtraEvents=extraEvents();
    log("90' FINE TEMPI REGOLAMENTARI · SUPPLEMENTARI",'neutral');
    await ov(S9Popups.html('extra',{detail:'1° e 2° tempo supplementare. Golden Goal attivo.'}),1200);
-   paused=false;current.half=3;current.minute=90;updateScore();show('match');log("91' INIZIA IL 1° TEMPO SUPPLEMENTARE",'neutral');
+   paused=false;current.half=3;current.minute=90;updateScore();
+   /* FIX 2026-09 (31): "i supplementari partono a caso" e "sparisce l'audio
+      ambientale del tifo" - due buchi distinti alla ripresa dei supplementari:
+      1) window.S9SFX.stopAmbientCrowd() viene chiamato a fine tempi
+         regolamentari (90', in index.html) prima di sapere se si andra' ai
+         supplementari: il tifo restava spento per tutta la frazione
+         extra. Riacceso qui esplicitamente.
+      2) a differenza del cambio 1°->2° tempo (che richiama setupPitch() e
+         S9Match3D.kickoffCinematic()), qui si passava dritti al gioco senza
+         alcuna inquadratura d'inizio ne' un vero reset delle posizioni:
+         da qui la sensazione di "partenza a caso". */
+   try{setupPitch()}catch(err){}
+   show('match');
+   try{window.S9SFX?.startAmbientCrowd?.()}catch(err){}
+   await window.S9Match3D?.kickoffCinematic?.("1° SUPPLEMENTARE");
+   log("91' INIZIA IL 1° TEMPO SUPPLEMENTARE",'neutral');
    let golden=await playExtraRange(91,105);
    if(!golden){
      paused=true;await ov(S9Popups.html('extra',{detail:'105° · Cambio campo. Inizia il secondo tempo supplementare.'}),900);paused=false;
-     current.half=4;current.minute=105;updateScore();log("106' INIZIA IL 2° TEMPO SUPPLEMENTARE",'neutral');
+     current.half=4;current.minute=105;updateScore();
+     try{setupPitch()}catch(err){}
+     show('match');
+     await window.S9Match3D?.kickoffCinematic?.("2° SUPPLEMENTARE");
+     log("106' INIZIA IL 2° TEMPO SUPPLEMENTARE",'neutral');
      golden=await playExtraRange(106,120);
    }
+   try{window.S9SFX?.stopAmbientCrowd?.()}catch(err){}
    if(golden){
      paused=true;await ov(S9Popups.html('golden',{player:teamName(m.decider.winner),detail:m.decider.note,footer:'PARTITA TERMINATA'}),1500);paused=false;return;
    }

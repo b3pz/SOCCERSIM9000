@@ -1856,6 +1856,17 @@ function buildMatch(h,a,opts){
    ev.push({min,type:'chance',outcome,side,player});
   }
  }
+ // FIX 2026-09 (31): "il fuorigioco deve effettivamente funzionare" - prima
+ // S9MatchVisual.offside() esisteva (linea gialla, bandierina, tutto pronto)
+ // ma non veniva MAI generato/chiamato: buildMatch non produceva nessun
+ // evento di tipo 'offside', quindi il fuorigioco non scattava mai in
+ // partita. Qui si generano azioni interrotte per fuorigioco come i falli:
+ // niente tiro, l'azione si spegne li'.
+ const offsides=Math.max(0,Math.round(rand(1,4)*span));
+ for(let i=0;i<offsides;i++){
+  const side=Math.random()<share?'home':'away',id=side==='home'?h:a,player=weightedAttacker(id);
+  ev.push({min:randMin(),type:'offside',side,player});
+ }
  // Penalties during normal play are engine events, with one stored outcome.
  if(Math.random()<.27*span){
   const side=Math.random()<share?'home':'away',id=side==='home'?h:a,opponent=side==='home'?a:h;
@@ -2034,6 +2045,7 @@ async function showGoalReplay(e){
  const prevSpeed=speed;speed=.5;
  S9Match3D.beginReplay?.(e.side);
  try{
+  if(window.S9MatchVisual)window.S9MatchVisual.event=e;
   setupPitch();
   await wait(220);
   await animAttack(e.side,"goal");
@@ -2099,7 +2111,28 @@ async function maybeMoviola(kind,side){
 }
 async function doEvent(e){
  while(paused)await wait(250);current.minute=e.min;updateScore();
- if(e.source==='penalty'){whistle();log(`${e.min}' CALCIO DI RIGORE · ${T(e.side==='home'?current.h:current.a).name} · ${e.player.name}`,e.side);current.keyEvents.push(`${e.min}' RIGORE · ${e.player.name}`);await maybeMoviola('penalty',e.side);}
+ /* FIX 2026-09 (31): "quando battono il rigore stanno tutti a centrocampo" -
+    trovata la causa vera: window.S9MatchVisual.event (letto da animAttack()
+    in match-coherence.js per sapere se l'azione e' un rigore/corner/punizione
+    e quindi da dove ripartire con palla e giocatori) veniva inizializzato a
+    null e MAI aggiornato da questo file. animAttack() vedeva quindi sempre
+    un evento vuoto, il ramo dedicato al rigore (che sposta tutti in area)
+    non scattava mai, e restava solo l'azione generica da centrocampo. */
+ if(window.S9MatchVisual)window.S9MatchVisual.event=e;
+ if(e.source==='penalty'){
+   whistle();log(`${e.min}' CALCIO DI RIGORE · ${T(e.side==='home'?current.h:current.a).name} · ${e.player.name}`,e.side);current.keyEvents.push(`${e.min}' RIGORE · ${e.player.name}`);
+   /* FIX 2026-09 (31): la moviola del rigore partiva PRIMA che chiunque si
+      spostasse verso l'area, quindi il replay mostrava il pallone ancora
+      fermo dove l'azione precedente lo aveva lasciato (spesso a
+      centrocampo). Il pallone viene "teletrasportato" (senza transizione,
+      giusto per l'inquadratura del replay) sul dischetto corretto prima di
+      mostrare la moviola, cosi' l'episodio si vede nel posto giusto. */
+   try{
+     const home=e.side==="home",secondHalf=(current.half===2||current.half===4||current.minute>=45),attacksRight=(home&&!secondHalf)||(!home&&secondHalf);
+     const b=$("#ball");if(b){b.style.transition="none";b.style.left=(attacksRight?89.5:10.5)+"%";b.style.top="50%";void b.offsetWidth;}
+   }catch(err){}
+   await maybeMoviola('penalty',e.side);
+ }
 
  if(e.type==="chance"){
    let team=T(e.side==="home"?current.h:current.a);
@@ -2125,6 +2158,19 @@ async function doEvent(e){
      const j=window.S9Commentary?.chanceMiss?.(e.player);if(j)log(`${e.min}' 🎙️ ${j}`,"neutral");
    }
    await wait(window.S9Match3D&&S9Match3D.mode!=="2d"?700:1050);
+   setupPitch();hidePitch();
+ }
+
+ if(e.type==="offside"){
+   // FIX 2026-09 (31): il fuorigioco ora e' un vero evento generato dal
+   // motore (vedi buildMatch) invece di non scattare mai: S9MatchVisual.offside
+   // era gia' pronto (linea gialla, bandierina del guardalinee) ma restava
+   // codice morto perche' nessuno lo richiamava.
+   let team=T(e.side==="home"?current.h:current.a);
+   log(`${e.min}' FUORIGIOCO - ${team.name} - ${e.player.name}`,e.side);showPitchImportant();
+   window.S9SFX?.offsideBlip?.();
+   await window.S9MatchVisual?.offside?.(e);
+   await wait(window.S9Match3D&&S9Match3D.mode!=="2d"?500:850);
    setupPitch();hidePitch();
  }
 
@@ -3094,7 +3140,7 @@ renderTeamPicker();
 <script src="js/tv-channels.js?v=3"></script>
 <script src="js/broadcast-anchors.js?v=5"></script>
 <script src="js/kit-presentation.js?v=1"></script>
-<script src="js/match-3d.js?v=stability-31"></script>
+<script src="js/match-3d.js?v=stability-32"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>
@@ -3102,7 +3148,7 @@ renderTeamPicker();
 <script src="js/exhibition.js?v=stability-14"></script>
 <script src="js/v106-match-experience.js?v=presentation-2"></script>
 <script src="js/v107-cup-polish.js?v=team-season-2"></script>
-<script src="js/v108-complete-match-flow.js?v=team-season-6"></script>
+<script src="js/v108-complete-match-flow.js?v=team-season-7"></script>
 <script src="js/v110-prematch-ceremony.js?v=team-season-1"></script>
 <script src="js/presentation.js?v=presentation-2"></script>
 <script src="js/tactics-redesign.js?v=stability-13"></script>
