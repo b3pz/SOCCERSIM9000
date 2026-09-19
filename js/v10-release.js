@@ -77,6 +77,7 @@ function penaltyShootout(a,b){
  while(pa===pb){if(Math.random()<sa/(sa+sb))pa++;else pb++}
  return {winner:pa>pb?a:b,score:`${pa}-${pb} d.c.r.`};
 }
+V10.penaltyShootout=penaltyShootout;
 function goldenOrPens(a,b){
  const sa=T(a)?.strength||80,sb=T(b)?.strength||80;
  if(Math.random()<.62){const w=Math.random()<sa/(sa+sb)?a:b;return {winner:w,note:`GOLDEN GOAL · ${teamLabel(w)}`}}
@@ -274,6 +275,7 @@ function playTournamentFixture(state,match,mode){
 }
 function cancelTournamentPrematch(){
  if(V10.matchContext?.mode==='friendly'){S9Exhibition.restore();return true}
+ if(V10.matchContext?.mode==='trofeo'){S9Trofeo.restore();return true}
  if(!V10.matchContext)return false;
  if(V10.matchContext.mode!=='standalone')restoreCareerAfterCup();
  const mode=V10.matchContext.mode;V10.matchContext=null;if(mode!=='standalone')applyCompetitionTheme('');
@@ -330,6 +332,7 @@ V10.finishPlayedTie=async function(){
 };
 V10.leaveContext=function(){
  if(V10.matchContext?.mode==='friendly'){S9Exhibition.finish();return}
+ if(V10.matchContext?.mode==='trofeo'){S9Trofeo.finish();return}
  if(V10.matchContext&&current?._finished)q('#returnSeason').onclick();
  else if(V10.matchContext)cancelTournamentPrematch();
  if(V10.standalone)leaveStandalone();
@@ -802,6 +805,7 @@ function installOverrides(){
  const returnBtn=q('#returnSeason');
  returnBtn.onclick=()=>{
    if(V10.matchContext?.mode==='friendly'){S9Exhibition.finish();return}
+   if(V10.matchContext?.mode==='trofeo'){S9Trofeo.finish();return}
    if(!V10.matchContext){applyCompetitionTheme('');renderSeason();show('season');return}
    if(!current?._finished)return;
    const ctx=V10.matchContext,res={h:current.h,a:current.a,hg:current.scoreH,ag:current.scoreA,note:current.decider?.note||'',decider:current.decider};

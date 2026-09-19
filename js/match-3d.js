@@ -8,6 +8,7 @@ let intervalPanel=null,intervalActive=false,fullscreenExitPending=false;
 let uniforms={},playerDots=[],pitchHalf=0,pendingSetup=false;
 let visualTime=0,visualLast=0;
 let followCamera=newCamera();
+let lastNightLightSpots=[];
 // FIX 2026-09 (44) v4: "se nevica o piove non si vede nella partita" - il
 // meteo/notturna erano stati implementati SOLO come CSS sul campo 2D
 // (#pitch), ma la modalita' di gioco di default e' quella 3D (canvas),
@@ -61,13 +62,29 @@ function drawWeatherOverlay(w,h){
  }
  ctx.restore();
 }
+function paintNightGlows(paintCtx,spots){
+ if(!spots.length)return;
+ paintCtx.save();paintCtx.globalCompositeOperation='screen';
+ for(const sp of spots){
+  const g=paintCtx.createRadialGradient(sp.x,sp.y,0,sp.x,sp.y,sp.r);
+  g.addColorStop(0,'rgba(255,251,224,.92)');g.addColorStop(.35,'rgba(255,244,190,.45)');g.addColorStop(1,'rgba(255,244,190,0)');
+  paintCtx.fillStyle=g;paintCtx.beginPath();paintCtx.arc(sp.x,sp.y,sp.r,0,Math.PI*2);paintCtx.fill();
+ }
+ paintCtx.restore();
+}
 function drawNightOverlay(w,h){
  if(!(typeof current!=='undefined'&&current?.night))return;
+ // FIX 2026-09 (46): "anche i fari sembrano spenti" - i due bagliori generici
+ // qui prima non erano ancorati alla posizione reale dei fari (disegnati
+ // altrove, in drawField/lightRows) e il velo di oscuramento sotto li
+ // spegneva insieme a tutto il resto. Ora l'alone e' ancorato alla proiezione
+ // schermo vera di ogni faro (calcolata in drawField, salvata qui sotto in
+ // lastNightLightSpots) e viene ridisegnato ANCHE dopo il velo, cosi' i fari
+ // restano visibilmente accesi invece di scomparire sotto l'oscuramento.
  ctx.save();
- ctx.fillStyle='rgba(4,9,20,.4)';ctx.fillRect(0,0,w,h);
- const glow=(x,y)=>{const g=ctx.createRadialGradient(x,y,0,x,y,Math.max(w,h)*.3);g.addColorStop(0,'rgba(255,247,214,.32)');g.addColorStop(1,'rgba(255,247,214,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);};
- glow(w*.06,h*.1);glow(w*.94,h*.1);
+ ctx.fillStyle='rgba(4,9,20,.32)';ctx.fillRect(0,0,w,h);
  ctx.restore();
+ paintNightGlows(ctx,lastNightLightSpots);
 }
 function newCamera(){return {x:52.5,z:34,vx:0,vz:0,last:0,blend:0,ballX:52.5,ballZ:34,lead:0,fit:null}}
 let highlightState=null; // camera delle azioni salienti: segue il pallone ma senza orbitare attorno alla scena
@@ -817,6 +834,7 @@ function drawField(s,p,w,h,closeUp,paintCtx=ctx,options={}){
  // Stadium tiers, perimeter and alternating mown strips.
  const brand=options.brand||window.S9Competition?.active()||{name:'SERIE A',accent:'#d5b35f',dark:'#142f57'};
  const stadiumStyle=window.S9Competition?.stadiumStyle(options.stadium)||{tiers:4,seats:'#385572',track:false};
+ const nightLightSpots=[];
  if(!closeUp){
   // v11 — prima il primo anello di spalti stava a y=tier*1.6-1: per tier 0
   // significava un'altezza NEGATIVA, cioe' lo spalto affondava sotto il
@@ -893,9 +911,19 @@ function drawField(s,p,w,h,closeUp,paintCtx=ctx,options={}){
    for(let tier=0;tier<(stadiumStyle.endTiers||2);tier++)s.box([x,.75+tier*1.6,back+2],[14,1.5,3],stadiumStyle.seats,x<0?-.7:.7,crowdTexture(brand,stadiumStyle,2));
   }
   const lightRows=stadiumStyle.landmark==='torre-maratona'?[back-5]:[back-5,78+setback];
+  // FIX 2026-09 (46): di notte i fari sembravano spenti - erano disegnati
+  // con lo stesso colore chiaro di sempre, poi lo strato di oscuramento
+  // notturno (drawNightOverlay, in coda al render) li smorzava come tutto
+  // il resto senza che nessun bagliore compensasse. Ora, quando la partita
+  // e' notturna, il pannello e' piu' acceso e ogni faro proietta anche un
+  // alone luminoso vero in coordinate schermo (nightLightSpots), disegnato
+  // subito dopo il flush della scena cosi' resta sopra la struttura dello
+  // stadio invece di finire coperto dai blocchi successivi.
+  const isNight=(typeof current!=='undefined')&&current?.night;
   for(const x of [left-3,right+3])for(const z of lightRows){
    s.box([x,8,z],[.35,16,.35],'#b8c2cd');s.box([x,16.4,z],[4,1.6,.5],'#263543');
-   s.face([[x-1.8,15.8,z+.28],[x+1.8,15.8,z+.28],[x+1.8,17,z+.28],[x-1.8,17,z+.28]],'#fff2cc');
+   s.face([[x-1.8,15.8,z+.28],[x+1.8,15.8,z+.28],[x+1.8,17,z+.28],[x-1.8,17,z+.28]],isNight?'#fffef2':'#fff2cc');
+   if(isNight){const v=p([x,16.3,z+.3]);if(v&&v.z>=.1)nightLightSpots.push(v)}
   }
   if(stadiumStyle.landmark==='torre-maratona')marathonTower(s,52.5,back-7);
   const stadiumIdentity=window.S9Competition?.stadiumIdentity?.(options.stadium);
@@ -926,7 +954,9 @@ function drawField(s,p,w,h,closeUp,paintCtx=ctx,options={}){
   s.box([52.5,2.54,-3.15],[97,.18,.24],'#717982');
   s.box([-3.15,2.54,34],[.24,.18,58],'#717982');s.box([108.15,2.54,34],[.24,.18,58],'#717982');
  }
+ if(!options.external)lastNightLightSpots=nightLightSpots.filter(Boolean).map(lp=>({x:lp.x,y:lp.y,r:Math.max(46,w*.09)}));
  s.flush();
+ if(nightLightSpots.length)paintNightGlows(paintCtx,nightLightSpots.filter(Boolean).map(lp=>({x:lp.x,y:lp.y,r:Math.max(46,w*.09)})));
  const turf=graphics.scene(paintCtx,p);
  turf.face([[-8,-.08,-8],[113,-.08,-8],[113,-.08,76],[-8,-.08,76]],'#245643');
  turf.flush();

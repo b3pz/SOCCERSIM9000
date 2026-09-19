@@ -779,7 +779,7 @@ main{max-width:none!important;padding:0!important}
 @media(max-height:500px){#mainMenu #cupsModeBtn .cups-mode-icon{width:40px!important;height:36px!important}}
 </style>
 
-<link rel="stylesheet" href="css/game.css?v=tactics-28">
+<link rel="stylesheet" href="css/game.css?v=tactics-31">
 <link rel="stylesheet" href="css/v106-match-experience.css?v=2">
 </head>
 <body>
@@ -806,7 +806,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.37</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.38</span></span></div>
 </div>
 <main>
 
@@ -840,7 +840,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.37
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.38
     </div>
   </div>
 </section>
@@ -2752,6 +2752,7 @@ async function launchMatch(){
  }
  current._finished=true;current._running=false;
  if(window.S9Exhibition)S9Exhibition.complete();
+ if(window.S9Trofeo)S9Trofeo.complete();
  // FIX 2026-09 (43): TIFOSERIA - umore separato dalla fiducia societaria
  // (quella si giudica solo a fine stagione sull'obiettivo; questo reagisce
  // partita per partita al risultato, come una vera curva). Amichevoli e
@@ -2759,7 +2760,7 @@ async function launchMatch(){
  // i tifosi se ne accorgano davvero.
  if(career){
   const s9Mode=window.S9V10?.matchContext?.mode;
-  if(s9Mode!=='friendly'&&s9Mode!=='standalone'&&(current.h===career.user||current.a===career.user)){
+  if(s9Mode!=='friendly'&&s9Mode!=='standalone'&&s9Mode!=='trofeo'&&(current.h===career.user||current.a===career.user)){
    const mine=current.h===career.user?'h':'a';
    const gf=mine==='h'?current.scoreH:current.scoreA,ga=mine==='h'?current.scoreA:current.scoreH;
    const oppId=mine==='h'?current.a:current.h;
@@ -3652,7 +3653,7 @@ renderTeamPicker();
 <script src="js/v80-safari-iphone.js?v=23-1"></script>
 <script src="js/v91-final-touches.js?v=12-1"></script>
 <script src="js/v10-data.js?v=3d-1"></script>
-<script src="js/v10-release.js?v=stability-18"></script>
+<script src="js/v10-release.js?v=stability-19"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
 <script src="js/match-coherence.js?v=stability-22"></script>
 <script src="js/kit-profiles.js?v=2"></script>
@@ -3661,12 +3662,13 @@ renderTeamPicker();
 <script src="js/tv-channels.js?v=3"></script>
 <script src="js/broadcast-anchors.js?v=5"></script>
 <script src="js/kit-presentation.js?v=1"></script>
-<script src="js/match-3d.js?v=stability-37"></script>
+<script src="js/match-3d.js?v=stability-38"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>
 <script src="js/trophy-ceremony.js?v=lap-close-16"></script>
 <script src="js/exhibition.js?v=stability-16"></script>
+<script src="js/trofeo-birra.js?v=1"></script>
 <script src="js/v106-match-experience.js?v=presentation-2"></script>
 <script src="js/v107-cup-polish.js?v=team-season-2"></script>
 <script src="js/v108-complete-match-flow.js?v=team-season-8"></script>

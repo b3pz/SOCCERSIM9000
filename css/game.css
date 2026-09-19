@@ -4332,6 +4332,26 @@ body[data-v10-cup-theme] #match .match-shell{
 .v105-narrative-section h4{margin:0 0 7px;color:#f0d47b;font-size:10px;letter-spacing:.08em}
 .v105-narrative-row{font-size:12px;font-style:italic;color:#e9dfc7;padding:4px 0;border-top:1px dashed rgba(255,255,255,.1)}
 .v105-narrative-row:first-of-type{border-top:0}
+/* FIX 2026-09 (46): TROFEO BIRRA MORETTI - triangolare a 3 squadre. */
+.s9-trofeo-picks{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:14px 0}
+.s9-trofeo-picks select{width:100%}
+@media(max-width:640px){.s9-trofeo-picks{grid-template-columns:1fr}}
+.s9-trofeo-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px}
+.s9-trofeo-row small{color:#b9c3d4}
+.s9-trofeo-next{margin:14px 0;padding:12px;border:1px solid rgba(213,184,95,.35);background:rgba(213,184,95,.07);border-radius:8px;text-align:center}
+.s9-trofeo-vs{display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0 12px;font-size:14px}
+.s9-trofeo-vs img,.s9-trofeo-vs span{width:28px;height:28px;border-radius:50%;object-fit:cover}
+.s9-trofeo-champ-row{background:rgba(213,184,95,.16)}
+.s9-trofeo-champ-row td{font-weight:700}
+.s9-trofeo-trophy{display:flex;align-items:center;gap:16px;margin:10px 0 18px;padding:14px;border:1px solid var(--s9-gold,#d3b264);border-radius:10px;background:linear-gradient(145deg,#173f70,#0a1c37)}
+.s9-trofeo-trophy img{width:74px;height:auto;border-radius:6px}
+.s9-trofeo-trophy-kicker{font-size:11px;letter-spacing:.08em;color:#f0d47b}
+.s9-trofeo-trophy h2{margin:2px 0 0;color:#fff}
+#trofeoHub table img,#trofeoHub table span{width:22px;height:22px;object-fit:cover;border-radius:50%;vertical-align:middle;margin-right:6px;display:inline-block}
+#trofeoHub table span{background:#243347;color:#e9dfc7;font-size:9px;font-weight:700;text-align:center;line-height:22px}
+#trofeoHub :is(table,tbody,tr,td,th),#trofeoHub p,#trofeoHub h3,#trofeoSetup :is(select,option,p){color:#edf3fc}
+#trofeoHub table th{color:var(--s9-gold,#d3b264)}
+#trofeoHub .s9-trofeo-row,#trofeoHub .muted{color:#c3cddc}
 .v105-event-empty{padding:7px 0;color:#aba58f;font-size:10px;font-style:italic}
 #postmatch #returnSeason{display:block!important;margin:16px auto 0!important;min-width:min(360px,90%)!important}
 
