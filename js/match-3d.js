@@ -175,19 +175,75 @@ function linesmanFlag(holdMs){linesmanFlagUntil=(typeof visualTime==='number'?vi
 let benchReaction={home:0,away:0};
 function benchReact(side,ms){if(benchReaction[side]!==undefined)benchReaction[side]=(typeof visualTime==='number'?visualTime:performance.now())+(ms||1600);}
 function stepToward(cur,target,maxStep){const d=target-cur;return Math.abs(d)<=maxStep?target:cur+Math.sign(d)*maxStep}
+/* FIX 2026-09 (32): "l'arbitro essendo scuro si confonde con le squadre
+   scure" - la divisa dell'arbitro era SEMPRE nera, quindi con qualunque
+   squadra vestita di scuro (nero, blu notte...) diventava quasi invisibile
+   sul campo. roster classico di 4 colori arbitrali reali (nero, rosso,
+   giallo, celeste), si sceglie ad ogni partita quello piu' distante come
+   colore da ENTRAMBE le divise delle squadre in campo. Stessa idea per i
+   portieri (kitFor sotto), che prima indossavano la stessa divisa dei
+   compagni di squadra invece di una divisa distinta come nella realta'. */
+function colorDistance(a,b){
+ const pa=hexToRgb(a),pb=hexToRgb(b);if(!pa||!pb)return 999;
+ return Math.hypot(pa[0]-pb[0],pa[1]-pb[1],pa[2]-pb[2]);
+}
+function hexToRgb(hex){
+ const m=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex||'');
+ return m?[parseInt(m[1],16),parseInt(m[2],16),parseInt(m[3],16)]:null;
+}
+const REFEREE_PALETTE=[
+ {shirt:'#0d0d0d',shorts:'#0d0d0d',socks:'#f2c94c'},
+ {shirt:'#c81d4e',shorts:'#141414',socks:'#c81d4e'},
+ {shirt:'#e3c93a',shorts:'#1c1c1c',socks:'#e3c93a'},
+ {shirt:'#3aa6d8',shorts:'#0f2233',socks:'#3aa6d8'}
+];
+const GK_PALETTE=['#3ecf6a','#e88a2c','#8a4fd6','#4a4a4a','#e3d93a'];
+function pickAgainst(palette,against,keyFn){
+ let best=null,bestScore=-1;
+ for(const opt of palette){
+  const c=keyFn?keyFn(opt):opt;
+  const score=Math.min(...against.map(a=>colorDistance(c,a)));
+  if(score>bestScore){bestScore=score;best=opt}
+ }
+ return best;
+}
+function refereeKitFor(){
+ const shirts=[uniforms.home?.shirt,uniforms.away?.shirt].filter(Boolean);
+ if(!shirts.length)return REFEREE_PALETTE[0];
+ return pickAgainst(REFEREE_PALETTE,shirts,k=>k.shirt);
+}
+function gkKitFor(side){
+ const ownShirt=uniforms[side]?.shirt,oppShirt=uniforms[side==='home'?'away':'home']?.shirt;
+ const against=[ownShirt,oppShirt].filter(Boolean);
+ const shirt=against.length?pickAgainst(GK_PALETTE,against):GK_PALETTE[0];
+ return {shirt,shorts:'#12121a',socks:shirt};
+}
 function drawOfficials(actors,now,ball){
  const dt=officialsLastT?Math.min(.12,(now-officialsLastT)/1000):.016;officialsLastT=now;
- const refKit={shirt:'#171b1f',shorts:'#171b1f',socks:'#f2c94c'};
+ const refKit=refereeKitFor();
  const holding=refereeHoldSpot&&now<refereeHold;
- const refTargetX=holding?refereeHoldSpot.x:clamp(ball.x+(ball.z>34?-4.5:4.5),3,102),refTargetZ=holding?refereeHoldSpot.z:clamp(ball.z+(ball.x>52.5?-3:3),4,64);
- refereeState.x=stepToward(refereeState.x,refTargetX,dt*(holding?22:11));refereeState.z=stepToward(refereeState.z,refTargetZ,dt*(holding?22:11));
+ /* FIX 2026-09 (32): "l'arbitro segue davvero troppo la palla" - stava
+    entro ~4.5m dal pallone in ogni momento, incollato come un 23esimo
+    giocatore. Distanza aumentata e rincorsa piu' lenta (dt*11->dt*7) fuori
+    dai momenti di richiamo su un episodio (dt*22 li' resta invariato, li'
+    DEVE muoversi deciso): ora accompagna l'azione da piu' lontano, come un
+    vero direttore di gara, invece di inseguirla passo passo. */
+ const refTargetX=holding?refereeHoldSpot.x:clamp(ball.x+(ball.z>34?-8:8),3,102),refTargetZ=holding?refereeHoldSpot.z:clamp(ball.z+(ball.x>52.5?-6:6),4,64);
+ refereeState.x=stepToward(refereeState.x,refTargetX,dt*(holding?22:7));refereeState.z=stepToward(refereeState.z,refTargetZ,dt*(holding?22:7));
  const refAngle=Math.atan2(ball.x-refereeState.x,ball.z-refereeState.z);
- graphics.player(actors,refereeState.x,refereeState.z,refKit,now/260,refAngle,1.2,'',false,0);
+ graphics.player(actors,refereeState.x,refereeState.z,refKit,now/260,refAngle,1.35,'',false,0);
  if(holding&&refereeCard)actors.box([refereeState.x+Math.sin(refAngle)*.4,2.18,refereeState.z+Math.cos(refAngle)*.4],[.17,.25,.03],refereeCard);
  const lsTargetX=clamp(ball.x,4,101),flagging=now<linesmanFlagUntil;
  lineState[0].x=stepToward(lineState[0].x,lsTargetX,dt*13);lineState[1].x=stepToward(lineState[1].x,lsTargetX,dt*13);
  graphics.player(actors,lineState[0].x,-1.35,refKit,now/300,Math.PI/2,1.08,'',false,0);
  graphics.player(actors,lineState[1].x,69.35,refKit,now/300,-Math.PI/2,1.08,'',false,0);
+ /* FIX 2026-09 (32): "i guardalinee devono avere sempre la bandierina in
+    mano" - prima compariva solo per la finestra di flagging (1.7s ogni
+    tanto), il resto del tempo correvano a mani vuote. Ora tengono sempre
+    una bandierina piccola a riposo lungo la fascia, che si ingrandisce e
+    si alza solo durante la segnalazione vera. */
+ actors.box([lineState[0].x-.12,1.35,-1.35+.42],[.03,.22,.02],'#e2432c');
+ actors.box([lineState[1].x-.12,1.35,69.35-.42],[.03,.22,.02],'#e2432c');
  if(flagging)actors.box([lineState[0].x,2.05,-1.35+.55],[.05,.32,.03],'#e2432c');
  /* FIX 2026-09 (26): "la panchina sarebbe figo da quest'altra parte" -
     spostate dal lato z~0 (fondo opposto alla telecamera) al lato z~68
@@ -218,9 +274,15 @@ function drawOfficials(actors,now,ball){
   const pace=Math.sin(now/pacePeriod+(b.side==='home'?0:Math.PI));
   const bounce=reacting?Math.abs(Math.sin(now/140))*.22:0;
   graphics.player(actors,b.x+pace*(reacting?.9:2.3),70.15-bounce,coachKit,Math.abs(pace)*(reacting?18:8),Math.PI+pace*.35,1.08,'',false,0);
+  /* FIX 2026-09 (32): "ci vorrebbero molti piu' giocatori intorno alle
+     panchine" - prima solo 2 riserve per panchina, una vera panchina di
+     serie A ne ha una ventina schierati. Portato a 6 (in aggiunta
+     all'allenatore), stessa logica di corsetta a onda triangolare lungo la
+     fascia di prima solo con piu' atleti e periodi/fasi diversificati cosi'
+     non corrono tutti sincronizzati come un unico blocco. */
   const dir=b.side==='home'?-1:1,centerX=52.5+dir*27;
-  for(let i=0;i<2;i++){
-   const period=9200+i*2600,phase=i*Math.PI*.7;
+  for(let i=0;i<6;i++){
+   const period=7600+i*1900,phase=i*Math.PI*.53;
    const tri=Math.asin(Math.sin(now/period+phase))*(2/Math.PI);
    const wx=clamp(centerX+tri*22,4,101);
    const heading=Math.cos(now/period+phase)>=0?Math.PI/2:-Math.PI/2;
@@ -883,6 +945,13 @@ function render(now){
  const actors=graphics.scene(ctx,p);
  for(const side of ['home','away']){
   const kit=uniforms[side]||{shirt:side==='home'?'#305cad':'#eeeeeb',shorts:'#182436',socks:'#eeeeeb'};
+  /* FIX 2026-09 (32): "un roster di colori anche per i portieri così non si
+     confondono" - il portiere indossava la STESSA divisa dei compagni di
+     squadra, invece di una divisa distinta come nella realta' (che serve
+     anche a distinguerlo dall'altro portiere e da entrambe le squadre in
+     campo). gkKitFor sceglie dalla tavolozza quella piu' lontana come
+     colore da entrambe le maglie in campo. */
+  const gkKit=gkKitFor(side);
   for(const d of playerDots.filter(d=>d.classList.contains(side))){
    if(celebration&&!celebration.targets.has(d.dataset.pid))continue;
    let x=(parseFloat(d.style.left)||0)*1.05,z=(parseFloat(d.style.top)||0)*.68;
@@ -904,7 +973,8 @@ function render(now){
    const shadow=p([x,.03,z]);ctx.fillStyle='#071f2466';ctx.beginPath();ctx.ellipse(shadow.x,shadow.y,Math.max(3,w/160),Math.max(1.5,w/440),0,0,Math.PI*2);ctx.fill();
    if(!celebration&&S9MatchVisual.carrier===d){ctx.strokeStyle='#f5db79';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(shadow.x,shadow.y,Math.max(5,w/110),Math.max(2,w/330),0,0,Math.PI*2);ctx.stroke();}
    if(d.dataset.action)angle=attackInfo(side).attacksRight?Math.PI/2:-Math.PI/2;
-   graphics.player(actors,x,z,kit,phase,angle,1.35,d.textContent,d.dataset.role==='GK',celebrating,d.dataset.action?{kind:d.dataset.action,progress:Number(d.dataset.actionProgress)||0,direction:Number(d.dataset.actionDirection)||1}:null,d.dataset.skin||null,d.dataset.hair?{hair:d.dataset.hair}:null);
+   const isGk=d.dataset.role==='GK';
+   graphics.player(actors,x,z,isGk?gkKit:kit,phase,angle,1.35,d.textContent,isGk,celebrating,d.dataset.action?{kind:d.dataset.action,progress:Number(d.dataset.actionProgress)||0,direction:Number(d.dataset.actionDirection)||1}:null,d.dataset.skin||null,d.dataset.hair?{hair:d.dataset.hair}:null);
   }
  }
  if(!kickoffCine)drawOfficials(actors,visualTime,ballPos);

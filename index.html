@@ -735,7 +735,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.19</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.20</span></span></div>
 </div>
 <main>
 
@@ -767,7 +767,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.19
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.20
     </div>
   </div>
 </section>
@@ -2178,7 +2178,17 @@ async function doEvent(e){
      const j=window.S9Commentary?.chanceMiss?.(e.player);if(j)log(`${e.min}' 🎙️ ${j}`,"neutral");
    }
    await wait(window.S9Match3D&&S9Match3D.mode!=="2d"?700:1050);
-   setupPitch();hidePitch();
+   /* FIX 2026-09 (32): "ogni tot i giocatori ripartono dal centrocampo come
+      se battessero il calcio d'inizio" - setupPitch() qui RICOSTRUIVA da
+      zero l'intera formazione (22 giocatori teletrasportati sulla griglia
+      di base), dopo QUALSIASI occasione da gol risolta - parata, angolo,
+      punizione, tiro fuori - non solo dopo un vero riavvio. Nel gioco vero
+      dopo un tiro parato o un angolo NON si riparte dal centrocampo, si
+      continua da li'. Tolto: la prossima chiamata di S9MatchVisual.openPlay
+      (ogni minuto) riporta comunque i giocatori verso una disposizione
+      sensata, ma in modo animato/graduale invece che con un teletrasporto
+      istantaneo che sembra un calcio d'inizio. */
+   hidePitch();
  }
 
  if(e.type==="offside"){
@@ -2196,7 +2206,7 @@ async function doEvent(e){
       stucchevole), solo un breve replay ravvicinato come quello del gol,
       gated a bassa probabilita'. */
    if(Math.random()<.3)await showIncidentReplay(e.side);
-   setupPitch();hidePitch();
+   hidePitch();
  }
 
  if(e.type==="foul"){
@@ -3197,7 +3207,7 @@ renderTeamPicker();
 <script src="js/tv-channels.js?v=3"></script>
 <script src="js/broadcast-anchors.js?v=5"></script>
 <script src="js/kit-presentation.js?v=1"></script>
-<script src="js/match-3d.js?v=stability-33"></script>
+<script src="js/match-3d.js?v=stability-34"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>
