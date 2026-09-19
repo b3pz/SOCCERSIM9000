@@ -153,11 +153,27 @@ let refereeState={x:52.5,z:38},lineState=[{x:52.5},{x:52.5}],officialsLastT=0;
    l'arbitro DRITTO sul punto dell'episodio, dove resta fermo per la durata
    della decisione - invece di continuare a scivolare dietro al gioco come
    se nulla fosse successo. */
-let refereeHold=0,refereeHoldSpot=null;
-function refereeCall(x,z,holdMs){
+let refereeHold=0,refereeHoldSpot=null,refereeCard=null;
+function refereeCall(x,z,holdMs,cardColor){
  refereeHoldSpot={x:clamp(x,3,102),z:clamp(z,4,64)};
  refereeHold=(typeof visualTime==='number'?visualTime:performance.now())+(holdMs||1200);
+ refereeCard=cardColor||null;
 }
+/* FIX 2026-09 (30): "cos'altro potrebbero fare?" - tre aggiunte, tutte
+   puramente visive/decorative come il resto di drawOfficials, nessuna
+   nuova logica di gioco:
+   1) refereeCard (sopra) fa si' che quando l'arbitro e' fermo sul punto di
+      un cartellino, tenga sollevato un piccolo rettangolo colorato (giallo
+      o rosso) invece di limitarsi a stare li' senza gesto.
+   2) linesmanFlag: il guardalinee alza la bandierina quando scatta un
+      fuorigioco (chiamato da S9MatchVisual.offside in match-coherence.js).
+   3) benchReaction: la panchina della squadra coinvolta si anima (rimbalzo
+      piu' rapido, invece della solita passeggiata calma) per qualche
+      secondo dopo un gol o un cartellino, come una reazione vera. */
+let linesmanFlagUntil=0;
+function linesmanFlag(holdMs){linesmanFlagUntil=(typeof visualTime==='number'?visualTime:performance.now())+(holdMs||900);}
+let benchReaction={home:0,away:0};
+function benchReact(side,ms){if(benchReaction[side]!==undefined)benchReaction[side]=(typeof visualTime==='number'?visualTime:performance.now())+(ms||1600);}
 function stepToward(cur,target,maxStep){const d=target-cur;return Math.abs(d)<=maxStep?target:cur+Math.sign(d)*maxStep}
 function drawOfficials(actors,now,ball){
  const dt=officialsLastT?Math.min(.12,(now-officialsLastT)/1000):.016;officialsLastT=now;
@@ -167,10 +183,12 @@ function drawOfficials(actors,now,ball){
  refereeState.x=stepToward(refereeState.x,refTargetX,dt*(holding?22:11));refereeState.z=stepToward(refereeState.z,refTargetZ,dt*(holding?22:11));
  const refAngle=Math.atan2(ball.x-refereeState.x,ball.z-refereeState.z);
  graphics.player(actors,refereeState.x,refereeState.z,refKit,now/260,refAngle,1.2,'',false,0);
- const lsTargetX=clamp(ball.x,4,101);
+ if(holding&&refereeCard)actors.box([refereeState.x+Math.sin(refAngle)*.4,2.18,refereeState.z+Math.cos(refAngle)*.4],[.17,.25,.03],refereeCard);
+ const lsTargetX=clamp(ball.x,4,101),flagging=now<linesmanFlagUntil;
  lineState[0].x=stepToward(lineState[0].x,lsTargetX,dt*13);lineState[1].x=stepToward(lineState[1].x,lsTargetX,dt*13);
  graphics.player(actors,lineState[0].x,-1.35,refKit,now/300,Math.PI/2,1.08,'',false,0);
  graphics.player(actors,lineState[1].x,69.35,refKit,now/300,-Math.PI/2,1.08,'',false,0);
+ if(flagging)actors.box([lineState[0].x,2.05,-1.35+.55],[.05,.32,.03],'#e2432c');
  /* FIX 2026-09 (26): "la panchina sarebbe figo da quest'altra parte" -
     spostate dal lato z~0 (fondo opposto alla telecamera) al lato z~68
     (fondo dalla parte della telecamera, la stessa della tribuna
@@ -196,8 +214,10 @@ function drawOfficials(actors,now,ball){
   const uni=uniforms[b.side]||{shirt:'#305cad',shorts:'#182436',socks:'#eeeeeb'};
   actors.box([b.x,.55,71.5],[7.4,1.15,1.3],'#0f1c2c');
   const coachKit={shirt:'#101c29',shorts:'#101c29',socks:'#101c29'};
-  const pace=Math.sin(now/1500+(b.side==='home'?0:Math.PI));
-  graphics.player(actors,b.x+pace*2.3,70.15,coachKit,Math.abs(pace)*8,Math.PI+pace*.35,1.08,'',false,0);
+  const reacting=now<(benchReaction[b.side]||0),pacePeriod=reacting?260:1500;
+  const pace=Math.sin(now/pacePeriod+(b.side==='home'?0:Math.PI));
+  const bounce=reacting?Math.abs(Math.sin(now/140))*.22:0;
+  graphics.player(actors,b.x+pace*(reacting?.9:2.3),70.15-bounce,coachKit,Math.abs(pace)*(reacting?18:8),Math.PI+pace*.35,1.08,'',false,0);
   const dir=b.side==='home'?-1:1,centerX=52.5+dir*27;
   for(let i=0;i<2;i++){
    const period=9200+i*2600,phase=i*Math.PI*.7;
@@ -264,7 +284,7 @@ window.animAttack=async function(side,outcome){
 };
 animAttack=window.animAttack;
 const positions=new Map(),boards=new Map(),crowds=new Map(),identityBoards=new Map(),scoreboards=new Map(),crestBoards=new Map();
-const api=window.S9Match3D={get mode(){return mode},get intermission(){return intervalActive},showInterval,endInterval,get eventActive(){return eventActive},get celebrating(){return !!celebrationState},waitCelebration:waitForCelebration,celebrate,kickoffCinematic,setMode,drawStadium:(context,project,w,h,options={})=>drawField(graphics.scene(context,project),project,w,h,null,context,{...options,external:true}),crowdTexture,stadiumIdentityTexture,stadiumScoreboardTexture,stadiumCrestTexture,sponsorBoardTexture,beginReplay,endReplay,refereeCall};
+const api=window.S9Match3D={get mode(){return mode},get intermission(){return intervalActive},showInterval,endInterval,get eventActive(){return eventActive},get celebrating(){return !!celebrationState},waitCelebration:waitForCelebration,celebrate,kickoffCinematic,setMode,drawStadium:(context,project,w,h,options={})=>drawField(graphics.scene(context,project),project,w,h,null,context,{...options,external:true}),crowdTexture,stadiumIdentityTexture,stadiumScoreboardTexture,stadiumCrestTexture,sponsorBoardTexture,beginReplay,endReplay,refereeCall,linesmanFlag,benchReact};
 const graphics=window.S9Football3D;
 // Texture "folla": generata una volta per tribuna e messa in cache (stesso
 // pattern di `boards` sopra per i cartelloni), cosi' non si ridisegna ogni

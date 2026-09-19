@@ -343,6 +343,10 @@
       const start=pos(passer);if(ball()){ball().style.left=start.x+'%';ball().style.top=start.y+'%';}
       await move([{el:attacker,...target}],300);label('PASSAGGIO IN PROFONDITÀ');
       await move([{el:ball(),...target}],600);label('FUORIGIOCO');
+      // FIX 2026-09 (30): "cos'altro potrebbero fare? il guardalinee..." -
+      // il fuorigioco prima era segnalato solo dalla linea gialla a
+      // schermo, senza alcun gesto fisico del guardalinee.
+      window.S9Match3D?.linesmanFlag?.(1000);
     }
     finally{line.remove();carrier=null;possession=opposite(side);}
   };

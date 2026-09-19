@@ -2079,10 +2079,10 @@ async function showIncidentReplay(side){
    ATTUALE del pallone sul campo (in percentuale, 0-100) e convertito nelle
    coordinate del mondo 3D (x 0-105, z 0-68) con la stessa formula gia'
    usata altrove per questa conversione. */
-function refereeCallHere(holdMs){
+function refereeCallHere(holdMs,cardColor){
  const b=$("#ball");if(!b||!window.S9Match3D?.refereeCall)return;
  const x=(parseFloat(b.style.left)||50)*1.05,z=(parseFloat(b.style.top)||50)*.68;
- S9Match3D.refereeCall(x,z,holdMs);
+ S9Match3D.refereeCall(x,z,holdMs,cardColor);
 }
 /* FIX 2026-09 (30): "meglio la moviola che il VAR, non esisteva ai tempi" -
    breve stacco in studio dopo un episodio dubbio (rigore assegnato,
@@ -2137,7 +2137,8 @@ async function doEvent(e){
    crowd(.018,.7);hidePitch();
  }
  if(e.type==="yellow"||e.type==="red"){
-   refereeCallHere(e.type==="red"?1600:1100);
+   refereeCallHere(e.type==="red"?1600:1100,e.type==="red"?"#d63447":"#f2c94c");
+   window.S9Match3D?.benchReact?.(e.side,e.type==="red"?2200:1400);
    log(`${e.min}' ${e.type==="red"?"ESPULSIONE":"AMMONIZIONE"} - ${e.player.name}`,e.side);showPitchImportant();
    window.S9SFX?.cardSound?.(e.type);
    {const j=window.S9Commentary?.card?.(e.player);if(j)log(`${e.min}' 🎙️ ${j}`,"neutral");}
@@ -2165,7 +2166,7 @@ async function doEvent(e){
    }
    updateScore();
 
-   goalRoar();playGoalRoarClip();log(`${e.min}' GOOOL! ${e.player.name}`,e.side);
+   goalRoar();playGoalRoarClip();window.S9Match3D?.benchReact?.(e.side,2400);log(`${e.min}' GOOOL! ${e.player.name}`,e.side);
    {const j=window.S9Commentary?.goal?.(e.player);if(j)log(`${e.min}' 🎙️ ${j}`,"neutral");}
    current.keyEvents.push(`${e.min}' GOL ${e.player.name}${e.assist?" (assist "+e.assist.name+")":""}`);
    {
@@ -3086,14 +3087,14 @@ renderTeamPicker();
 <script src="js/v10-data.js?v=3d-1"></script>
 <script src="js/v10-release.js?v=stability-14"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
-<script src="js/match-coherence.js?v=stability-16"></script>
+<script src="js/match-coherence.js?v=stability-17"></script>
 <script src="js/kit-profiles.js?v=2"></script>
 <script src="js/asset-quality.js?v=1"></script>
 <script src="js/football-3d.js?v=stability-14"></script>
 <script src="js/tv-channels.js?v=3"></script>
 <script src="js/broadcast-anchors.js?v=5"></script>
 <script src="js/kit-presentation.js?v=1"></script>
-<script src="js/match-3d.js?v=stability-30"></script>
+<script src="js/match-3d.js?v=stability-31"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>
