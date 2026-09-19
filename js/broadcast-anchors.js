@@ -65,6 +65,25 @@ const ANTHEM=[
  ['{a1}: Guarda le facce dei giocatori.','{a2}: C\'e\' chi canta e chi pensa gia\' alla partita. Tu a cosa pensi di solito, {a1}?'],
  ['{a1}: Un classico prima del fischio.','{a2}: Sempre bello vederlo, {a1}. Anche dopo tutti questi anni insieme.']
 ];
+/* FIX 2026-09 (30): "meglio la moviola che il VAR perche' non esisteva ai
+   tempi" - niente overlay da revisione moderna: solo un breve stacco in
+   studio, in stile anni '90/2000, dove i due telecronisti rivedono
+   l'episodio a parole e danno un parere. Non cambia mai l'esito (il
+   fischio dell'arbitro resta quello che e' gia' stato dato in campo) - e'
+   pura atmosfera da moviola televisiva, non un sistema di revisione. */
+const MOVIOLA_PENALTY=[
+ ['{a1}: Rivediamola bene, questa del rigore.','{a2}: Contatto netto, per me è calcio di rigore senza discussioni.'],
+ ['{a1}: Fermiamo l\'immagine un attimo.','{a2}: Io un pochino di dubbio ce l\'avrei, ma l\'arbitro era a due passi.'],
+ ['{a1}: Al rallentatore si vede meglio.','{a2}: Generoso, {a1}, ma sul campo può starci.'],
+ ['{a1}: Guardiamola ancora una volta, con calma.','{a2}: Per me è rigore giusto, netto.']
+];
+const MOVIOLA_RED=[
+ ['{a1}: Rivediamo anche questa, {a2}.','{a2}: Intervento pericoloso, altro che giallo.'],
+ ['{a1}: Fermiamo l\'immagine sull\'intervento.','{a2}: Severo, ma i piedi a quell\'altezza non si portano.'],
+ ['{a1}: Da questa angolazione si vede tutto.','{a2}: Rosso sacrosanto, per me.'],
+ ['{a1}: Riguardiamola al rallentatore.','{a2}: Ci può stare il giallo, ma capisco anche il rosso.']
+];
+const pick3=bank=>pick(bank);
 const TROPHY=[
  ['{a1}: La coppa va a {h}!','{a2}: Meritata, {a1}. Su questo per una volta siamo d\'accordo.'],
  ['{a1}: Che serata per {h}.','{a2}: Se la ricorderanno a lungo, {a1}. Un po\' come noi due qui insieme.'],
@@ -73,7 +92,7 @@ const TROPHY=[
 const pick2=bank=>pick(bank);
 
 let overlay,canvas,ctx;
-const state={a1:'Piero Malaspina',a2:'Furio Stracci',tie1:'#c0392b',tie2:'#2980b9',h:'',a:'',channel:'S9 90',entranceLines:null,anthemLines:null,fulltimeLines:null,trophyLines:null,halftimeLines:null};
+const state={a1:'Piero Malaspina',a2:'Furio Stracci',tie1:'#c0392b',tie2:'#2980b9',h:'',a:'',channel:'S9 90',entranceLines:null,anthemLines:null,fulltimeLines:null,trophyLines:null,halftimeLines:null,moviolaLines:null};
 
 function setup(options){
  const channel=options?.channel||'S9 90',seed=hashStr(channel);
@@ -129,6 +148,16 @@ function setHalftime(options){
 function setChampion(championLabel){
  const vars={a1:firstName(state.a1),a2:firstName(state.a2),h:championLabel||state.h};
  state.trophyLines=pick2(TROPHY).map(l=>fill(l,vars));
+}
+/* FIX 2026-09 (30): la moviola NON tocca mai il risultato del campo - usa
+   gli stessi due telecronisti gia' assegnati alla partita (setup() e'
+   deterministico sul canale), quindi sembrano davvero le stesse due
+   persone che, tra un'azione e l'altra, si fermano un attimo a
+   rivedere l'episodio - non un sistema di revisione, solo un parere. */
+function setMoviola(kind){
+ const vars={a1:firstName(state.a1),a2:firstName(state.a2),h:state.h,a:state.a};
+ const bank=kind==='red'?MOVIOLA_RED:MOVIOLA_PENALTY;
+ state.moviolaLines=pick3(bank).map(l=>fill(l,vars));
 }
 
 /* Disegna la scena "studio" (bancone + due presentatori 3D) direttamente sul
@@ -199,7 +228,7 @@ function drawStudio(ctx,w,h,progress,phase){
   ctx.fillStyle='#0d2038';ctx.fillRect(0,0,w,h);
   ctx.fillStyle='#f4e5b5';ctx.font='900 16px Arial';ctx.textAlign='center';ctx.fillText('STUDIO',w/2,h/2);
  }
- const lines=phase==='entrance'?state.entranceLines:phase==='anthem'?state.anthemLines:phase==='trophy'?state.trophyLines:phase==='halftime'?state.halftimeLines:state.fulltimeLines;
+ const lines=phase==='entrance'?state.entranceLines:phase==='anthem'?state.anthemLines:phase==='trophy'?state.trophyLines:phase==='halftime'?state.halftimeLines:phase==='moviola'?state.moviolaLines:state.fulltimeLines;
  if(!lines)return '';
  // FIX 2026-09 (28): prima si mostravano solo 2 battute (indice 0/1 fisso)
  // anche quando una voce ne aveva 3: la terza (la frecciatina finale)
@@ -223,8 +252,12 @@ function ensureOverlay(){
  canvas=overlay.querySelector('canvas');ctx=canvas.getContext('2d');
 }
 
-function runOverlay(phase,duration){
+function runOverlay(phase,duration,kicker){
  ensureOverlay();
+ // FIX 2026-09 (30): la scritta in alto era sempre "STUDIO" a prescindere
+ // dallo stacco - per la moviola serve dire chiaramente che si tratta di
+ // una moviola (vecchio stile, senza gergo da VAR), non uno stacco normale.
+ overlay.querySelector('.s9-intro-kicker').textContent=kicker||'STUDIO';
  {const bug=window.S9ChannelBug?window.S9ChannelBug(state.channel):'',label=state.h&&state.a?`${state.h} - ${state.a}`:(state.channel||'S9 90');overlay.querySelector('.s9-intro-live').innerHTML=`<span class="s9-tv-bug">${bug}</span>${label} <b>LIVE</b>`;}
  const caption=overlay.querySelector('.s9-intro-caption'),skipBtn=overlay.querySelector('.s9-intro-skip');
  overlay.hidden=false;window.scrollTo(0,0);
@@ -265,6 +298,18 @@ function halftime(options){
  setHalftime(options);
  return runOverlay('halftime',3600);
 }
+/* FIX 2026-09 (30): "aggiungerei la moviola per rigori dubbi/rossi, non il
+   VAR perche' non esisteva ai tempi" - breve stacco in studio (stessi due
+   telecronisti gia' assegnati alla partita) che rivede a PAROLE l'episodio
+   appena successo e da' un parere. Non cambia mai la decisione presa in
+   campo dal motore di gioco: e' solo atmosfera da vera moviola televisiva
+   d'epoca, niente overlay/grafica da revisione moderna. kind: 'penalty' o
+   'red'. */
+function moviola(kind,options){
+ setup(options);
+ setMoviola(kind);
+ return runOverlay('moviola',3400,'MOVIOLA');
+}
 
 /* FIX 2026-09 (6): serve un modo per far usare ai commenti "spiccioli" in
    telecronaca (match-commentary.js, chiacchiera di riempimento) gli stessi
@@ -272,5 +317,5 @@ function halftime(options){
    sembrano davvero le stesse due persone che parlano dall'inizio alla fine. */
 function current(){return {a1:firstName(state.a1)||'Il telecronista',a2:firstName(state.a2)||"L'altro"}}
 
-window.S9Anchors={setup,setResult,setChampion,drawStudio,studioIntro,recap,halftime,current};
+window.S9Anchors={setup,setResult,setChampion,drawStudio,studioIntro,recap,halftime,moviola,current};
 })();

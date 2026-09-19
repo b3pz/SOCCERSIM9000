@@ -1524,7 +1524,19 @@ function buildInitialLineup(ps){
  for(const g of ["POR","DIF","CEN","ATT"]){
    lineup.push(...ps.filter(p=>roleGroup(p.pos)===g).slice(0,wanted[g]).map(p=>p.id));
  }
- for(const p of ps){ if(lineup.length<11 && !lineup.includes(p.id)) lineup.push(p.id); }
+ /* FIX 2026-09 (30): "spesso sui calci d'angolo risulta esserci un altro
+    portiere" - quando una rosa era corta di giocatori di movimento (meno di
+    4 CEN o simili), questo riempimento di riserva pescava dalla lista
+    completa SENZA escludere i portieri gia' "avanzati" (initTeamState
+    aggiunge sempre un secondo portiere di riserva se la rosa originale ne
+    ha uno solo): risultato, capitava che finissero in formazione titolare
+    DUE portieri. In partita entrambi i punti con dataset.role='GK'
+    venivano vestiti/mossi da portiere (setPieceShape, resolveShot...),
+    ed era proprio sui calci d'angolo - quando i difensori si stringono in
+    area - che il secondo portiere "di troppo" diventava visibile. Ora il
+    riempimento di riserva salta esplicitamente i portieri: ce n'e' sempre
+    e solo uno, quello gia' scelto sopra. */
+ for(const p of ps){ if(lineup.length<11 && !lineup.includes(p.id) && roleGroup(p.pos)!=="POR") lineup.push(p.id); }
  return ensureBenchRoles(ps,lineup.slice(0,11));
 }
 function initTeamState(t){
@@ -2016,9 +2028,19 @@ async function showGoalReplay(e){
   hidePitch();
  }
 }
+/* FIX 2026-09 (30): "meglio la moviola che il VAR, non esisteva ai tempi" -
+   breve stacco in studio dopo un episodio dubbio (rigore assegnato,
+   espulsione) dove i due telecronisti rivedono l'episodio A PAROLE e dando
+   un parere, mai un sistema che cambia la decisione gia' presa in campo.
+   Non ad ogni episodio (altrimenti diventa stucchevole): gated a caso, come
+   gia' fanno le altre chiacchiere di contorno in questo file. */
+async function maybeMoviola(kind){
+ if(!window.S9Anchors?.moviola||Math.random()>.55)return;
+ try{await S9Anchors.moviola(kind,{h:T(current.h).name,a:T(current.a).name,channel:current.channel})}catch(e){}
+}
 async function doEvent(e){
  while(paused)await wait(250);current.minute=e.min;updateScore();
- if(e.source==='penalty'){whistle();log(`${e.min}' CALCIO DI RIGORE · ${T(e.side==='home'?current.h:current.a).name} · ${e.player.name}`,e.side);current.keyEvents.push(`${e.min}' RIGORE · ${e.player.name}`)}
+ if(e.source==='penalty'){whistle();log(`${e.min}' CALCIO DI RIGORE · ${T(e.side==='home'?current.h:current.a).name} · ${e.player.name}`,e.side);current.keyEvents.push(`${e.min}' RIGORE · ${e.player.name}`);await maybeMoviola('penalty');}
 
  if(e.type==="chance"){
    let team=T(e.side==="home"?current.h:current.a);
@@ -2064,6 +2086,7 @@ async function doEvent(e){
      await wait(e.type==="red"?900:650);
    }else await ov(S9Popups.html(e.type,{player:e.player.name,detail:e.secondYellow?'Seconda ammonizione.':''}),1400);
    hidePitch();
+   if(e.type==="red")await maybeMoviola('red');
  }
 
  if(e.type==="goal"){
@@ -3002,12 +3025,12 @@ renderTeamPicker();
 <script src="js/v10-data.js?v=3d-1"></script>
 <script src="js/v10-release.js?v=stability-14"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
-<script src="js/match-coherence.js?v=stability-14"></script>
+<script src="js/match-coherence.js?v=stability-15"></script>
 <script src="js/kit-profiles.js?v=2"></script>
 <script src="js/asset-quality.js?v=1"></script>
 <script src="js/football-3d.js?v=stability-14"></script>
 <script src="js/tv-channels.js?v=3"></script>
-<script src="js/broadcast-anchors.js?v=4"></script>
+<script src="js/broadcast-anchors.js?v=5"></script>
 <script src="js/kit-presentation.js?v=1"></script>
 <script src="js/match-3d.js?v=stability-29"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>

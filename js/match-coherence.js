@@ -115,16 +115,27 @@
       // Gli undici slot restano stabili: chi entra occupa esattamente il
       // posto di chi esce, anche nel modello 3D e non solo nella lista.
       const players=st.lineup.map(id=>st.players.find(p=>p.id===id)).filter(Boolean);
-      const rows=(st.formation||'4-4-2').split('-').map(Number);let cursor=0;
+      const rows=(st.formation||'4-4-2').split('-').map(Number);let cursor=0,gkSeen=false;
+      /* FIX 2026-09 (30): "spesso sui calci d'angolo risulta esserci un
+         altro portiere" - rete di sicurezza aggiuntiva oltre al fix in
+         buildInitialLineup(): se per qualunque motivo la formazione
+         contenesse comunque due giocatori con pos 'GK' (es. una rosa
+         costruita altrove), solo il PRIMO viene trattato davvero da
+         portiere (maglia gialla, piazzato tra i pali). Un eventuale
+         secondo va comunque schierato in campo (nessun buco in formazione)
+         ma come giocatore di movimento, cosi' non appare mai un secondo
+         portiere durante corner/rigori/azioni normali. */
       for(const player of players){
         const d=find(side,player.id);if(!d)continue;
+        const isKeeper=player.pos==='GK'&&!gkSeen;
+        if(player.pos==='GK')gkSeen=true;
         let x=5,y=50;
-        if(player.pos!=='GK'){
+        if(!isKeeper){
           let index=cursor++,row=0;
           while(row<rows.length-1&&index>=rows[row])index-=rows[row++];
           x=24+row*48/Math.max(1,rows.length-1);y=12+(index+1)*76/(rows[row]+1);
         }
-        d.dataset.role=player.pos;d.dataset.baseX=xFor(side,x);d.dataset.baseY=y;
+        d.dataset.role=isKeeper?'GK':(player.pos==='GK'?'DF':player.pos);d.dataset.baseX=xFor(side,x);d.dataset.baseY=y;
         d.style.left=d.dataset.baseX+'%';d.style.top=y+'%';
         d.style.background=`linear-gradient(90deg,${primary} 0 50%,${secondary} 50% 100%)`;
         /* FIX 2026-09 (19): numero di maglia iconico per un pugno di
