@@ -144,12 +144,27 @@ function followedCamera(now,ball){
    per scaldarsi. Tutto puramente visivo/deterministico via seno/coseno sul
    tempo, nessuna nuova logica di gioco. */
 let refereeState={x:52.5,z:38},lineState=[{x:52.5},{x:52.5}],officialsLastT=0;
+/* FIX 2026-09 (30): "possiamo migliorare l'AI... anche dell'arbitro?" -
+   prima l'arbitro si limitava a inseguire vagamente il pallone sempre allo
+   stesso modo, anche durante un fallo/cartellino appena fischiato: nessuna
+   reazione visibile all'episodio. refereeHold, quando impostato da
+   refereeCall() (chiamato da index.html quando scatta un fallo o un
+   cartellino), blocca temporaneamente l'inseguimento del pallone e porta
+   l'arbitro DRITTO sul punto dell'episodio, dove resta fermo per la durata
+   della decisione - invece di continuare a scivolare dietro al gioco come
+   se nulla fosse successo. */
+let refereeHold=0,refereeHoldSpot=null;
+function refereeCall(x,z,holdMs){
+ refereeHoldSpot={x:clamp(x,3,102),z:clamp(z,4,64)};
+ refereeHold=(typeof visualTime==='number'?visualTime:performance.now())+(holdMs||1200);
+}
 function stepToward(cur,target,maxStep){const d=target-cur;return Math.abs(d)<=maxStep?target:cur+Math.sign(d)*maxStep}
 function drawOfficials(actors,now,ball){
  const dt=officialsLastT?Math.min(.12,(now-officialsLastT)/1000):.016;officialsLastT=now;
  const refKit={shirt:'#171b1f',shorts:'#171b1f',socks:'#f2c94c'};
- const refTargetX=clamp(ball.x+(ball.z>34?-4.5:4.5),3,102),refTargetZ=clamp(ball.z+(ball.x>52.5?-3:3),4,64);
- refereeState.x=stepToward(refereeState.x,refTargetX,dt*11);refereeState.z=stepToward(refereeState.z,refTargetZ,dt*11);
+ const holding=refereeHoldSpot&&now<refereeHold;
+ const refTargetX=holding?refereeHoldSpot.x:clamp(ball.x+(ball.z>34?-4.5:4.5),3,102),refTargetZ=holding?refereeHoldSpot.z:clamp(ball.z+(ball.x>52.5?-3:3),4,64);
+ refereeState.x=stepToward(refereeState.x,refTargetX,dt*(holding?22:11));refereeState.z=stepToward(refereeState.z,refTargetZ,dt*(holding?22:11));
  const refAngle=Math.atan2(ball.x-refereeState.x,ball.z-refereeState.z);
  graphics.player(actors,refereeState.x,refereeState.z,refKit,now/260,refAngle,1.2,'',false,0);
  const lsTargetX=clamp(ball.x,4,101);
@@ -249,7 +264,7 @@ window.animAttack=async function(side,outcome){
 };
 animAttack=window.animAttack;
 const positions=new Map(),boards=new Map(),crowds=new Map(),identityBoards=new Map(),scoreboards=new Map(),crestBoards=new Map();
-const api=window.S9Match3D={get mode(){return mode},get intermission(){return intervalActive},showInterval,endInterval,get eventActive(){return eventActive},get celebrating(){return !!celebrationState},waitCelebration:waitForCelebration,celebrate,kickoffCinematic,setMode,drawStadium:(context,project,w,h,options={})=>drawField(graphics.scene(context,project),project,w,h,null,context,{...options,external:true}),crowdTexture,stadiumIdentityTexture,stadiumScoreboardTexture,stadiumCrestTexture,sponsorBoardTexture,beginReplay,endReplay};
+const api=window.S9Match3D={get mode(){return mode},get intermission(){return intervalActive},showInterval,endInterval,get eventActive(){return eventActive},get celebrating(){return !!celebrationState},waitCelebration:waitForCelebration,celebrate,kickoffCinematic,setMode,drawStadium:(context,project,w,h,options={})=>drawField(graphics.scene(context,project),project,w,h,null,context,{...options,external:true}),crowdTexture,stadiumIdentityTexture,stadiumScoreboardTexture,stadiumCrestTexture,sponsorBoardTexture,beginReplay,endReplay,refereeCall};
 const graphics=window.S9Football3D;
 // Texture "folla": generata una volta per tribuna e messa in cache (stesso
 // pattern di `boards` sopra per i cartelloni), cosi' non si ridisegna ogni

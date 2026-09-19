@@ -1758,6 +1758,14 @@ function mentalityMult(m){return m==="Offensivo"?1.08:m==="Difensivo"?.94:1}
 function lineupPower(id){let t=T(id),s=career.teamStates[id],ps=s.players.filter(p=>s.lineup.includes(p.id));return avg(ps.map(p=>p.overall*moraleMult(p.morale)))*.7+t.strength*.3}
 function poisson(l){let L=Math.exp(-l),k=0,p=1;do{k++;p*=Math.random()}while(p>L);return k-1}
 function attackers(id){let s=career.teamStates[id],ps=s.players.filter(p=>s.lineup.includes(p.id)),f=ps.filter(p=>["ST","FW","AM","MF"].includes(p.pos));return f.length?f:ps}
+// FIX 2026-09 (30): "un calcio d'angolo porta le torri difensive ad
+// attaccare oppure una sovrapposizione del terzino fa assist" - prima i
+// difensori (pos 'DF') non potevano MAI segnare ne' fare assist, nemmeno
+// sui corner dove nella realta' i centrali si spingono in area di testa e
+// i terzini si sovrappongono sulla fascia. Questo pool li rende disponibili
+// per quei due casi specifici (vedi goalEv piu' sotto), con probabilita'
+// bassa cosi' resta un evento raro e non la norma.
+function defenders(id){let s=career.teamStates[id],ps=s.players.filter(p=>s.lineup.includes(p.id));return ps.filter(p=>p.pos==='DF')}
 // Shot quality belongs to the engine; presentation only reads the stored outcome.
 function shotQuality(p){
  const st=p?.stats||{},base=p?.overall||70;
@@ -1809,11 +1817,23 @@ function buildMatch(h,a,opts){
    ev.push({min,type:'goal',outcome:'goal',side,player:taker,assist:null,source:'freekick',taker});
   }else if(dead<.22){
    const taker=setPieceTaker(id,Math.random()<.5?'cornerL':'cornerR')||scorer;
-   const receiver=scorer.id!==taker.id?scorer:pool.find(p=>p.id!==taker.id);
+   // FIX 2026-09 (30): sui corner, un centrale che si spinge in area di
+   // testa e' un classico del calcio vero - qui gli si da' occasionalmente
+   // la possibilita' di essere lui il marcatore al posto del solito
+   // attaccante, "torre difensiva" che sale sui calci piazzati.
+   const towers=defenders(id).filter(p=>p.id!==taker.id);
+   const useTower=towers.length&&Math.random()<.3;
+   const receiver=useTower?pick(towers):(scorer.id!==taker.id?scorer:pool.find(p=>p.id!==taker.id));
    if(receiver)ev.push({min,type:'goal',outcome:'goal',side,player:receiver,assist:taker,source:'corner',taker});
    else ev.push({min,type:'goal',outcome:'goal',side,player:scorer,assist:null});
   }else{
-   ev.push({min,type:'goal',outcome:'goal',side,player:scorer,assist:pool.length?pick(pool):null});
+   // FIX 2026-09 (30): "una sovrapposizione del terzino fa assist" - una
+   // quota bassa di assist su azione manovrata va a un difensore (in
+   // pratica un terzino che si sovrappone sulla fascia), invece che sempre
+   // a un altro giocatore offensivo.
+   const backs=defenders(id);
+   const overlap=backs.length&&Math.random()<.15;
+   ev.push({min,type:'goal',outcome:'goal',side,player:scorer,assist:overlap?pick(backs):(pool.length?pick(pool):null)});
   }
  }};
  goalEv(h,hg,'home');goalEv(a,ag,'away');
@@ -2052,6 +2072,18 @@ async function showIncidentReplay(side){
   banner.remove();
  }
 }
+/* FIX 2026-09 (30): "possiamo migliorare l'AI... anche dell'arbitro?" -
+   quando scatta un fallo/cartellino, l'arbitro (in js/match-3d.js) va
+   dritto sul punto dell'episodio invece di continuare a scivolare dietro
+   al pallone come se niente fosse. Il punto viene letto dalla posizione
+   ATTUALE del pallone sul campo (in percentuale, 0-100) e convertito nelle
+   coordinate del mondo 3D (x 0-105, z 0-68) con la stessa formula gia'
+   usata altrove per questa conversione. */
+function refereeCallHere(holdMs){
+ const b=$("#ball");if(!b||!window.S9Match3D?.refereeCall)return;
+ const x=(parseFloat(b.style.left)||50)*1.05,z=(parseFloat(b.style.top)||50)*.68;
+ S9Match3D.refereeCall(x,z,holdMs);
+}
 /* FIX 2026-09 (30): "meglio la moviola che il VAR, non esisteva ai tempi" -
    breve stacco in studio dopo un episodio dubbio (rigore assegnato,
    espulsione) dove i due telecronisti rivedono l'episodio A PAROLE e dando
@@ -2098,12 +2130,14 @@ async function doEvent(e){
 
  if(e.type==="foul"){
    whistle();
+   refereeCallHere(1300);
    // Tutti si fermano: la palla resta immobile per la pausa arbitrale
    log(`${e.min}' FALLO di ${e.player.name}. L\'arbitro ferma il gioco.`,e.side);showPitchImportant();
    await wait(1300);
    crowd(.018,.7);hidePitch();
  }
  if(e.type==="yellow"||e.type==="red"){
+   refereeCallHere(e.type==="red"?1600:1100);
    log(`${e.min}' ${e.type==="red"?"ESPULSIONE":"AMMONIZIONE"} - ${e.player.name}`,e.side);showPitchImportant();
    window.S9SFX?.cardSound?.(e.type);
    {const j=window.S9Commentary?.card?.(e.player);if(j)log(`${e.min}' 🎙️ ${j}`,"neutral");}
@@ -3059,7 +3093,7 @@ renderTeamPicker();
 <script src="js/tv-channels.js?v=3"></script>
 <script src="js/broadcast-anchors.js?v=5"></script>
 <script src="js/kit-presentation.js?v=1"></script>
-<script src="js/match-3d.js?v=stability-29"></script>
+<script src="js/match-3d.js?v=stability-30"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-2"></script>
 <script src="js/match-intro.js?v=stability-14"></script>
 <script src="js/pitch-invasion.js?v=2"></script>
