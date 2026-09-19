@@ -735,7 +735,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.24</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.25</span></span></div>
 </div>
 <main>
 
@@ -767,7 +767,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.24
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.25
     </div>
   </div>
 </section>
@@ -1818,92 +1818,133 @@ function buildMatch(h,a,opts){
  const bmult=side=>boost&&boost.side===side?boost.mult:1;
  const hp=lineupPower(h)*mentalityMult(career.teamStates[h].mentality)*bmult('h'),ap=lineupPower(a)*mentalityMult(career.teamStates[a].mentality)*bmult('a');
  const attack=id=>avg(attackers(id).filter(p=>p.pos!=='GK').map(shotQuality))*(id===h?bmult('h'):bmult('a'));
- const hg=Math.min(6,poisson(Math.max(.25,1.16+(hp-ap)/22+(attack(h)-keeperQuality(a))*.014)*span));
- const ag=Math.min(6,poisson(Math.max(.2,1.02+(ap-hp)/22+(attack(a)-keeperQuality(h))*.014)*span));
- const ev=[],goalMinutes=[];
+ // Medie-gol attese (stesso modello di prima), pero' non vengono piu'
+ // tirate a sorte SUBITO come conteggio finale: servono solo a calibrare
+ // quanto spesso un tiro si trasforma in gol dentro la simulazione qui sotto.
+ const expH=Math.max(.25,1.16+(hp-ap)/22+(attack(h)-keeperQuality(a))*.014)*span;
+ const expA=Math.max(.2,1.02+(ap-hp)/22+(attack(a)-keeperQuality(h))*.014)*span;
+ const ev=[];
  const minLo=Math.max(4,fromMin),minHi=Math.max(minLo,Math.min(89,toMin));
  const randMin=()=>rand(minLo,minHi);
  // Battitore designato dalla tattica del club per angoli e punizioni dirette.
  const setPieceTaker=(id,key)=>{const st=career.teamStates[id],pid=st.setPieces?.[key];return st.players.find(p=>p.id===pid&&st.lineup.includes(p.id))};
- const goalEv=(id,count,side)=>{for(let i=0;i<count;i++){
-  const scorer=weightedAttacker(id),pool=attackers(id).filter(x=>x.id!==scorer.id&&x.pos!=='GK');
-  let min=randMin();for(let tries=0;tries<30&&goalMinutes.some(m=>Math.abs(m-min)<3);tries++)min=randMin();
-  goalMinutes.push(min);
-  // Una quota realistica delle reti nasce da palla inattiva invece che da
-  // azione manovrata: punizione diretta (rara) o angolo (piu' frequente).
-  const dead=Math.random();
-  if(dead<.05){
-   const taker=setPieceTaker(id,'direct')||scorer;
-   ev.push({min,type:'goal',outcome:'goal',side,player:taker,assist:null,source:'freekick',taker});
-  }else if(dead<.22){
-   const taker=setPieceTaker(id,Math.random()<.5?'cornerL':'cornerR')||scorer;
-   // FIX 2026-09 (30): sui corner, un centrale che si spinge in area di
-   // testa e' un classico del calcio vero - qui gli si da' occasionalmente
-   // la possibilita' di essere lui il marcatore al posto del solito
-   // attaccante, "torre difensiva" che sale sui calci piazzati.
-   const towers=defenders(id).filter(p=>p.id!==taker.id);
-   const useTower=towers.length&&Math.random()<.3;
-   const receiver=useTower?pick(towers):(scorer.id!==taker.id?scorer:pool.find(p=>p.id!==taker.id));
-   if(receiver)ev.push({min,type:'goal',outcome:'goal',side,player:receiver,assist:taker,source:'corner',taker});
-   else ev.push({min,type:'goal',outcome:'goal',side,player:scorer,assist:null});
-  }else{
-   // FIX 2026-09 (30): "una sovrapposizione del terzino fa assist" - una
-   // quota bassa di assist su azione manovrata va a un difensore (in
-   // pratica un terzino che si sovrappone sulla fascia), invece che sempre
-   // a un altro giocatore offensivo.
-   const backs=defenders(id);
-   const overlap=backs.length&&Math.random()<.15;
-   ev.push({min,type:'goal',outcome:'goal',side,player:scorer,assist:overlap?pick(backs):(pool.length?pick(pool):null)});
-  }
- }};
- goalEv(h,hg,'home');goalEv(a,ag,'away');
- const share=Math.max(.22,Math.min(.78,.5+(hp-ap)/110));let posts=0;
- const chances=Math.max(1,Math.round((rand(4,7)+(Math.random()<.12?rand(1,3):0))*span));
- for(let i=0;i<chances;i++){
-  const min=randMin(),lead=ev.filter(e=>e.min<min&&e.side==='home').length-ev.filter(e=>e.min<min&&e.side==='away').length;
-  const chase=min>55?Math.max(-.06,Math.min(.06,-lead*.025)):0;
-  const side=Math.random()<share+chase?'home':'away',id=side==='home'?h:a;
-  const dead=Math.random(),isFreekick=dead<.08,isCorner=!isFreekick&&dead<.28;
-  if(isFreekick||isCorner){
-   const taker=setPieceTaker(id,isFreekick?'direct':(Math.random()<.5?'cornerL':'cornerR'))||weightedAttacker(id);
-   let shooter=isFreekick?taker:weightedAttacker(id);
-   if(isCorner&&shooter.id===taker.id)shooter=attackers(id).find(p=>p.pos!=='GK'&&p.id!==taker.id)||shooter;
-   const outcome=nonGoalOutcome(shooter,keeperQuality(side==='home'?a:h),posts);if(outcome==='post')posts++;
-   ev.push({min,type:'chance',outcome,side,player:shooter,source:isFreekick?'freekick':'corner',taker});
-  }else{
-   const player=weightedAttacker(id);
-   const outcome=nonGoalOutcome(player,keeperQuality(side==='home'?a:h),posts);if(outcome==='post')posts++;
-   ev.push({min,type:'chance',outcome,side,player});
-  }
- }
- // FIX 2026-09 (31): "il fuorigioco deve effettivamente funzionare" - prima
- // S9MatchVisual.offside() esisteva (linea gialla, bandierina, tutto pronto)
- // ma non veniva MAI generato/chiamato: buildMatch non produceva nessun
- // evento di tipo 'offside', quindi il fuorigioco non scattava mai in
- // partita. Qui si generano azioni interrotte per fuorigioco come i falli:
- // niente tiro, l'azione si spegne li'.
- const offsides=Math.max(0,Math.round(rand(1,4)*span));
- for(let i=0;i<offsides;i++){
-  const side=Math.random()<share?'home':'away',id=side==='home'?h:a,player=weightedAttacker(id);
-  ev.push({min:randMin(),type:'offside',side,player});
- }
- // Penalties during normal play are engine events, with one stored outcome.
- if(Math.random()<.27*span){
-  const side=Math.random()<share?'home':'away',id=side==='home'?h:a,opponent=side==='home'?a:h;
-  const designated=setPieceTaker(id,'penalty'),st=career.teamStates[id];
-  const taker=designated&&st.lineup.includes(designated.id)?designated:weightedAttacker(id);
-  const probability=Math.max(.62,Math.min(.88,.76+(shotQuality(taker)-keeperQuality(opponent))*.003));
-  const outcome=Math.random()<probability?'goal':Math.random()<.72?'save':'miss';
-  ev.push({min:randMin(),type:outcome==='goal'?'goal':'chance',outcome,side,player:taker,taker,assist:null,source:'penalty'});
- }
+ const share=Math.max(.22,Math.min(.78,.5+(hp-ap)/110));
  const foulers=id=>career.teamStates[id].players.filter(p=>p.pos!=='GK'&&career.teamStates[id].lineup.includes(p.id));
- for(const type of ['card','foul'])for(let i=0,n=Math.max(0,Math.round((type==='card'?rand(1,4):rand(2,4))*span));i<n;i++){
-  const side=Math.random()<.5?'home':'away',pool=foulers(side==='home'?h:a);if(!pool.length)continue;
-  ev.push({min:randMin(),type:type==='card'?(Math.random()<.04?'red':'yellow'):'foul',side,player:pick(pool)});
+
+ // FIX 2026-09 (33): RISCRITTURA MOTORE - "la partita e' gia' decisa
+ // dall'inizio" + "ci sono gol palesemente in fuorigioco non riconosciuti
+ // come tali". Prima il numero di gol veniva deciso di netto con una
+ // Poisson PRIMA di generare qualunque altra cosa, poi occasioni,
+ // fuorigioco, rigori, falli venivano pescati da pool completamente
+ // indipendenti tra loro: un gol e un fuorigioco potevano capitare sullo
+ // stesso minuto senza che il motore sapesse che erano la STESSA azione, e
+ // il risultato finale era gia' scritto ancora prima del calcio d'inizio.
+ // Ora ogni azione d'attacco e' generata minuto per minuto: prima si
+ // decide SE e CHI attacca (forza, tattica e il punteggio maturato FINO A
+ // QUEL MOMENTO nella simulazione - non quello finale), poi UN SOLO ramo
+ // condiviso decide l'esito (fuorigioco/fallo/cartellino/angolo/punizione/
+ // tiro/gol). Fuorigioco e gol sono quindi rami mutuamente esclusivi della
+ // stessa estrazione: non possono piu' capitare "nello stesso momento" per
+ // la stessa azione. Il risultato finale e' una CONSEGUENZA della
+ // simulazione, non piu' deciso a monte.
+ let simH=0,simA=0,posts=0,cornersH=0,cornersA=0;
+ const shotBudget={home:0,away:0};
+ const shotFraction=.65; // quota di azioni che arrivano davvero al tiro (le altre: fuorigioco/fallo/cartellino)
+ const estShots=side=>Math.max(1,Math.round(Math.max(3,totalMoves)*(side==='home'?share:1-share)*shotFraction));
+
+ // Numero di azioni "vive" della gara: stessa densita' media di prima
+ // (occasioni + gol + fuorigioco + rigori sommati insieme), ma decise passo
+ // passo invece che come pool separati.
+ const totalMoves=Math.max(6,Math.round(rand(11,17)*span));
+ const moveMinutes=[];
+ for(let i=0;i<totalMoves;i++){
+  let m=randMin(),tries=0;
+  while(moveMinutes.includes(m)&&tries++<20)m=randMin();
+  moveMinutes.push(m);
  }
- // Totale angoli della gara: numero aggregato per le statistiche (non ogni
- // angolo diventa un evento sulla linea del tempo, solo quelli pericolosi).
- const cornersH=Math.round(rand(3,8)*span),cornersA=Math.round(rand(3,8)*span);
+ moveMinutes.sort((x,y)=>x-y);
+ // Il rigore resta un evento raro e dedicato, ma ora e' UNA delle azioni
+ // gia' programmate (non un pool a parte che ignora cosa succede altrove).
+ const penaltyMoveIdx=Math.random()<.27*span&&moveMinutes.length?Math.floor(Math.random()*moveMinutes.length):-1;
+
+ moveMinutes.forEach((min,idx)=>{
+  // Il "chase": la squadra sotto nel punteggio (in QUESTO momento della
+  // simulazione, non nel risultato finale) spinge un po' di piu' nel finale.
+  const lead=simH-simA;
+  const chase=min>55?Math.max(-.08,Math.min(.08,-lead*.03)):0;
+  const side=Math.random()<Math.max(.15,Math.min(.85,share+chase))?'home':'away';
+  const id=side==='home'?h:a,oppId=side==='home'?a:h;
+  const isPenaltyMove=idx===penaltyMoveIdx;
+
+  if(!isPenaltyMove&&Math.random()<.16){
+   ev.push({min,type:'offside',side,player:weightedAttacker(id)});
+   return;
+  }
+  if(!isPenaltyMove&&Math.random()<.14){
+   const pool=foulers(oppId);
+   if(pool.length){ev.push({min,type:'foul',side:side==='home'?'away':'home',player:pick(pool)});return;}
+  }
+  if(!isPenaltyMove&&Math.random()<.05){
+   const pool=foulers(side==='home'?a:h);
+   if(pool.length){ev.push({min,type:Math.random()<.12?'red':'yellow',side:side==='home'?'away':'home',player:pick(pool)});return;}
+  }
+
+  if(isPenaltyMove){
+   const designated=setPieceTaker(id,'penalty'),st=career.teamStates[id];
+   const taker=designated&&st.lineup.includes(designated.id)?designated:weightedAttacker(id);
+   const probability=Math.max(.62,Math.min(.88,.76+(shotQuality(taker)-keeperQuality(oppId))*.003));
+   const outcome=Math.random()<probability?'goal':Math.random()<.72?'save':'miss';
+   if(outcome==='goal'){side==='home'?simH++:simA++;ev.push({min,type:'goal',outcome:'goal',side,player:taker,taker,assist:null,source:'penalty'});}
+   else ev.push({min,type:'chance',outcome,side,player:taker,taker,source:'penalty'});
+   return;
+  }
+
+  // Tiro vero (azione manovrata, punizione diretta o angolo): una sola
+  // estrazione decide anche se e' rete, calibrata sulla media-gol attesa
+  // della squadra (expH/expA) divisa per quanti tiri ci si aspetta da lei
+  // in tutta la gara - cosi' il totale reti resta realistico ma EMERGE
+  // dalla simulazione invece di essere fissato all'inizio.
+  shotBudget[side]++;
+  const dead=Math.random(),isFreekick=dead<.08,isCorner=!isFreekick&&dead<.30;
+  if(isCorner)side==='home'?cornersH++:cornersA++;
+  let shooter,taker=null,source=null;
+  if(isFreekick){taker=setPieceTaker(id,'direct')||weightedAttacker(id);shooter=taker;source='freekick';}
+  else if(isCorner){
+   taker=setPieceTaker(id,Math.random()<.5?'cornerL':'cornerR')||weightedAttacker(id);
+   shooter=weightedAttacker(id);
+   if(shooter.id===taker.id){const alt=attackers(id).find(p=>p.pos!=='GK'&&p.id!==taker.id);if(alt)shooter=alt;}
+   source='corner';
+  }else shooter=weightedAttacker(id);
+
+  const perShotGoalProb=Math.max(.06,Math.min(.42,(side==='home'?expH:expA)/estShots(side)));
+  if(Math.random()<perShotGoalProb){
+   side==='home'?simH++:simA++;
+   let assist=null,receiver=shooter;
+   if(source==='corner'){
+    // FIX 2026-09 (30): sui corner, un centrale che si spinge in area di
+    // testa e' un classico del calcio vero - "torre difensiva" che sale
+    // occasionalmente sui calci piazzati al posto del solito attaccante.
+    const towers=defenders(id).filter(p=>p.id!==taker.id);
+    if(towers.length&&Math.random()<.3)receiver=pick(towers);
+    assist=taker;
+   }else if(source!=='freekick'){
+    // FIX 2026-09 (30): "una sovrapposizione del terzino fa assist" - una
+    // quota bassa di assist su azione manovrata va a un difensore.
+    const backs=defenders(id);
+    if(backs.length&&Math.random()<.15)assist=pick(backs);
+    else{const pool=attackers(id).filter(p=>p.pos!=='GK'&&p.id!==receiver.id);if(pool.length)assist=pick(pool);}
+   }
+   ev.push({min,type:'goal',outcome:'goal',side,player:receiver,assist,source:source||undefined,taker:taker||undefined});
+  }else{
+   const outcome=nonGoalOutcome(shooter,keeperQuality(oppId),posts);if(outcome==='post')posts++;
+   ev.push({min,type:'chance',outcome,side,player:shooter,source:source||undefined,taker:taker||undefined});
+  }
+ });
+
+ // Angoli "silenziosi" (statistica aggregata, non ogni angolo diventa un
+ // evento in scaletta - solo quelli pericolosi generati sopra).
+ cornersH+=Math.round(rand(1,3)*span);cornersA+=Math.round(rand(1,3)*span);
+
  return {h,a,scoreH:0,scoreA:0,minute:0,events:ev.sort((x,y)=>x.min-y.min),stats:{shotsH:0,shotsA:0,onH:0,onA:0,cornersH,cornersA},keyEvents:[]};
 }
 
