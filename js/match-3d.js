@@ -48,17 +48,27 @@ function kickoffCineFrame(){
 }
 async function kickoffCinematic(label){
  if(mode==='2d')return;
+ /* FIX 2026-09 (32): "il calcio d'inizio non parte con la cinematica" -
+    terzo giro su questo stesso bug. La versione precedente aspettava che
+    visualTime (aggiornato SOLO dentro render(), che a sua volta dipende da
+    document.hidden, dal canvas gia' montato, dal tab attivo eccetera)
+    avanzasse di 1500ms, facendo un polling via requestAnimationFrame. Se
+    per qualunque motivo render() non girava ancora a pieno regime nel
+    preciso istante in cui si entra qui (kit non ancora caricati, canvas
+    non ancora dimensionato, ecc.) la condizione restava vera per sempre o
+    per un tempo imprevedibile: la cinematica poteva risolversi troppo
+    presto (durata quasi zero, invisibile) o restare bloccata. Sostituito
+    con un'attesa sul vero orologio (setTimeout), lo stesso meccanismo gia'
+    usato con successo in decine di altri punti del gioco per le pause a
+    tempo: indipendente da render(), da visualTime, da mode - se il testo e
+    l'inquadratura vengono impostati, restano a schermo per 1.5s veri,
+    punto. */
  kickoffCineState={started:visualTime};
+ const myKickoffState=kickoffCineState;
  const el=ensureKickoffCaption();el.textContent=label;el.hidden=false;requestAnimationFrame(()=>el.classList.add('show'));
  document.getElementById('match').dataset.cinematic='kickoff';
- const match=current;
- await new Promise(resolve=>{
-  function tick(){
-   if(current!==match||match._finished||mode==='2d'||!kickoffCineState||visualTime-kickoffCineState.started>=1500){resolve();return}
-   requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
- });
+ await new Promise(resolve=>setTimeout(resolve,1500));
+ if(kickoffCineState!==myKickoffState)return; // superata da un'altra cinematica nel frattempo
  kickoffCineState=null;el.classList.remove('show');
  setTimeout(()=>{if(kickoffCaptionEl)kickoffCaptionEl.hidden=true},300);
  delete document.getElementById('match').dataset.cinematic;
