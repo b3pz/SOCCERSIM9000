@@ -549,9 +549,55 @@ function initCareerCups(c,qualified=null){
  c.v10Cups.uefa=createTournament('uefa',createEuropeParticipants(uefaIt,'uefa'),uefaIt.includes(user)?user:null,{careerMode:true});
  c.v10Cups.cdc.italianParticipants=cdcIt;c.v10Cups.uefa.italianParticipants=uefaIt;syncCupCalendar(c);
 }
+// FIX 2026-09 (38): OBIETTIVI DI STAGIONE CON CONSEGUENZE REALI - prima
+// c'era solo una frase di colore ("il primo obiettivo e' riconquistare
+// l'Italia") senza alcuna meccanica dietro: vincere o fare disastri non
+// cambiava mai nulla. Ora ogni stagione ha un obiettivo vero (assegnato in
+// base alla forza della squadra rispetto al proprio girone), viene
+// valutato a fine stagione, e sposta una fiducia societaria (0-100) che il
+// manager puo' vedere e che ha conseguenze: crolla se si fallisce,
+// cresce se si centra o si supera l'obiettivo, e un tracollo prolungato
+// porta all'esonero.
+function assignObjectiveV10(team){
+ const groupIds=(career.groups?.A?.includes(team)?career.groups.A:career.groups?.B)||V10.italianIds;
+ const strengths=groupIds.map(id=>T(id)?.strength||75).sort((a,b)=>b-a);
+ const mine=T(team)?.strength||75,rank=strengths.filter(s=>s>mine).length+1,n=groupIds.length;
+ if(rank<=Math.max(1,Math.round(n*.15)))return{tier:'scudetto',label:'Vincere lo Scudetto'};
+ if(rank<=Math.max(4,Math.round(n*.4)))return{tier:'finaleight',label:'Qualificarsi alla Final Eight'};
+ return{tier:'dignita',label:'Chiudere la stagione nella meta\' alta del girone'};
+}
+function evaluateSeasonV10(){
+ if(!career.objective)return null;
+ const group=career.userGroup,standing=(typeof v4Standings==='function')?v4Standings(group):null;
+ const pos=standing?standing.findIndex(x=>x.t.id===career.user)+1:null,n=standing?standing.length:career.groups?.[group]?.length||10;
+ const fe=career.v10FinalEight,qualified=pos!=null&&pos<=4;
+ const feRank=qualified&&fe?.ranking?fe.ranking.indexOf(career.user)+1:null;
+ const wonScudetto=qualified&&feRank===1;
+ const obj=career.objective;let esito,delta;
+ if(obj.tier==='scudetto'){
+  if(wonScudetto){esito='Obiettivo centrato: Scudetto vinto.';delta=20}
+  else if(qualified){esito='Obiettivo mancato: Final Eight raggiunta, ma niente Scudetto.';delta=-8}
+  else{esito='Stagione deludente: obiettivo Scudetto fallito.';delta=-25}
+ }else if(obj.tier==='finaleight'){
+  if(wonScudetto){esito='Stagione da sogno: Scudetto ben oltre le attese!';delta=30}
+  else if(qualified){esito='Obiettivo centrato: Final Eight raggiunta.';delta=15}
+  else{esito='Obiettivo mancato: niente Final Eight.';delta=-15}
+ }else{
+  if(wonScudetto){esito='Impresa storica: Scudetto clamoroso!';delta=35}
+  else if(qualified){esito='Stagione ben oltre le attese: Final Eight raggiunta.';delta=20}
+  else if(pos!=null&&pos<=Math.ceil(n/2)){esito='Obiettivo centrato.';delta=8}
+  else{esito='Stagione sotto le attese.';delta=-10}
+ }
+ career.boardConfidence=Math.max(0,Math.min(100,(career.boardConfidence??60)+delta));
+ career.managerHistory=career.managerHistory||[];
+ const trophiesThisSeason=['scudetti','coppaItalia','cdc','uefa'].filter(k=>(career.honours?.[k]||[]).some(h=>h.year===career.seasonYear&&h.team===career.user));
+ career.managerHistory.push({year:career.seasonYear,team:career.user,position:pos,groupSize:n,qualifiedFinalEight:qualified,finalEightRank:feRank,wonScudetto,objective:obj.label,esito,delta,boardConfidence:career.boardConfidence,trophiesThisSeason});
+ return{pos,n,qualified,wonScudetto,esito,delta,fired:career.boardConfidence<=0};
+}
 function createCareerV10(){
  const name=q('#managerName').value.trim()||'Manager',team=q('#managerTeam').value;const groups=v4DrawGroups(V10.italianIds),ug=groups.A.includes(team)?'A':'B',og=ug==='A'?'B':'A';
- career={manager:name,user:team,round:0,seasonYear:1998,groups,userGroup:ug,otherGroup:og,fixtures:fixtures(groups[ug]),otherFixtures:fixtures(groups[og]),stats:initStats(),pstats:initPlayerStats(),teamStates:{},results:[],leagueDates:v4SeasonSundays(1998),calendar:v4BuildCalendar(1998),honours:{scudetti:[],coppaItalia:[],cdc:[],uefa:[],world:[],euro:[]},qualified:null,europe:legacyEuropeDummy(),v10FinalEight:null};
+ career={manager:name,user:team,round:0,seasonYear:1998,groups,userGroup:ug,otherGroup:og,fixtures:fixtures(groups[ug]),otherFixtures:fixtures(groups[og]),stats:initStats(),pstats:initPlayerStats(),teamStates:{},results:[],leagueDates:v4SeasonSundays(1998),calendar:v4BuildCalendar(1998),honours:{scudetti:[],coppaItalia:[],cdc:[],uefa:[],world:[],euro:[]},qualified:null,europe:legacyEuropeDummy(),v10FinalEight:null,managerHistory:[],boardConfidence:60};
+ career.objective=assignObjectiveV10(team);
  ensureTeamStates(V10.clubIds,career);initCareerCups(career,null);renderSeason();show('season');
 }
 const CUP_SLOTS={italia:[2,6,10,15,19,27],cdc:[1,3,5,7,9,11,16,18,21,23,28],uefa:[1,3,5,7,9,11,16,18,21,23,28]};
@@ -660,7 +706,23 @@ function finalizeFinalEightIfNeeded(){
 }
 function advanceCareerSeasonV10(){
  finalizeFinalEightIfNeeded();const champ=career.v10FinalEight.ranking[0],nextYear=career.seasonYear+1,qualified=career.qualified,groups=v4DrawGroups(V10.italianIds,qualified);
- career.seasonYear=nextYear;career.groups=groups;career.userGroup=groups.A.includes(career.user)?'A':'B';career.otherGroup=career.userGroup==='A'?'B':'A';career.fixtures=fixtures(groups[career.userGroup]);career.otherFixtures=fixtures(groups[career.otherGroup]);career.round=0;career.stats=initStats();career.pstats=initPlayerStats();career.results=[];career.leagueDates=v4SeasonSundays(nextYear);career.calendar=v4BuildCalendar(nextYear);career.europe=legacyEuropeDummy();career.v10FinalEight=null;Object.values(career.teamStates||{}).forEach(st=>{st.subs=0;(st.players||[]).forEach(p=>{p.fitness=100;p.yellowStreak=0;p.injuryGames=Math.max(0,(p.injuryGames||0)-6)})});ensureTeamStates(V10.clubIds,career);initCareerCups(career,qualified);persistCareerV10();renderSeason();show('season');alert(`Nuova stagione ${nextYear}/${String(nextYear+1).slice(-2)}. Campione d'Italia: ${teamLabel(champ)}.`)
+ // Valuta la stagione appena conclusa PRIMA di azzerare classifica/gironi
+ // (evaluateSeasonV10 legge career.stats/career.userGroup/career.v10FinalEight
+ // cosi' come sono a fine stagione).
+ const evalResult=evaluateSeasonV10();
+ career.seasonYear=nextYear;career.groups=groups;career.userGroup=groups.A.includes(career.user)?'A':'B';career.otherGroup=career.userGroup==='A'?'B':'A';career.fixtures=fixtures(groups[career.userGroup]);career.otherFixtures=fixtures(groups[career.otherGroup]);career.round=0;career.stats=initStats();career.pstats=initPlayerStats();career.results=[];career.leagueDates=v4SeasonSundays(nextYear);career.calendar=v4BuildCalendar(nextYear);career.europe=legacyEuropeDummy();career.v10FinalEight=null;Object.values(career.teamStates||{}).forEach(st=>{st.subs=0;(st.players||[]).forEach(p=>{p.fitness=100;p.yellowStreak=0;p.injuryGames=Math.max(0,(p.injuryGames||0)-6)})});ensureTeamStates(V10.clubIds,career);initCareerCups(career,qualified);
+ // Nuovo obiettivo per la stagione che sta per iniziare (il girone appena
+ // ridisegnato puo' cambiare la forza relativa della squadra).
+ career.objective=assignObjectiveV10(career.user);
+ persistCareerV10();
+ if(evalResult?.fired){
+  const teamName=teamLabel(career.user),manager=career.manager;
+  alert(`${manager}, il presidente ti convoca: ${evalResult.esito}\n\nLa fiducia societaria e' crollata a zero. Sei stato esonerato da ${teamName}.\n\nLa tua gestione resta nello storico (Albo d'Oro). Scegli una nuova squadra per iniziare una nuova carriera.`);
+  career=null;show('setup');return;
+ }
+ renderSeason();show('season');
+ const objLine=`Nuovo obiettivo: ${career.objective.label} (fiducia societaria ${career.boardConfidence}%).`;
+ alert(`Nuova stagione ${nextYear}/${String(nextYear+1).slice(-2)}. Campione d'Italia: ${teamLabel(champ)}.${evalResult?`\n\n${evalResult.esito}`:''}\n\n${objLine}`)
 }
 
 /* ------------------------------------------------------------------

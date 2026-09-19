@@ -735,7 +735,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.30</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.31</span></span></div>
 </div>
 <main>
 
@@ -767,7 +767,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.30
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.31
     </div>
   </div>
 </section>
@@ -2806,10 +2806,16 @@ document.addEventListener("DOMContentLoaded",()=>{
     if(id!=='match')window.startMenuMusic?.();else window.stopMenuMusic?.();
   };
 
-  const career=$m("#careerModeBtn");
+  // FIX 2026-09 (39): questa costante si chiamava "career" ed entrava in
+  // conflitto (shadowing) con la variabile globale career (lo stato della
+  // partita/carriera in corso), rendendo impossibile per qualunque codice
+  // in questa closure (incluso il nuovo Albo d'Oro) leggere la vera
+  // carriera: "career" qui dentro era SEMPRE il bottone DOM, mai null ne'
+  // l'oggetto reale. Rinominata in careerBtn.
+  const careerBtn=$m("#careerModeBtn");
   const cups=$m("#cupsModeBtn");
   const back=$m("#cupsBack");
-  if(career) career.onclick=()=>showScreen("setup");
+  if(careerBtn) careerBtn.onclick=()=>showScreen("setup");
   if(cups) cups.onclick=()=>showScreen("cupsMenu");
   if(back) back.onclick=()=>showScreen("mainMenu");
 
@@ -2820,10 +2826,36 @@ document.addEventListener("DOMContentLoaded",()=>{
   };
   if($m("#simpleMessageBack")) $m("#simpleMessageBack").onclick=()=>showScreen("mainMenu");
 
-  if($m("#honoursBtn")) $m("#honoursBtn").onclick=()=>message(
-    "ALBO D'ORO",
-    "<div class='headline'>NESSUNA STAGIONE COMPLETATA</div><p>L'Albo d'Oro si popolerà con Scudetti, Coppe Italia, Supercoppe, CDC e Coppe UEFA conquistate nella carriera.</p>"
-  );
+  // FIX 2026-09 (38): l'Albo d'Oro mostrava SEMPRE lo stesso messaggio
+  // placeholder "nessuna stagione completata", a prescindere da quante
+  // stagioni/trofei la carriera avesse davvero accumulato: career.honours
+  // e career.managerHistory venivano gia' scritti correttamente altrove
+  // (v10-release.js) ma nessuno schermo li leggeva mai. Ora l'Albo d'Oro
+  // mostra davvero la bacheca (trofei vinti dalla TUA gestione) e lo
+  // storico stagione per stagione con l'esito dell'obiettivo e la fiducia
+  // societaria del momento.
+  const renderHonoursHTML=()=>{
+    if(!career)return "<div class='headline'>NESSUNA CARRIERA IN CORSO</div><p>L'Albo d'Oro si popolerà con Scudetti, Coppa Italia, Coppa dei Campioni e Coppa UEFA conquistate nella tua gestione.</p>";
+    const comp={scudetti:'SCUDETTO',coppaItalia:'COPPA ITALIA',cdc:'COPPA DEI CAMPIONI',uefa:'COPPA UEFA'};
+    const mine=k=>(career.honours?.[k]||[]).filter(h=>h.team===career.user);
+    const totalTrophies=Object.keys(comp).reduce((n,k)=>n+mine(k).length,0);
+    const seasons=career.managerHistory?.length||0;
+    const conf=career.boardConfidence??60;
+    const trophyRows=Object.entries(comp).map(([k,label])=>{
+      const list=mine(k);
+      return `<div class="card"><b>${label}</b><br>${list.length?list.map(h=>h.year).join(', '):'<span class="muted">mai vinta</span>'}</div>`;
+    }).join('');
+    const historyRows=(career.managerHistory||[]).slice().reverse().map(s=>
+      `<div class="card">${s.year}/${String(s.year+1).slice(-2)} · ${T(s.team)?.name||s.team}<br>`+
+      `${s.position?`${s.position}ª posizione (girone da ${s.groupSize})`:'Girone non completato'}${s.wonScudetto?' · 🏆 SCUDETTO':s.qualifiedFinalEight?' · Final Eight raggiunta':''}<br>`+
+      `<small>Obiettivo: ${s.objective} · ${s.esito}</small>`
+    ).join('');
+    return `<div class="headline">${escapeHTML(career.manager)} · ${T(career.user)?.name||career.user}</div>
+    <p>${totalTrophies} trofe${totalTrophies===1?'o':'i'} in ${seasons} stagion${seasons===1?'e':'i'} · Fiducia societaria attuale: <b>${conf}%</b></p>
+    <h3 style="margin-top:16px">BACHECA</h3>${trophyRows}
+    <h3 style="margin-top:16px">STORICO STAGIONI</h3>${historyRows||'<p class="muted">Nessuna stagione ancora conclusa.</p>'}`;
+  };
+  if($m("#honoursBtn")) $m("#honoursBtn").onclick=()=>message("ALBO D'ORO",renderHonoursHTML());
   if($m("#optionsBtn")) $m("#optionsBtn").onclick=()=>message(
     "OPZIONI",
     "<div class='headline'>SERIEA 9000 SIM · V7</div><p>Carriere locali multiple con backup automatici, interfaccia responsive, match 2D ed eventi arbitrali visuali.</p><p>Il database rose viene mantenuto separato dalla logica di gioco per consentire la progressiva verifica storica squadra per squadra.</p>"
@@ -3244,7 +3276,7 @@ renderTeamPicker();
 <script src="js/v80-safari-iphone.js?v=23-1"></script>
 <script src="js/v91-final-touches.js?v=12-1"></script>
 <script src="js/v10-data.js?v=3d-1"></script>
-<script src="js/v10-release.js?v=stability-15"></script>
+<script src="js/v10-release.js?v=stability-16"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
 <script src="js/match-coherence.js?v=stability-22"></script>
 <script src="js/kit-profiles.js?v=2"></script>
