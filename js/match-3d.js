@@ -63,6 +63,20 @@ async function kickoffCinematic(label){
     tempo: indipendente da render(), da visualTime, da mode - se il testo e
     l'inquadratura vengono impostati, restano a schermo per 1.5s veri,
     punto. */
+ /* FIX 2026-09 (32) bis: "il rendering è tutto allungato" - visibile SOLO
+    in questa cinematica, mai durante il gioco normale: il sospetto e' che
+    la cinematica parta un istante troppo presto rispetto alla vera
+    dimensione finale del contenitore (appena dopo show("match"), prima che
+    il browser abbia finito layout/transizioni CSS), quindi il primissimo
+    fotogramma proietta con un rapporto larghezza/altezza sbagliato (es. le
+    dimensioni di default del canvas, 300x150, molto piu' larghe che alte)
+    - e poiche' l'intera cinematica dura solo 1.5s, l'utente vede quasi
+    solo quei fotogrammi iniziali "sbagliati" prima che si sarebbero
+    corretti. Due tick di requestAnimationFrame (un giro completo di
+    layout+paint) prima di avviare davvero la cinematica lasciano al
+    contenitore il tempo di assestarsi sulla sua dimensione vera. */
+ await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+ if(mode==='2d')return;
  kickoffCineState={started:visualTime};
  const myKickoffState=kickoffCineState;
  const el=ensureKickoffCaption();el.textContent=label;el.hidden=false;requestAnimationFrame(()=>el.classList.add('show'));
