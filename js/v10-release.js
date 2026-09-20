@@ -512,7 +512,15 @@ function beginStandalone(){
  if(participants.length<FORMATS[key].participants)return alert('Non ci sono abbastanza squadre disponibili per questo torneo.');
  V10.savedCareer=career;career=makeStandaloneCareer(user,participants);V10.standalone=createTournament(key,participants,user);V10.activeTab='overview';saveStandaloneState();renderTournament();show('v10Tournament');
 }
-function leaveStandalone(){saveStandaloneState();career=V10.savedCareer;V10.savedCareer=null;V10.standalone=null;V10.matchContext=null;applyCompetitionTheme('');rebuildCupsMenu();show('cupsMenu')}
+// FIX 2026-09 (52): "vecchio richiamo" - clearStandaloneState() esisteva
+// ma non veniva mai chiamata da nessuna parte, quindi un torneo amichevole
+// standalone concluso (s.completed===true) restava comunque salvato in
+// localStorage per sempre: al rientro nel menu coppe, rebuildCupsMenu()
+// (che NON controlla s.completed) offriva un "CONTINUA TORNEO" su un
+// torneo gia' finito, senza piu' partite da giocare (vicolo cieco). Ora si
+// salva lo stato solo se il torneo e' ancora in corso, altrimenti si
+// libera lo slot di salvataggio.
+function leaveStandalone(){if(V10.standalone&&!V10.standalone.completed)saveStandaloneState();else clearStandaloneState();career=V10.savedCareer;V10.savedCareer=null;V10.standalone=null;V10.matchContext=null;applyCompetitionTheme('');rebuildCupsMenu();show('cupsMenu')}
 function continueStandalone(){const state=readStandaloneState();if(!state)return;V10.savedCareer=career;career=makeStandaloneCareer(state.user,state.participants);if(state.teamStates)career.teamStates=state.teamStates;if(state.pstats)career.pstats=state.pstats;V10.standalone=state;V10.selectedCompetition=state.key;V10.activeTab='overview';ensureTeamStates(state.participants,career);renderTournament();show('v10Tournament')}
 
 /* ------------------------------------------------------------------

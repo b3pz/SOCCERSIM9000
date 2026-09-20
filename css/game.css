@@ -6376,6 +6376,19 @@ button,input,select{font-family:var(--s9-font-ui)!important}
    della pagina (visibili solo stemmi e la riga verde del vincitore, che
    QUELLA si' era stata sistemata). Ora tutto il testo della card e' chiaro.
 */
+/* FIX 2026-09 (52): stesso bug della nota sopra ma nei GIRONI (Coppa dei
+   Campioni/UEFA/Mondiale/Europeo dentro #seasonPage), non nel tabellone a
+   eliminazione: .v10-group tr.qual aveva ancora lo sfondo chiaro pensato
+   per la card chiara originale (background:#dce8c8, vedi regola base piu'
+   sopra nel file), ma qui il testo delle celle viene forzato chiaro da
+   "#seasonPage :is(th,td)" - risultato quasi illeggibile sulle prime due
+   posizioni di ogni girone. Stesso trattamento gia' usato per la
+   classifica di Serie A (tr.qualify piu' sotto): marcatore verde scuro
+   con testo chiaro, mai un blocco chiaro dietro testo chiaro. */
+#seasonPage .v10-group{color:#e8edf3}
+#seasonPage .v10-group tr.qual td{background:#0b2c2c!important;color:#f3faf5!important}
+#seasonPage .v10-group tr.qual td:first-child{border-left:4px solid #62d38d!important;color:#7fe3a3!important}
+#seasonPage .v10-group tr.user td{background:#302b1d!important;color:#fff8df!important;font-weight:900!important}
 #seasonPage .v10-tie{color:#e8edf3}
 #seasonPage .v10-tie-vs{color:#9fb0c4}
 #seasonPage .v10-tie-side{color:#e8edf3}

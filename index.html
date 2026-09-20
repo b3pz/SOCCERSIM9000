@@ -779,7 +779,7 @@ main{max-width:none!important;padding:0!important}
 @media(max-height:500px){#mainMenu #cupsModeBtn .cups-mode-icon{width:40px!important;height:36px!important}}
 </style>
 
-<link rel="stylesheet" href="css/game.css?v=tactics-35">
+<link rel="stylesheet" href="css/game.css?v=tactics-36">
 <link rel="stylesheet" href="css/v106-match-experience.css?v=2">
 </head>
 <body>
@@ -806,7 +806,7 @@ main{max-width:none!important;padding:0!important}
   <img class="title-logo-img" src="assets/logo/seriea9000_logo.png" alt="SerieA 9000 SIM - Il Campionato dei Campioni">
   <button class="press-start" id="pressStart" type="button" disabled onclick="startSerieA9000()" aria-label="Avvia SerieA 9000 SIM"><span class="intro-play" aria-hidden="true">▶</span><span>PREMI START</span></button>
   </div>
-  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.48</span></span></div>
+  <div class="title-footer"><span class="intro-tricolore" aria-hidden="true"></span><span class="credit-b3pz">Sviluppato e ideato da <b>b3pZ</b> · <span id="s9BuildVersion">versione 2.49</span></span></div>
 </div>
 <main>
 
@@ -840,7 +840,7 @@ main{max-width:none!important;padding:0!important}
     </div>
 
     <div class="prototype-note">
-      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.48
+      V7.4 ITALIAN ROSTERS · 32 ROSE ITALIANE NOMINALI · RATING PROVVISORI · SALVATAGGI MULTIPLI · SVILUPPATO E IDEATO DA b3pZ · VERSIONE 2.49
     </div>
   </div>
 </section>
@@ -1355,10 +1355,6 @@ function getTeamColors(teamId){
  const m=teamMeta[teamId];
  return m?.colors || ["#444","#ddd"];
 }
-function hexMixColor(colors){
- return colors?.[0] || "#444";
-}
-
 let selectedTeamIndex=0, audioCtx=null, crowdNode=null, crowdGain=null;
 function audio(){
  if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
@@ -1721,47 +1717,17 @@ $("#createCareer").onclick=()=>{
  renderSeason();show("season")
 }
 
-function rowSort(){return teams.map(t=>({t,s:career.stats[t.id]})).sort((a,b)=>b.s.pts-a.s.pts||((b.s.gf-b.s.ga)-(a.s.gf-a.s.ga))||b.s.gf-a.s.gf)}
-function nextUserGame(){
- if(career.round>=career.fixtures.length)return null;
- return career.fixtures[career.round].find(g=>g.includes(career.user))
-}
-function renderSeason(){
- let t=T(career.user),ng=nextUserGame();
- $("#headerSub").textContent=`${career.manager} · ${t.name} ${t.season}`;
- $("#headerRight").textContent=`Giornata ${career.round}/${career.fixtures.length}`;
- $("#managerSummary").innerHTML=`<b>Manager:</b> ${escapeHTML(career.manager)}<br><b>Squadra:</b> ${t.name} ${t.season}<br><b>Vice:</b> ${t.coach}`;
- $("#seasonStatus").innerHTML=career.round>=career.fixtures.length?`Stagione conclusa`:`Prossima giornata: ${career.round+1}`;
- renderSeasonView("next");
-}
+// FIX 2026-09 (52): rowSort/nextUserGame/renderSeason/renderSeasonView
+// erano dichiarate qui E di nuovo piu' sotto (righe ~3459/3551/3578/3668):
+// in JS una dichiarazione "function" successiva nello stesso scope
+// sovrascrive sempre la precedente, quindi queste versioni "v1" (girone
+// unico, classifica singola, nessun sistema di coppe/Final Eight) non
+// sono MAI state eseguibili - erano "vecchi richiami" morti rimasti dal
+// primo prototipo. Il binder dei bottoni [data-view] qui sotto invece e'
+// vivo (chiama renderSeasonView per nome, quindi risolve sempre alla
+// versione attuale al momento del click) ed e' l'unico punto del
+// codebase che aggancia quei bottoni: va tenuto.
 document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-view]").forEach(x=>x.classList.remove("active"));b.classList.add("active");renderSeasonView(b.dataset.view)})
-function renderSeasonView(v){
- const seasonEl=document.getElementById("season");
- if(seasonEl){seasonEl.classList.toggle("v51-calendar-bg",v==="calendar");seasonEl.classList.toggle("v51-europe-bg",v==="europe");}
- let c=$("#seasonContent");
- if(v==="next"){
-  let g=nextUserGame();
-  if(!g){c.innerHTML="<h3>STAGIONE TERMINATA</h3>";return}
-  let h=T(g[0]),a=T(g[1]);
-  c.innerHTML=`<h2>PROSSIMA PARTITA</h2><div class="matchhead">${h.name} ${h.season} vs ${a.name} ${a.season}</div><p>Giornata ${career.round+1}</p><button class="primary" id="goPrematch">PREPARA PARTITA</button> <button type="button" id="seasonSimMatch">SIMULA ▶</button>`;
-  $("#goPrematch").onclick=()=>openPrematch(g);
-  $("#seasonSimMatch").onclick=()=>{if(confirm(`Simulare ${h.name} ${h.season} vs ${a.name} ${a.season} senza scendere in campo?`))s9SimulateUserMatch()};
- }
- if(v==="results"){
-  c.innerHTML="<h2>RISULTATI</h2>"+(career.results.length?career.results.slice().reverse().map(r=>`<div class="card">${T(r.h).name} ${T(r.h).season} ${r.hg} - ${r.ag} ${T(r.a).name} ${T(r.a).season} <span class="muted">G${r.round}</span></div>`).join(""):"Nessuna partita giocata.");
- }
- if(v==="table"){
-  c.innerHTML="<h2>CLASSIFICA</h2><table><tr><th>#</th><th>Squadra</th><th>Pt</th><th>G</th><th>GF</th><th>GS</th></tr>"+
-  rowSort().map((r,i)=>`<tr><td>${i+1}</td><td>${r.t.name} ${r.t.season}</td><td><b>${r.s.pts}</b></td><td>${r.s.p}</td><td>${r.s.gf}</td><td>${r.s.ga}</td></tr>`).join("")+"</table>";
- }
- if(v==="scorers"||v==="assists"){
-  let key=v==="scorers"?"goals":"assists",title=v==="scorers"?"MARCATORI":"ASSIST";
-  let list=Object.values(career.pstats).filter(p=>p[key]>0).sort((a,b)=>b[key]-a[key]).slice(0,20);
-  c.innerHTML=list.length ? (`<h2>${title}</h2><table><tr><th>#</th><th>Giocatore</th><th>Squadra</th><th>${title}</th></tr>`+
-  list.map((p,i)=>`<tr><td>${i+1}</td><td>${p.name}</td><td>${T(p.team).name}</td><td><b>${p[key]}</b></td></tr>`).join("")+"</table>") :
-  `<h2>${title}</h2><p class="muted">Ancora nessun dato: compariranno solo i giocatori con almeno ${key==="goals"?"un gol":"un assist"}.</p>`;
- }
-}
 function openPrematch(g){
  selectedKits={home:"home",away:"away"};
  current={fixture:g}; let st=career.teamStates[career.user],t=T(career.user),opp=T(g[0]===career.user?g[1]:g[0]);
@@ -3598,9 +3564,17 @@ function renderHub(){renderHubNext();renderHubStandings();renderHubCalendarStrip
 function renderHubNext(){
  const el=$("#hubNext"),g=nextUserGame();
  if(!g){
-   el.innerHTML=`<div class="hub-kicker">STAGIONE REGOLARE CONCLUSA</div><div class="hub-empty">Prime 4 di ogni girone → Playoff Scudetto.</div>
-   <button class="primary" id="hubNextSeason">SIMULA PLAYOFF E PASSA ALLA STAGIONE SUCCESSIVA ▶</button>`;
-   $("#hubNextSeason").onclick=v4CloseSeasonAndAdvance;
+   // FIX 2026-09 (52): questo bottone veniva agganciato a
+   // v4CloseSeasonAndAdvance (vecchio playoff Scudetto 1v1 A/B, mai piu'
+   // usato da quando c'e' la Final Eight) - ma ad ogni giro renderSeason()
+   // lo risistemava comunque su renderSeasonView('next') poco dopo (vedi
+   // js/presentation.js), quindi il click sul vecchio flusso non scattava
+   // mai davvero: era un "vecchio richiamo" morto e fragile (bastava che
+   // presentation.js non caricasse per rompersi). Ora il bottone punta
+   // direttamente al flusso vero fin dal primo render.
+   el.innerHTML=`<div class="hub-kicker">STAGIONE REGOLARE CONCLUSA</div><div class="hub-empty">Prime 4 di ogni girone → Final Eight.</div>
+   <button class="primary" id="hubNextSeason">APRI FINALE DI STAGIONE ▶</button>`;
+   $("#hubNextSeason").onclick=()=>renderSeasonView('next');
    return;
  }
  const h=T(g[0]),a=T(g[1]),d=career.leagueDates[career.round];
@@ -3701,35 +3675,6 @@ function renderSeasonView(v){
  }
 }
 
-function v4SimKnockout(a,b){
- const A=T(a),B=T(b);const pa=A?.strength||80,pb=B?.strength||80;
- return Math.random() < pa/(pa+pb) ? a : b;
-}
-function v4CloseSeasonAndAdvance(){
- // Playoff Scudetto prototipali: 1A-4B,2A-3B,1B-4A,2B-3A.
- const A=v4Standings("A").slice(0,4).map(x=>x.t.id),B=v4Standings("B").slice(0,4).map(x=>x.t.id);
- const q=[[A[0],B[3]],[A[1],B[2]],[B[0],A[3]],[B[1],A[2]]];
- const qw=q.map(([a,b])=>v4SimKnockout(a,b));
- const ql=q.map(([a,b],i)=>qw[i]===a?b:a);
- const s1=v4SimKnockout(qw[0],qw[1]),s2=v4SimKnockout(qw[2],qw[3]);
- const champ=v4SimKnockout(s1,s2);
- career.honours.scudetti.push({year:career.seasonYear,team:champ});
- if(career.europe.cdc.winner)career.honours.cdc.push({year:career.seasonYear,team:career.europe.cdc.winner});
- if(career.europe.uefa.winner)career.honours.uefa.push({year:career.seasonYear,team:career.europe.uefa.winner});
- career.qualified={cdc:qw,uefa:ql};
- const nextYear=career.seasonYear+1;
- const groups=v4DrawGroups(teams.map(t=>t.id),career.qualified);
- career.seasonYear=nextYear;career.groups=groups;
- career.userGroup=groups.A.includes(career.user)?"A":"B";career.otherGroup=career.userGroup==="A"?"B":"A";
- career.fixtures=fixtures(groups[career.userGroup]);career.otherFixtures=fixtures(groups[career.otherGroup]);
- career.round=0;career.stats=initStats();career.pstats=initPlayerStats();career.results=[];
- career.leagueDates=v4SeasonSundays(nextYear);career.calendar=v4BuildCalendar(nextYear);
- teams.forEach(t=>career.teamStates[t.id]=initTeamState(t));
- v4InitEurope();
- renderSeason();renderSeasonView("results");
- alert(`Nuova stagione ${nextYear}/${String(nextYear+1).slice(-2)}. Campione precedente: ${T(champ).name} ${T(champ).season}`);
-}
-
 // Stemmi: non mostrare mai un logo di un'altra stagione.
 // Fiorentina 98/99 usa fallback testuale finché non viene fornito il suo stemma dedicato.
 // Pentagono delle forze: derivato dalla rosa vera (portiere/difesa/centrocampo/
@@ -3805,7 +3750,7 @@ renderTeamPicker();
 <script src="js/v80-safari-iphone.js?v=23-1"></script>
 <script src="js/v91-final-touches.js?v=12-1"></script>
 <script src="js/v10-data.js?v=3d-1"></script>
-<script src="js/v10-release.js?v=stability-23"></script>
+<script src="js/v10-release.js?v=stability-24"></script>
 <script src="js/v104-navigation.js?v=11-1"></script>
 <script src="js/match-coherence.js?v=stability-23"></script>
 <script src="js/kit-profiles.js?v=2"></script>
@@ -3813,7 +3758,7 @@ renderTeamPicker();
 <script src="js/football-3d.js?v=stability-14"></script>
 <script src="js/tv-channels.js?v=3"></script>
 <script src="js/broadcast-anchors.js?v=5"></script>
-<script src="js/kit-presentation.js?v=1"></script>
+<script src="js/kit-presentation.js?v=2"></script>
 <script src="js/match-3d.js?v=stability-40"></script>
 <script src="js/competition-presentation.js?v=stadium-identity-3"></script>
 <script src="js/match-intro.js?v=stability-16"></script>
