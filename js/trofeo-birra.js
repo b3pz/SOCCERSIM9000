@@ -116,7 +116,7 @@ function renderHub(){
  // CPU, oltre a "SIMULA PARTITA ▶" (che le fa comunque disputare per intero,
  // solo senza controlli utente) ora c'e' anche un risultato istantaneo, senza
  // aprire per niente la schermata partita.
- const upcoming=!state.done&&state.nextMatch?`<div class="s9-trofeo-next"><div class="s9-picker-mini-label">PROSSIMA PARTITA · ${state.matchNum===3?'FINALE':'PARTITA '+state.matchNum}${myMatch?' · 🎮 GIOCHI TU':' · CPU vs CPU'}</div><div class="s9-trofeo-vs">${crest(state.nextMatch.h)} <b>${teamLabel(state.nextMatch.h)}</b> vs <b>${teamLabel(state.nextMatch.a)}</b> ${crest(state.nextMatch.a)}</div><div class="s9-trofeo-next-actions"><button class="primary" id="trofeoPlayNext">${myMatch?'SCENDI IN CAMPO ▶':'SIMULA PARTITA ▶'}</button>${myMatch?'':'<button type="button" id="trofeoSimResult">RISULTATO ISTANTANEO ▶</button>'}</div></div>`:'';
+ const upcoming=!state.done&&state.nextMatch?`<div class="s9-trofeo-next"><div class="s9-picker-mini-label">PROSSIMA PARTITA · ${state.matchNum===3?'FINALE':'PARTITA '+state.matchNum}${myMatch?` · ${S9Icon('controller')} GIOCHI TU`:' · CPU vs CPU'}</div><div class="s9-trofeo-vs">${crest(state.nextMatch.h)} <b>${teamLabel(state.nextMatch.h)}</b> vs <b>${teamLabel(state.nextMatch.a)}</b> ${crest(state.nextMatch.a)}</div><div class="s9-trofeo-next-actions"><button class="primary" id="trofeoPlayNext">${myMatch?'SCENDI IN CAMPO ▶':'SIMULA PARTITA ▶'}</button>${myMatch?'':'<button type="button" id="trofeoSimResult">RISULTATO ISTANTANEO ▶</button>'}</div></div>`:'';
  const trophyBanner=state.done?`<div class="s9-trofeo-trophy"><img src="assets/competition_buttons/trofeo_birra_goretti.png" alt="Trofeo Birra Goretti"><div><div class="s9-trofeo-trophy-kicker">CAMPIONE DEL TRIANGOLARE</div><h2>${teamLabel(state.champion)}</h2></div></div><button class="primary" id="trofeoNew">NUOVO TRIANGOLARE ▶</button>`:'';
  hub.querySelector('.panel').innerHTML=`
   <div class="s9-exhibition-kicker">TROFEO BIRRA GORETTI</div>
@@ -335,7 +335,7 @@ function renderSetup(){
    ${slotHTML(1,'CPU',false)}
    ${slotHTML(2,'CPU',false)}
   </div>
-  <div class="s9-exhibition-actions"><button type="button" id="trofeoSetupBack">← MENU</button><button type="button" id="trofeoRandom">🎲 CASUALE</button><button type="button" class="primary" id="trofeoStart">SORTEGGIO E INIZIO ▶</button></div>
+  <div class="s9-exhibition-actions"><button type="button" id="trofeoSetupBack">← MENU</button><button type="button" id="trofeoRandom">${S9Icon('dice')} CASUALE</button><button type="button" class="primary" id="trofeoStart">SORTEGGIO E INIZIO ▶</button></div>
   <div id="trofeoSetupError" role="alert"></div>
  `;
  function ensureDistinct(slot){

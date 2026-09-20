@@ -28,9 +28,9 @@ function calendarHTML(selected){
   const date=new Date(y,m,i-offset+1),games=byDay.get(dateKey(date))||[],outside=date.getMonth()!==m;
   return `<div class="s9-month-day${outside?' is-outside':''}${games.some(g=>g.next)?' is-next':''}" aria-label="${v4FmtDate(date)}"><span class="s9-month-number">${date.getDate()}</span>${games.map(g=>{
    const opponent=g.h===career.user?g.a:g.h,away=g.a===career.user,name=opponent?T(opponent)?.name:'Avversaria da definire';
-   return `<div class="s9-calendar-fixture" title="${esc(g.label+' · '+name+(opponent?(away?' · Trasferta':' · In casa'):''))}">${opponent?`<img src="${crest(opponent)}" alt="${esc(name)}"><span class="s9-calendar-venue" aria-label="${away?'Trasferta':'In casa'}">${away?'✈':'⌂'}</span>`:`<span class="s9-calendar-cup" aria-label="${esc(g.label)} · Avversaria da definire">COPPA</span>`}<small>${g.score||esc(opponent?name:g.label)}</small></div>`;
+   return `<div class="s9-calendar-fixture" title="${esc(g.label+' · '+name+(opponent?(away?' · Trasferta':' · In casa'):''))}">${opponent?`<img src="${crest(opponent)}" alt="${esc(name)}"><span class="s9-calendar-venue" aria-label="${away?'Trasferta':'In casa'}">${away?S9Icon('plane'):'⌂'}</span>`:`<span class="s9-calendar-cup" aria-label="${esc(g.label)} · Avversaria da definire">COPPA</span>`}<small>${g.score||esc(opponent?name:g.label)}</small></div>`;
   }).join('')}</div>`;
- }).join('')}</div><div class="s9-calendar-legend"><span>⌂ IN CASA</span><span>✈ IN TRASFERTA</span><span class="s9-calendar-next-key">PROSSIMO TURNO</span></div></article>`;
+ }).join('')}</div><div class="s9-calendar-legend"><span>⌂ IN CASA</span><span>${S9Icon('plane')} IN TRASFERTA</span><span class="s9-calendar-next-key">PROSSIMO TURNO</span></div></article>`;
 }
 function renderCalendar(){
  if(calendarCareer!==career){month=null;calendarCareer=career}

@@ -68,7 +68,7 @@ function boot(){
   <button type="button" class="s9-wizard-dot" data-step="1"><span class="s9-wizard-num">1</span><small>Competizione</small></button>
   <button type="button" class="s9-wizard-dot" data-step="2"><span class="s9-wizard-num">2</span><small>Squadre</small></button>
   <button type="button" class="s9-wizard-dot" data-step="3"><span class="s9-wizard-num">3</span><small>Stadio</small></button>
-  <button type="button" id="exhibitionRandom" class="s9-wizard-random">🎲 CASUALE</button>
+  <button type="button" id="exhibitionRandom" class="s9-wizard-random">${S9Icon('dice')} CASUALE</button>
  </div>
  <form id="exhibitionForm">
  <div class="s9-wizard-step" data-step="1">
@@ -156,8 +156,8 @@ function boot(){
   q('#stadiumCounter').textContent=(stadiumIndex+1)+' / '+stadiumList.length;
   q('#exhibitionStadium').value=stadiumList[stadiumIndex];
   const prev=stadiumList[(stadiumIndex-1+stadiumList.length)%stadiumList.length],next=stadiumList[(stadiumIndex+1)%stadiumList.length];
-  q('#stadiumPrevPreview').innerHTML=`<span>🏟</span><small>${prev}</small>`;
-  q('#stadiumNextPreview').innerHTML=`<span>🏟</span><small>${next}</small>`;
+  q('#stadiumPrevPreview').innerHTML=`<span>${S9Icon('stadium')}</span><small>${prev}</small>`;
+  q('#stadiumNextPreview').innerHTML=`<span>${S9Icon('stadium')}</span><small>${next}</small>`;
   renderStadiumPreview();
  }
  // Anteprima dello stesso profilo usato in partita: struttura, club di casa

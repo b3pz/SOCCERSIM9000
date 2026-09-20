@@ -13,16 +13,16 @@ const avgOf=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 
 const FOCI=[
- {key:'fisico',icon:'💪',label:'PREPARAZIONE FISICA',desc:'Scatti, resistenza, il preparatore atletico che urla numeri a caso.',
+ {key:'fisico',icon:S9Icon('muscle'),label:'PREPARAZIONE FISICA',desc:'Scatti, resistenza, il preparatore atletico che urla numeri a caso.',
   outcomes:['La squadra torna dal campo distrutta ma un filo più tonica.','Il preparatore atletico dichiara “ottimo lavoro”, come ogni settimana, a prescindere dal risultato.','Qualche gamba pesante, ma la condizione generale migliora.'],
   apply(p){p.fitness=clamp((p.fitness??100)+rand(6,11),0,100)}},
- {key:'tecnico',icon:'⚽',label:'LAVORO TECNICO',desc:'Torelli, passaggi corti, qualche pallonetto finito sulla tribuna.',
+ {key:'tecnico',icon:S9Icon('ball'),label:'LAVORO TECNICO',desc:'Torelli, passaggi corti, qualche pallonetto finito sulla tribuna.',
   outcomes:['Buona seduta: due triangolazioni su tre sono riuscite, non male per essere lunedì.','Il vice allenatore ha disegnato uno schema nuovo. Nessuno lo ha capito, ma si sono divertiti.','Tecnica in crescita, anche se il rigorista si è fatto parare tre rigori su tre dal secondo portiere.'],
   apply(p){p.fitness=clamp((p.fitness??100)+rand(2,5),0,100);p.morale=clamp((p.morale??50)+rand(1,4),0,100)}},
- {key:'mentale',icon:'🔥',label:'CARICA MENTALE',desc:'Discorso motivazionale del mister e playlist ad alto volume in spogliatoio.',
+ {key:'mentale',icon:S9Icon('flame'),label:'CARICA MENTALE',desc:'Discorso motivazionale del mister e playlist ad alto volume in spogliatoio.',
   outcomes:['Il mister ha citato tre film sportivi diversi nello stesso discorso. Ha funzionato comunque.','Squadra compatta, capitano in prima fila ad applaudire con convinzione sospetta.','Musica a palla in spogliatoio: il gruppo sembra crederci davvero, per ora.'],
   apply(p){p.morale=clamp((p.morale??50)+rand(8,14),0,100)}},
- {key:'recupero',icon:'🧊',label:'SCARICO E RECUPERO',desc:'Piscina, massaggi, il fisioterapista che finisce il ghiaccio prima ancora di iniziare.',
+ {key:'recupero',icon:S9Icon('ice'),label:'SCARICO E RECUPERO',desc:'Piscina, massaggi, il fisioterapista che finisce il ghiaccio prima ancora di iniziare.',
   outcomes:['Bagno in piscina e defaticamento: la squadra respira meglio già da domani.','Il magazziniere ha ordinato più ghiaccio della settimana scorsa. Imparerà, prima o poi.','Recupero completato, qualche acciacco in meno da gestire per la prossima gara.'],
   apply(p){p.fitness=clamp((p.fitness??100)+rand(10,16),0,100);if(p.injuryGames)p.injuryGames=Math.max(0,p.injuryGames-2)}}
 ];
@@ -65,7 +65,7 @@ function renderTraining(){
  <div class="training-grid">
  ${FOCI.map(f=>`<div class="training-card"><h3>${f.icon} ${f.label}</h3><p>${f.desc}</p><button type="button" data-train="${f.key}" ${done?'disabled':''}>ALLENA ▶</button></div>`).join('')}
  </div>
- ${t?.log?.length?`<h3 class="training-log-title">ULTIMI ALLENAMENTI</h3><div class="training-log">${t.log.map(l=>{const f=FOCI.find(x=>x.key===l.focus);return `<div class="training-log-row">G${l.round+1} · <b>${f?f.icon+' '+f.label:l.focus}</b>${l.injured?` · ⚠ ${l.injured} accusa un piccolo problema fisico`:''}<br><small>${l.text}</small></div>`}).join('')}</div>`:''}
+ ${t?.log?.length?`<h3 class="training-log-title">ULTIMI ALLENAMENTI</h3><div class="training-log">${t.log.map(l=>{const f=FOCI.find(x=>x.key===l.focus);return `<div class="training-log-row">G${l.round+1} · <b>${f?f.icon+' '+f.label:l.focus}</b>${l.injured?` · ${S9Icon('warning')} ${l.injured} accusa un piccolo problema fisico`:''}<br><small>${l.text}</small></div>`}).join('')}</div>`:''}
  `;
 }
 document.addEventListener('click',ev=>{

@@ -706,7 +706,7 @@ function cupFlavor(key,seed){
 }
 function careerCupSummary(state){
  const userIn=state.participants.includes(career.user),m=userIn?nextUserTournamentMatch(state):null;
- return `<div class="euro-card"><h3>${state.name}</h3><p class="euro-flavor">» ${cupFlavor(state.key,state.key+(career?.seasonYear||''))}</p><div class="euro-stage">${state.completed?'CONCLUSA':stageLabel(state.phase)}</div>${state.completed?`<h2>🏆 ${teamLabel(state.champion)}</h2>`:userIn?(m?`<div class="euro-match">Prossima: ${teamLabel(m.h)} vs ${teamLabel(m.a)}</div><button class="primary" data-careercup="${state.key}" ${cupSlot(state)>career.round?'disabled':''}>${v4FmtDate(cupDate(state))} · GIOCA PROSSIMA ▶</button>`:`<div class="euro-match">In attesa del turno successivo.</div>`):`<div class="euro-match">La tua squadra non partecipa. Competizione simulata.</div>`}<button type="button" data-cup-bracket="${state.key}">APRI TABELLONE / RISULTATI ▸</button></div>`;
+ return `<div class="euro-card"><h3>${state.name}</h3><p class="euro-flavor">» ${cupFlavor(state.key,state.key+(career?.seasonYear||''))}</p><div class="euro-stage">${state.completed?'CONCLUSA':stageLabel(state.phase)}</div>${state.completed?`<h2>${S9Icon('trophy')} ${teamLabel(state.champion)}</h2>`:userIn?(m?`<div class="euro-match">Prossima: ${teamLabel(m.h)} vs ${teamLabel(m.a)}</div><button class="primary" data-careercup="${state.key}" ${cupSlot(state)>career.round?'disabled':''}>${v4FmtDate(cupDate(state))} · GIOCA PROSSIMA ▶</button>`:`<div class="euro-match">In attesa del turno successivo.</div>`):`<div class="euro-match">La tua squadra non partecipa. Competizione simulata.</div>`}<button type="button" data-cup-bracket="${state.key}">APRI TABELLONE / RISULTATI ▸</button></div>`;
 }
 function renderCareerCups(){
  const c=q('#seasonContent');if(!career.v10Cups)initCareerCups(career,career.qualified);
@@ -1156,12 +1156,12 @@ function finalizeTeamCondition(m,id,visible){
  /* Three yellows in three consecutive team matches => one-match ban. A red always bans the next match. */
  for(const p of st.players){
    const mins=playedMinutesFrom(m,tr,p.id),red=!!tr.reds[p.id],yellow=(tr.yellows[p.id]||0)>0;
-   if(red){p.suspensionGames=Math.max(p.suspensionGames,1);p.yellowStreak=0;notes.push(`🟥 ${p.name}: squalificato per la prossima partita`);continue}
+   if(red){p.suspensionGames=Math.max(p.suspensionGames,1);p.yellowStreak=0;notes.push(`${S9Icon('cardred')} ${p.name}: squalificato per la prossima partita`);continue}
    if(mins>0){
-     if(yellow){p.yellowStreak=(p.yellowStreak||0)+1;if(p.yellowStreak>=3){p.suspensionGames=Math.max(p.suspensionGames,1);p.yellowStreak=0;notes.push(`🟨 ${p.name}: 3 gialli consecutivi · squalificato per la prossima partita`)}}
+     if(yellow){p.yellowStreak=(p.yellowStreak||0)+1;if(p.yellowStreak>=3){p.suspensionGames=Math.max(p.suspensionGames,1);p.yellowStreak=0;notes.push(`${S9Icon('cardyellow')} ${p.name}: 3 gialli consecutivi · squalificato per la prossima partita`)}}
      else p.yellowStreak=0;
    }else if(!yellow){p.yellowStreak=0}
-   if(tr.newInjuries[p.id]){const inf=tr.newInjuries[p.id];notes.push(`✚ ${p.name}: ${inf.label} · ${inf.games} ${inf.games===1?'gara':'gare'} di recupero`)}
+   if(tr.newInjuries[p.id]){const inf=tr.newInjuries[p.id];notes.push(`${S9Icon('plus')} ${p.name}: ${inf.label} · ${inf.games} ${inf.games===1?'gara':'gare'} di recupero`)}
  }
  return notes;
 }
@@ -1323,7 +1323,7 @@ function renderV105Postmatch(){
  eventsBox.innerHTML=`<div class="v105-events-grid">
   <section><h4>MARCATORI</h4>${list(goals,e=>`<div class="v105-event-row"><b>${e.min}'</b><span>${escapeHTML(e.player?.name||'—')}</span></div>`,'Nessun gol')}</section>
   <section><h4>ASSIST</h4>${list(assists,e=>`<div class="v105-event-row"><b>${e.min}'</b><span>${escapeHTML(e.assist?.name||'—')}</span></div>`,'Nessun assist')}</section>
-  <section><h4>CARTELLINI</h4>${list(cards,e=>`<div class="v105-event-row"><b>${e.min}'</b><span>${e.type==='red'?'🟥':'🟨'} ${escapeHTML(e.player?.name||'—')}</span></div>`,'Nessun cartellino')}</section>
+  <section><h4>CARTELLINI</h4>${list(cards,e=>`<div class="v105-event-row"><b>${e.min}'</b><span>${e.type==='red'?S9Icon('cardred'):S9Icon('cardyellow')} ${escapeHTML(e.player?.name||'—')}</span></div>`,'Nessun cartellino')}</section>
   <section><h4>INFORTUNI</h4>${list(injuries,e=>`<div class="v105-event-row"><b>${e.min}'</b><span>${escapeHTML(e.player?.name||'—')}${e.injuryLabel?` · ${escapeHTML(e.injuryLabel)}`:''}</span></div>`,'Nessun infortunio')}</section>
  </div>${narrativeSection}`;
 }

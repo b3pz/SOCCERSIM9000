@@ -54,7 +54,7 @@ function headlineFor(r){
 function renderNews(results,limit){
  const items=(results||[]).slice(-1*(limit||10)).reverse();
  if(!items.length)return '<p class="muted">Nessuna notizia: gioca qualche giornata.</p>';
- return items.map(r=>`<div class="card">📰 ${headlineFor(r)} <span class="muted">G${r.round}</span></div>`).join('');
+ return items.map(r=>`<div class="card">${S9Icon('newspaper')} ${headlineFor(r)} <span class="muted">G${r.round}</span></div>`).join('');
 }
 
 window.S9CareerNews={renderNews,headlineFor};
